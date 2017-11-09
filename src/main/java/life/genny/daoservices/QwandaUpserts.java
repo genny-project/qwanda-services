@@ -23,6 +23,7 @@ public class QwandaUpserts {
   public QwandaUpserts(final EntityManager em) {
     this.em = em;
   }
+
   public Ask findAskById(final Long id) {
     return em.find(Ask.class, id);
   }
@@ -191,7 +192,6 @@ public class QwandaUpserts {
     } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
       Long id = insert(be);
       return be;
-    }
-    
+    }  
   }
 }

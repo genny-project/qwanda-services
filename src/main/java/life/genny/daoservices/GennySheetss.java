@@ -40,7 +40,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 
-public class GennySheets {
+public class GennySheetss {
   // public static final String SHEETID = System.getenv("GOOGLE_SHEETID");
   // public static final String SHEETID = "1VSXJUn8_BHG1aW0DQrFDnvLjx_jxcNiD33QzqO5D-jc";
 
@@ -82,7 +82,7 @@ public class GennySheets {
 
   private Sheets service;
 
-  public GennySheets(final String clientSecret, final String sheetId, final File dataStoreDir) {
+  public GennySheetss(final String clientSecret, final String sheetId, final File dataStoreDir) {
     this.clientSecret = clientSecret;
     this.sheetId = sheetId;
     this.dataStoreDir = dataStoreDir;
@@ -100,7 +100,7 @@ public class GennySheets {
 
   }
 
-  public GennySheets(final String clientSecret, final String sheetId, final File dataStoreDir,
+  public GennySheetss(final String clientSecret, final String sheetId, final File dataStoreDir,
       final String appName) {
     this(clientSecret, sheetId, dataStoreDir);
     this.appName = appName;

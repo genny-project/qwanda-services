@@ -1,17 +1,20 @@
 package life.genny.daoservices;
 
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
-import org.hibernate.exception.ConstraintViolationException;
-import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.keycloak.KeycloakSecurityContext;
-import org.mortbay.log.Log;
+import static java.lang.System.out;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
@@ -21,24 +24,13 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import javax.ws.rs.core.MultivaluedMap;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.invoke.MethodHandles;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Base64.Decoder;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TimeZone;
-import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
+import org.hibernate.exception.ConstraintViolationException;
+import org.keycloak.KeycloakSecurityContext;
+import org.mortbay.log.Log;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
@@ -51,27 +43,34 @@ import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.Company;
-import life.genny.qwanda.entity.Group;
 import life.genny.qwanda.entity.Person;
 import life.genny.qwanda.entity.Product;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.validation.Validation;
 
-
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
  *
  * @author Adam Crow
  */
-@ApplicationScoped
-public class BaseEntityService {
 
+// @Startup
+
+@ApplicationScoped
+// @ConcurrencyManagement(javax.ejb.ConcurrencyManagementType.BEAN)
+// @Transactional
+// @Singleton
+
+public class BaseEntityService {
   /**
    * Stores logger object.
    */
   protected static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
+  // @Inject
+  // SecurityService securityService;
 
   @Inject
   private Event<BaseEntity> baseEntityEventSrc;
@@ -91,44 +90,192 @@ public class BaseEntityService {
   @Inject
   Event<DataType> dataTypeRemoveEvent;
 
-
   EntityManager em;
 
-  public Long insert(final Question question) {
-    // always check if question exists through check for unique code
+  public BaseEntityService(final EntityManager em) {
+    this.em = em;
+  }
+
+  public Validation findValidationByCode(final String code) throws NoResultException {
+    final Validation result =
+        (Validation) em.createQuery("SELECT a FROM Validation a where a.code=:code")
+            .setParameter("code", code).getSingleResult();
+    return result;
+  }
+
+  public Long insert(final Validation validation) {
+    // always check if rule exists through check for unique code
+    em.persist(validation);
+    // baseEntityEventSrc.fire(entity);
+    return validation.getId();
+  }
+
+  public Validation upsert(Validation validation) {
     try {
-      em.persist(question);
-      System.out.println("\n\n\n\n\n\n\n11111111\n\n\n\n\n\n\n\n");
+      String code = validation.getCode();
+      Validation val = findValidationByCode(code);
+      BeanNotNullFields copyFields = new BeanNotNullFields();
+      copyFields.copyProperties(val, validation);
+      val = em.merge(val);
+      // BeanUtils.copyProperties(validation, val);
+      return val;
+    } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+      em.persist(validation);
+      Validation id = validation;
+      return id;
+    }
+  }
+
+  public Attribute upsert(Attribute attr) {
+    try {
+      String code = attr.getCode();
+      Attribute val = findAttributeByCode(code);
+      BeanNotNullFields copyFields = new BeanNotNullFields();
+      copyFields.copyProperties(val, attr);
+      val = em.merge(val);
+      // BeanUtils.copyProperties(attr, val);
+      return val;
+    } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+      em.persist(attr);
+      Long id = attr.getId();
+      return attr;
+    }
+  }
+  
+  public Attribute findAttributeByCode(final String code) throws NoResultException {
+    final Attribute result =
+        (Attribute) em.createQuery("SELECT a FROM Attribute a where a.code=:code")
+            .setParameter("code", code.toUpperCase()).getSingleResult();
+    return result;
+  }
+  
+  public Long insert(final Attribute attribute) {
+    // always check if baseentity exists through check for unique code
+    em.persist(attribute);
+    // attributeEventSrc.fire(attribute);
+    // baseEntityEventSrc.fire(entity);
+    return attribute.getId();
+  }
+
+  public Long upsert(final BaseEntity be, Set<EntityAttribute> ba) {
+    try {
+      // be.setBaseEntityAttributes(null);
+      out.println("****3*****" + be.getBaseEntityAttributes().stream().map(data -> data.pk)
+          .reduce((d1, d2) -> d1).get());
+      String code = be.getCode();
+      final BaseEntity val = findBaseEntityByCode(code);
+      BeanNotNullFields copyFields = new BeanNotNullFields();
+      // copyFields.copyProperties(val, be);
+      em.merge(val);
+      return val.getId();
+    } catch (NoResultException e) {
+      Long id = insert(be);
+      return id;
+    }
+
+  }
+
+  public BaseEntity findBaseEntityByCode(final String baseEntityCode) throws NoResultException {
+    final BaseEntity result =
+        (BaseEntity) em.createQuery("SELECT a FROM BaseEntity a where a.code=:baseEntityCode")
+            .setParameter("baseEntityCode", baseEntityCode.toUpperCase()).getSingleResult();
+    final List<EntityAttribute> attributes = em
+        .createQuery(
+            "SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
+        .setParameter("baseEntityCode", baseEntityCode).getResultList();
+    result.setBaseEntityAttributes(new HashSet<EntityAttribute>(attributes));
+    return result;
+  }
+  
+  public Long insert(final BaseEntity entity) {
+
+    // get security
+    // if (securityService.isAuthorised()) {
+    // String realm = securityService.getRealm();
+    // System.out.println("Realm = " + realm);
+    // entity.setRealm(realm); // always override
+    entity.setRealm("genny");
+    // always check if baseentity exists through check for unique code
+    try {
+      em.persist(entity);
+//      baseEntityEventSrc.fire(entity);
       // baseEntityEventSrc.fire(entity);
     } catch (final ConstraintViolationException e) {
-      Question existing = findQuestionByCode(question.getCode());
-      existing = em.merge(existing);
-      return existing.getId();
+      // so update otherwise // TODO merge?
+      em.merge(entity);
+//      baseEntityEventSrc.fire(entity);
+      return entity.getId();
     } catch (final PersistenceException e) {
-      Question existing = findQuestionByCode(question.getCode());
-      existing = em.merge(existing);
-      return existing.getId();
-    }  catch (final IllegalStateException e) {
-      Question existing = findQuestionByCode(question.getCode());
-      existing = em.merge(existing);
-      return existing.getId();
+      // so update otherwise // TODO merge?
+      em.merge(entity);
+//      baseEntityEventSrc.fire(entity);
+      return entity.getId();
+    } catch (final IllegalStateException e) {
+      // so update otherwise // TODO merge?
+      em.merge(entity);
+//      baseEntityEventSrc.fire(entity);
+      return entity.getId();
     }
+    // }
+    return entity.getId();
+  }
+  
+  public Question findQuestionByCode(final String code) throws NoResultException {
+
+    final Question result = (Question) em.createQuery("SELECT a FROM Question a where a.code=:code")
+        .setParameter("code", code.toUpperCase()).getSingleResult();
+
+    return result;
+  }
+  
+  public Long insert(final Question question) {
+    // always check if question exists through check for unique code
+    em.persist(question);
+    // baseEntityEventSrc.fire(entity);
     return question.getId();
   }
 
+  public BaseEntity upsert(BaseEntity be) {
+    try {
+      String code = be.getCode();
+      BaseEntity val = findBaseEntityByCode(code);
+
+      BeanNotNullFields copyFields = new BeanNotNullFields();
+      copyFields.copyProperties(val, be);
+      System.out.println("***********" + val);
+      val = em.merge(val);
+      System.out.println("*******&&&&&&&&&&&&****");
+      return be;
+    } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+      Long id = insert(be);
+      return be;
+    }
+  }
+
+  
+
   public Long insert(final Ask ask) {
+    // Fetch the associated BaseEntitys and Question
+
     // always check if question exists through check for unique code
     try {
+      Question question = null;
       // check that these bes exist
-      this.findBaseEntityByCode(ask.getSourceCode());
-      this.findBaseEntityByCode(ask.getTargetCode());
-      this.findAttributeByCode(ask.getAttributeCode());
+      BaseEntity beSource = findBaseEntityByCode(ask.getSourceCode());
+      BaseEntity beTarget = findBaseEntityByCode(ask.getTargetCode());
+      Attribute attribute = findAttributeByCode(ask.getAttributeCode());
+      Ask newAsk = null;
+      if (ask.getQuestionCode() != null) {
+        question = findQuestionByCode(ask.getQuestionCode());
+        newAsk = new Ask(question, beSource.getCode(), beTarget.getCode());
+      } else {
+        newAsk = new Ask(attribute.getCode(), beSource.getCode(), beTarget.getCode(),
+            attribute.getName());
+      }
+      Log.info("Creating new Ask " + beSource.getCode() + ":" + beTarget.getCode() + ":"
+          + attribute.getCode() + ":" + (question == null ? "No Question" : question.getCode()));
 
-      // if (ask.getQuestion() == null) {
-      // Question question = this.findQuestionByCode(ask.getQuestionCode());
-      // ask.setQuestion(question);
-      // }
-      em.persist(ask);
+      em.persist(newAsk);
       // baseEntityEventSrc.fire(entity);
     } catch (final ConstraintViolationException e) {
       // so update otherwise // TODO merge?
@@ -140,7 +287,7 @@ public class BaseEntityService {
       Ask existing = findAskById(ask.getId());
       existing = em.merge(existing);
       return existing.getId();
-    }  catch (final IllegalStateException e) {
+    } catch (final IllegalStateException e) {
       // so update otherwise // TODO merge?
       Ask existing = findAskById(ask.getId());
       existing = em.merge(existing);
@@ -165,31 +312,7 @@ public class BaseEntityService {
     return rule.getId();
   }
 
-  public Long insert(final Validation validation) {
-    // always check if rule exists through check for unique code
-    try {
-      em.persist(validation);
-      System.out.println("\n\n\n\n\n\n\n11111111\n\n\n\n\n\n\n\n");
-      // baseEntityEventSrc.fire(entity);
-    } catch (final ConstraintViolationException e) {
-      System.out.println("\n\n\n\n\n\n222222222222\n\n\n\n\n\n\n\n\n");
-      final Validation existing = findValidationByCode(validation.getCode());
-      System.out.println("\n\n\n\n\n\n" + existing + "\n\n\n\n\n\n\n\n\n");
-      return existing.getId();
-    } catch (final PersistenceException e) {
-      System.out
-          .println("\n\n\n\n\n\n22222***" + validation.getCode() + "****2222222\n\n\n\n\n\n\n\n\n");
-      final Validation existing = findValidationByCode(validation.getCode());
-      System.out.println("\n\n\n\n\n\n" + existing.getRegex() + "\n\n\n\n\n\n\n\n\n");
-      return existing.getId();
-    } catch (final IllegalStateException e) {
-      System.out.println("\n\n\n\n\n\n222222222222\n\n\n\n\n\n\n\n\n");
-      final Validation existing = findValidationByCode(validation.getCode());
-      System.out.println("\n\n\n\n\n\n" + existing + "\n\n\n\n\n\n\n\n\n");
-      return existing.getId();
-    }
-    return validation.getId();
-  }
+  
 
   public AnswerLink insert(final AnswerLink answerLink) {
     // always check if rule exists through check for unique code
@@ -220,7 +343,6 @@ public class BaseEntityService {
   public Long insert(final Answer answer) {
     // always check if answer exists through check for unique code
     try {
-      findBaseEntityByCode(answer.getSourceCode());
       BaseEntity beTarget = findBaseEntityByCode(answer.getTargetCode());
 
       Attribute attribute = findAttributeByCode(answer.getAttributeCode());;
@@ -242,7 +364,6 @@ public class BaseEntityService {
       em.persist(answer);
       // update answerlink
 
-
       AnswerLink answerLink = null;
       try {
         answerLink = beTarget.addAnswer(answer, 1.0);
@@ -253,16 +374,7 @@ public class BaseEntityService {
         e.printStackTrace();
       }
 
-      if (ask != null) {
-        // if (!ask.getAnswerList().getAnswerList().contains(answerLink)) {
-        // System.out.println("Ask does not have answerLink");
-        // ask.getAnswerList().getAnswerList().add(answerLink);
-        // ask = em.merge(ask);
-        // }
-      }
       // baseEntityEventSrc.fire(entity);
-
-
 
     } catch (final EntityExistsException e) {
       System.out.println("Answer Insert EntityExistsException");
@@ -289,50 +401,6 @@ public class BaseEntityService {
     return answerLink;
   }
 
-  public Long insert(final BaseEntity entity) {
-    // always check if baseentity exists through check for unique code
-    try {
-      em.persist(entity);
-      baseEntityEventSrc.fire(entity);
-      // baseEntityEventSrc.fire(entity);
-    } catch (final ConstraintViolationException e) {
-      // so update otherwise // TODO merge?
-      em.merge(entity);
-      baseEntityEventSrc.fire(entity);
-      return entity.getId();
-    } catch (final PersistenceException e) {
-      // so update otherwise // TODO merge?
-      em.merge(entity);
-      baseEntityEventSrc.fire(entity);
-      return entity.getId();
-    } catch (final IllegalStateException e) {
-      // so update otherwise // TODO merge?
-      em.merge(entity);
-      baseEntityEventSrc.fire(entity);
-      return entity.getId();
-    }
-    return entity.getId();
-  }
-
-  // public Long insert(Ask ask)
-  // {
-  // // always check if ask exists through check for source, target, and question, and created
-  // datetime
-  // try {
-  // em.persist(ask);
-  // // baseEntityEventSrc.fire(entity);
-  //
-  // } catch (EntityExistsException e) {
-  // // so update otherwise // TODO merge?
-  // BaseEntity existing = findBaseEntityByCode(entity.getCode());
-  // List<EntityAttribute> changes = existing.merge(entity);
-  // System.out.println("Updated "+existing+ ":"+ changes);
-  // existing = em.merge(existing);
-  // return existing.getId();
-  //
-  // }
-  // return entity.getId();
-  // }
 
   public Long update(Ask ask) {
     // always check if ask exists through check for unique code
@@ -344,33 +412,6 @@ public class BaseEntityService {
     }
     return ask.getId();
   }
-
-  // public Long update(BaseEntity entity) {
-  // // always check if baseentity exists through check for unique code
-  // try {
-  // // so persist otherwise
-  // em.persist(entity);
-  // // baseEntityEventSrc.fire(entity);
-  // } catch (ConstraintViolationException e) {
-  // entity = em.merge(entity);
-  // baseEntityEventSrc.fire(entity);
-  // return entity.getId();
-  // } catch (PersistenceException e) {
-  // entity = em.merge(entity);
-  // baseEntityEventSrc.fire(entity);
-  // return entity.getId();
-  // } catch (EJBException e) {
-  // entity = em.merge(entity);
-  // baseEntityEventSrc.fire(entity);
-  // return entity.getId();
-  // } catch (IllegalStateException e) {
-  // entity = em.merge(entity);
-  // baseEntityEventSrc.fire(entity);
-  // return entity.getId();
-  // }
-  // return entity.getId();
-  // }
-
 
   public Long update(BaseEntity entity) {
     // always check if baseentity exists through check for unique code
@@ -387,7 +428,6 @@ public class BaseEntityService {
   public Long update(Attribute attribute) {
     // always check if attribute exists through check for unique code
     try {
-
       attribute = em.merge(attribute);
       attributeEventSrc.fire(attribute);
     } catch (final IllegalArgumentException e) {
@@ -437,127 +477,71 @@ public class BaseEntityService {
     return em.find(DataType.class, id);
   }
 
-  public BaseEntity findBaseEntityByCode(final String baseEntityCode)
-      throws NoResultException {
-
-
-    final BaseEntity result = (BaseEntity) em
-        .createQuery("SELECT a FROM BaseEntity a where a.code=:baseEntityCode")
-        .setParameter("baseEntityCode", baseEntityCode.toUpperCase()).getSingleResult();
-
-    // Ugly, add field filtering through header field list
-
-    final List<EntityAttribute> attributes = em
-        .createQuery(
-            "SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
-        .setParameter("baseEntityCode", baseEntityCode).getResultList();
-    result.setBaseEntityAttributes(new HashSet<EntityAttribute>(attributes));
-    return result;
-
-  }
+  
 
   public Rule findRuleByCode(final String ruleCode) throws NoResultException {
 
-    final Rule result =
-        (Rule) em.createQuery("SELECT a FROM Rule a where a.code=:ruleCode")
-            .setParameter("ruleCode", ruleCode.toUpperCase()).getSingleResult();
+    final Rule result = (Rule) em.createQuery("SELECT a FROM Rule a where a.code=:ruleCode")
+        .setParameter("ruleCode", ruleCode.toUpperCase()).getSingleResult();
 
     return result;
   }
 
-  public Question findQuestionByCode(final String code) throws NoResultException {
-
-    final Question result = (Question) em
-        .createQuery("SELECT a FROM Question a where a.code=:code")
-        .setParameter("code", code.toUpperCase()).getSingleResult();
-
-    return result;
-  }
+  
 
   public DataType findDataTypeByCode(final String code) throws NoResultException {
 
-    final DataType result = (DataType) em
-        .createQuery("SELECT a FROM DataType a where a.code=:code")
+    final DataType result = (DataType) em.createQuery("SELECT a FROM DataType a where a.code=:code")
         .setParameter("code", code.toUpperCase()).getSingleResult();
 
     return result;
   }
 
-  public Validation findValidationByCode(final String code) throws NoResultException {
-    final String co = "VLD_EMAIL";
-    final Validation result = (Validation) em
-        .createQuery("SELECT a FROM Validation a where a.code=:code").setParameter("code", co)
-        .getSingleResult();
-    // System.out.println("8878978978978977987897987987987" + result);
+  
+
+  public AttributeLink findAttributeLinkByCode(final String code) throws NoResultException {
+    final AttributeLink result =
+        (AttributeLink) em.createQuery("SELECT a FROM AttributeLink a where a.code=:code")
+            .setParameter("code", code.toUpperCase()).getSingleResult();
     return result;
   }
 
-  public AttributeLink findAttributeLinkByCode(final String code)
-      throws NoResultException {
+  
 
-    final AttributeLink result = (AttributeLink) em
-        .createQuery("SELECT a FROM AttributeLink a where a.code=:code")
-        .setParameter("code", code.toUpperCase()).getSingleResult();
-
-    return result;
-  }
-
-  public Attribute findAttributeByCode( final String code) throws NoResultException {
-
-    final Attribute result = (Attribute) em
-        .createQuery("SELECT a FROM Attribute a where a.code=:code")
-        .setParameter("code", code.toUpperCase()).getSingleResult();
-
-    return result;
-  }
-
-  public AnswerLink findAnswerLinkByCodes( final String targetCode,
-       final String sourceCode,  final String attributeCode) {
-
+  public AnswerLink findAnswerLinkByCodes(final String targetCode, final String sourceCode,
+      final String attributeCode) {
     final AnswerLink result = (AnswerLink) em.createQuery(
         "SELECT a FROM AnswerLink a where a.targetCode=:targetCode and a.sourceCode=:sourceCode and  attributeCode=:attributeCode")
         .setParameter("targetCode", targetCode).setParameter("sourceCode", sourceCode)
         .setParameter("attributeCode", attributeCode).getSingleResult();
-
     return result;
-
   }
 
-
-
-  public BaseEntity findUserByAttributeValue( final String attributeCode,
-      final Integer value) {
-
+  public BaseEntity findUserByAttributeValue(final String attributeCode, final Integer value) {
     final List<EntityAttribute> results = em.createQuery(
         "SELECT ea FROM EntityAttribute ea where ea.pk.attribute.code=:attributeCode and ea.valueInteger=:valueInteger")
         .setParameter("attributeCode", attributeCode).setParameter("valueInteger", value)
         .setMaxResults(1).getResultList();
     if ((results == null) || (results.size() == 0))
       return null;
-
     final BaseEntity ret = results.get(0).getBaseEntity();
-
     return ret;
   }
 
-  public BaseEntity findUserByAttributeValue( final String attributeCode,
-      final String value) {
-
+  public BaseEntity findUserByAttributeValue(final String attributeCode, final String value) {
     final List<EntityAttribute> results = em.createQuery(
         "SELECT ea FROM EntityAttribute ea where ea.pk.attribute.code=:attributeCode and ea.valueString=:value")
         .setParameter("attributeCode", attributeCode).setParameter("value", value).setMaxResults(1)
         .getResultList();
     if ((results == null) || (results.size() == 0))
       return null;
-
     final BaseEntity ret = results.get(0).getBaseEntity();
     return ret;
   }
 
-  public List<BaseEntity> findChildrenByAttributeLink( final String sourceCode,
+  public List<BaseEntity> findChildrenByAttributeLink(final String sourceCode,
       final String linkCode, final boolean includeAttributes, final Integer pageStart,
       final Integer pageSize, final Integer level, final MultivaluedMap<String, String> params) {
-
     final List<BaseEntity> eeResults;
     new HashMap<String, BaseEntity>();
     System.out.println("findChildrenByAttributeLink");
@@ -573,7 +557,6 @@ public class BaseEntityService {
             .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
             .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
-
       } else {
         System.out.println("findChildrenByAttributeLink - PAIR COUNT IS  " + pairCount);
         String eaStrings = "";
@@ -587,7 +570,6 @@ public class BaseEntityService {
           eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
           eaStringsQ += ") and ";
         }
-
 
         String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
             + "  JOIN be.baseEntityAttributes bee where " + eaStringsQ
@@ -646,11 +628,9 @@ public class BaseEntityService {
         query.setFirstResult(pageStart).setMaxResults(pageSize);
         eeResults = query.getResultList();
 
-
       }
     } else {
       System.out.println("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
-
 
       // ugly and insecure
       final Integer pairCount = params.size();
@@ -660,7 +640,6 @@ public class BaseEntityService {
             "SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
             .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
             .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
-
 
       } else {
         System.out.println("findChildrenByAttributeLink PAIR COUNT  " + pairCount);
@@ -739,15 +718,12 @@ public class BaseEntityService {
         // }
       }
 
-
     }
-    // TODO: improve
-
     return eeResults;
   }
 
-  public Long findChildrenByAttributeLinkCount( final String sourceCode,
-      final String linkCode, final MultivaluedMap<String, String> params) {
+  public Long findChildrenByAttributeLinkCount(final String sourceCode, final String linkCode,
+      final MultivaluedMap<String, String> params) {
 
     Long total = 0L;
     final Integer pairCount = params.size();
@@ -763,8 +739,6 @@ public class BaseEntityService {
       eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
       eaStringsQ += ") and ";
     }
-
-
 
     String queryStr = "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee" + eaStrings
         + "  where " + eaStringsQ
@@ -815,108 +789,103 @@ public class BaseEntityService {
     }
     query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
 
-
     total = (Long) query.getSingleResult();
-
 
     return total;
   }
 
+  // public Setup setup(final KeycloakSecurityContext kContext) {
+  // final Setup setup = new Setup();
+  // String bearerToken = null;
+  // String decodedJson = null;
+  // JSONObject jsonObj;
+  // try {
+  // bearerToken = kContext.getTokenString();
+  // System.out.println("bearerToken:" + bearerToken);
+  // final String[] jwtToken = bearerToken.split("\\.");
+  // System.out.println("jwtToken:" + jwtToken);
+  // final Decoder decoder = Base64.getDecoder();
+  // final byte[] decodedClaims = decoder.decode(jwtToken[1]);
+  // decodedJson = new String(decodedClaims);
+  // System.out.println("decodedJson:" + decodedJson);
+  // jsonObj = new JSONObject(decodedJson);
+  // final String userUUID = jsonObj.getString("sub");
+  // System.out.println("UserId=" + userUUID);
+  // final JSONObject realm_access = (JSONObject) jsonObj.get("realm_access");
+  // final JSONArray realm_roles = (JSONArray) realm_access.get("roles");
+  // final JSONObject resource_access = (JSONObject) jsonObj.get("resource_access");
+  // final JSONObject qwandaService = (JSONObject) resource_access.get("qwanda-service");
+  // final JSONArray resource_roles = (JSONArray) qwandaService.get("roles");
+  //
+  // System.out.println("Roles:" + resource_roles + "," + realm_roles + "!");
+  //
+  // final BaseEntity be =
+  // findUserByAttributeValue(AttributeText.getDefaultCodePrefix() + "UUID", userUUID);
+  // be.getBaseEntityAttributes();
+  // setup.setUser(be);
+  //
+  // //
+  // {"jti":"1ae163f0-5495-4466-b224-de35a1f5794b","exp":1494376724,"nbf":0,"iat":1494376424,"iss":"http://bouncer.outcome-hub.com/auth/realms/genny","aud":"qwanda-service","sub":"81ef02bd-9976-4ce4-9fb4-17f30b416e06","typ":"Bearer","azp":"qwanda-service","auth_time":1494376102,"session_state":"4153d350-e9e9-4a00-85de-2def89427f4e","acr":"0","client_session":"307f1c32-c7ea-4408-816c-12a189c09081","allowed-origins":["*"],"realm_access":{"roles":["uma_authorization","user"]},"resource_access":{"qwanda-service":{"roles":["admin"]},"account":{"roles":["manage-account","manage-account-links","view-profile"]}},"name":"Bob
+  // //
+  // Console","preferred_username":"adamcrow63+bobconsole@gmail.com","given_name":"Bob","family_name":"Console","email":"adamcrow63+bobconsole@gmail.com"}
+  // } catch (final JSONException e1) {
+  // // log.error("bearerToken=" + bearerToken + " decodedJson=" + decodedJson + ":"
+  // // +
+  // // e1.getMessage());
+  // }
+  //
+  // setup.setLayout("layout1");
+  //
+  // return setup;
+  // }
 
-//  public Setup setup(final KeycloakSecurityContext kContext) {
-//    final Setup setup = new Setup();
-//    String bearerToken = null;
-//    String decodedJson = null;
-//    JSONObject jsonObj;
-//    try {
-//      bearerToken = kContext.getTokenString();
-//      System.out.println("bearerToken:" + bearerToken);
-//      final String[] jwtToken = bearerToken.split("\\.");
-//      System.out.println("jwtToken:" + jwtToken);
-//      final Decoder decoder = Base64.getDecoder();
-//      final byte[] decodedClaims = decoder.decode(jwtToken[1]);
-//      decodedJson = new String(decodedClaims);
-//      System.out.println("decodedJson:" + decodedJson);
-//      jsonObj = new JSONObject(decodedJson);
-//      final String userUUID = jsonObj.getString("sub");
-//      System.out.println("UserId=" + userUUID);
-//      final JSONObject realm_access = (JSONObject) jsonObj.get("realm_access");
-//      final JSONArray realm_roles = (JSONArray) realm_access.get("roles");
-//      final JSONObject resource_access = (JSONObject) jsonObj.get("resource_access");
-//      final JSONObject qwandaService = (JSONObject) resource_access.get("qwanda-service");
-//      final JSONArray resource_roles = (JSONArray) qwandaService.get("roles");
-//
-//      System.out.println("Roles:" + resource_roles + "," + realm_roles + "!");
-//
-//      final BaseEntity be =
-//          findUserByAttributeValue(AttributeText.getDefaultCodePrefix() + "UUID", userUUID);
-//      be.getBaseEntityAttributes();
-//      setup.setUser(be);
-//
-//
-//
-//      // {"jti":"1ae163f0-5495-4466-b224-de35a1f5794b","exp":1494376724,"nbf":0,"iat":1494376424,"iss":"http://bouncer.outcome-hub.com/auth/realms/genny","aud":"qwanda-service","sub":"81ef02bd-9976-4ce4-9fb4-17f30b416e06","typ":"Bearer","azp":"qwanda-service","auth_time":1494376102,"session_state":"4153d350-e9e9-4a00-85de-2def89427f4e","acr":"0","client_session":"307f1c32-c7ea-4408-816c-12a189c09081","allowed-origins":["*"],"realm_access":{"roles":["uma_authorization","user"]},"resource_access":{"qwanda-service":{"roles":["admin"]},"account":{"roles":["manage-account","manage-account-links","view-profile"]}},"name":"Bob
-//      // Console","preferred_username":"adamcrow63+bobconsole@gmail.com","given_name":"Bob","family_name":"Console","email":"adamcrow63+bobconsole@gmail.com"}
-//    } catch (final JSONException e1) {
-//      // log.error("bearerToken=" + bearerToken + " decodedJson=" + decodedJson + ":" +
-//      // e1.getMessage());
-//    }
-//
-//    setup.setLayout("layout1");
-//
-//    return setup;
-//  }
-
-
-//  public void importKeycloakUsers(final List<Group> parentGroupList,
-//      final AttributeLink linkAttribute, final Integer maxReturned)
-//      throws IOException, BadDataException {
-//
-//
-//    final Map<String, String> envParams = System.getenv();
-//    String keycloakUrl = envParams.get("KEYCLOAKURL");
-//    System.out.println("Keycloak URL=[" + keycloakUrl + "]");
-//    keycloakUrl = keycloakUrl.replaceAll("'", "");
-//    final String realm = envParams.get("KEYCLOAK_REALM");
-//    final String username = envParams.get("KEYCLOAK_USERNAME");
-//    final String password = envParams.get("KEYCLOAK_PASSWORD");
-//    final String clientid = envParams.get("KEYCLOAK_CLIENTID");
-//    final String secret = envParams.get("KEYCLOAK_SECRET");
-//
-//    System.out.println("Realm is :[" + realm + "]");
-//
-//    final KeycloakService kcs =
-//        new KeycloakService(keycloakUrl, realm, username, password, clientid, secret);
-//    final List<LinkedHashMap> users = kcs.fetchKeycloakUsers(maxReturned);
-//    for (final LinkedHashMap user : users) {
-//      final String name = user.get("firstName") + " " + user.get("lastName");
-//      final Person newUser = new Person(name);
-//      final String keycloakUUID = (String) user.get("id");
-//      newUser.setCode(Person.getDefaultCodePrefix() + keycloakUUID.toUpperCase());
-//      newUser.setName(name);
-//      newUser.addAttribute(createAttributeText("NAME"), 1.0, name);
-//      newUser.addAttribute(createAttributeText("FIRSTNAME"), 1.0, user.get("firstName"));
-//      newUser.addAttribute(createAttributeText("LASTNAME"), 1.0, user.get("lastName"));
-//      newUser.addAttribute(createAttributeText("UUID"), 1.0, user.get("id"));
-//      newUser.addAttribute(createAttributeText("EMAIL"), 1.0, user.get("email"));
-//      newUser.addAttribute(createAttributeText("USERNAME"), 1.0, user.get("username"));
-//      System.out.println("Code=" + newUser.getCode());;
-//      insert(newUser);
-//      // Now link to groups
-//      for (final Group parent : parentGroupList) {
-//        if (!parent.containsTarget(newUser.getCode(), linkAttribute.getCode())) {
-//          parent.addTarget(newUser, linkAttribute, 1.0);
-//
-//
-//        }
-//      }
-//    }
-//    // now save the parents
-//    for (Group parent : parentGroupList) {
-//      parent = em.merge(parent);
-//    }
-//    System.out.println(users);
-//  }
+  // public void importKeycloakUsers(final List<Group> parentGroupList,
+  // final AttributeLink linkAttribute, final Integer maxReturned)
+  // throws IOException, BadDataException {
+  //
+  // final Map<String, String> envParams = System.getenv();
+  // String keycloakUrl = envParams.get("KEYCLOAKURL");
+  // System.out.println("Keycloak URL=[" + keycloakUrl + "]");
+  // keycloakUrl = keycloakUrl.replaceAll("'", "");
+  // final String realm = envParams.get("KEYCLOAK_REALM");
+  // final String username = envParams.get("KEYCLOAK_USERNAME");
+  // final String password = envParams.get("KEYCLOAK_PASSWORD");
+  // final String clientid = envParams.get("KEYCLOAK_CLIENTID");
+  // final String secret = envParams.get("KEYCLOAK_SECRET");
+  //
+  // System.out.println("Realm is :[" + realm + "]");
+  //
+  // final KeycloakService kcs =
+  // new KeycloakService(keycloakUrl, realm, username, password, clientid, secret);
+  // final List<LinkedHashMap> users = kcs.fetchKeycloakUsers(maxReturned);
+  // for (final LinkedHashMap user : users) {
+  // final String name = user.get("firstName") + " " + user.get("lastName");
+  // final Person newUser = new Person(name);
+  // final String keycloakUUID = (String) user.get("id");
+  // newUser.setCode(Person.getDefaultCodePrefix() + keycloakUUID.toUpperCase());
+  // newUser.setName(name);
+  // newUser.addAttribute(createAttributeText("NAME"), 1.0, name);
+  // newUser.addAttribute(createAttributeText("FIRSTNAME"), 1.0, user.get("firstName"));
+  // newUser.addAttribute(createAttributeText("LASTNAME"), 1.0, user.get("lastName"));
+  // newUser.addAttribute(createAttributeText("UUID"), 1.0, user.get("id"));
+  // newUser.addAttribute(createAttributeText("EMAIL"), 1.0, user.get("email"));
+  // newUser.addAttribute(createAttributeText("USERNAME"), 1.0, user.get("username"));
+  // System.out.println("Code=" + newUser.getCode());;
+  // insert(newUser);
+  // // Now link to groups
+  // for (final Group parent : parentGroupList) {
+  // if (!parent.containsTarget(newUser.getCode(), linkAttribute.getCode())) {
+  // parent.addTarget(newUser, linkAttribute, 1.0);
+  //
+  // }
+  // }
+  // }
+  // // now save the parents
+  // for (Group parent : parentGroupList) {
+  // parent = em.merge(parent);
+  // }
+  // System.out.println(users);
+  // }
 
   private Attribute createAttributeText(final String attributeName) {
     Attribute attribute = null;
@@ -931,7 +900,6 @@ public class BaseEntityService {
     }
     return attribute;
   }
-
 
   /**
    * init
@@ -962,7 +930,6 @@ public class BaseEntityService {
     final Company spacex = new Company("spacex", "SpaceX");
     spacex.setCode(Company.getDefaultCodePrefix() + "SPACEX");
     em.persist(spacex);
-
 
     final Product bmw316i = new Product("bmw316i", "BMW 316i");
     bmw316i.setCode(Product.getDefaultCodePrefix() + "BMW316I");
@@ -1005,8 +972,6 @@ public class BaseEntityService {
       person = em.merge(person);
       edison = em.merge(edison);
 
-
-
     } catch (final BadDataException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -1020,7 +985,6 @@ public class BaseEntityService {
   public List<BaseEntity> getAll() {
     final Query query = em.createQuery("SELECT e FROM BaseEntity e");
     return query.getResultList();
-
   }
 
   /**
@@ -1060,7 +1024,6 @@ public class BaseEntityService {
     em.remove(attribute);
   }
 
-
   public void resetMsgLists() {
     commitMsg.clear();
     rollbackMsg.clear();
@@ -1098,7 +1061,6 @@ public class BaseEntityService {
     return rollbackMsg;
   }
 
-
   private List<String> commitMsg = new ArrayList<>();
 
   private List<String> rollbackMsg = new ArrayList<>();
@@ -1118,15 +1080,13 @@ public class BaseEntityService {
     return json;
   }
 
-
   public List<EntityAttribute> findAttributesByBaseEntityId(final Long id) {
-    final List<EntityAttribute> results = em
-        .createQuery("SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.id=:baseEntityId")
-        .setParameter("baseEntityId", id).getResultList();
+    final List<EntityAttribute> results =
+        em.createQuery("SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.id=:baseEntityId")
+            .setParameter("baseEntityId", id).getResultList();
 
     return results;
   }
-
 
   public void importBaseEntitys(final InputStream in, final String filename) {
     // import csv
@@ -1134,7 +1094,6 @@ public class BaseEntityService {
     final String cvsSplitBy = ",";
     boolean headerLine = true;
     final Map<Integer, Attribute> attributes = new HashMap<Integer, Attribute>();
-
 
     try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
       int rowNumber = 0;
@@ -1185,7 +1144,6 @@ public class BaseEntityService {
               e.printStackTrace();
             }
 
-
           }
           if (entity instanceof Person) {
             if (!entity.containsEntityAttribute("NAME")) {
@@ -1229,184 +1187,125 @@ public class BaseEntityService {
 
   }
 
-  public Long insert(final Attribute attribute) {
-    // always check if baseentity exists through check for unique code
-    try {
-      em.persist(attribute);
-      attributeEventSrc.fire(attribute);
-      // baseEntityEventSrc.fire(entity);
-    } catch (final ConstraintViolationException e) {
-      // so update otherwise // TODO merge?
-      Attribute existing = findAttributeByCode(attribute.getCode());
-      existing = em.merge(existing);
-      return existing.getId();
-    } catch (final PersistenceException e) {
-      // so update otherwise // TODO merge?
-      Attribute existing = findAttributeByCode(attribute.getCode());
-      existing = em.merge(existing);
-      return existing.getId();
-    }  catch (final IllegalStateException e) {
-      // so update otherwise // TODO merge?
-      Attribute existing = findAttributeByCode(attribute.getCode());
-      existing = em.merge(existing);
-      return existing.getId();
-    }
-    return attribute.getId();
-  }
-
-
+  
 
   public List<Ask> findAsksBySourceBaseEntityId(final Long id) {
-    final List<Ask> results = em
-        .createQuery("SELECT ea FROM Ask ea where ea.source.id=:baseEntityId")
-        .setParameter("baseEntityId", id).getResultList();
-
+    final List<Ask> results =
+        em.createQuery("SELECT ea FROM Ask ea where ea.source.id=:baseEntityId")
+            .setParameter("baseEntityId", id).getResultList();
     return results;
-
   }
 
   public List<Ask> findAsksBySourceBaseEntityCode(final String code) {
-    final List<Ask> results = em
-        .createQuery("SELECT ea FROM Ask ea where ea.source.code=:baseEntityCode")
-        .setParameter("baseEntityCode", code).getResultList();
-
+    final List<Ask> results =
+        em.createQuery("SELECT ea FROM Ask ea where ea.source.code=:baseEntityCode")
+            .setParameter("baseEntityCode", code).getResultList();
     return results;
-
   }
 
-
   public List<Ask> findAsksByTargetBaseEntityId(final Long id) {
-    final List<Ask> results = em
-        .createQuery("SELECT ea FROM Ask ea where ea.target.id=:baseEntityId")
-        .setParameter("baseEntityId", id).getResultList();
-
+    final List<Ask> results =
+        em.createQuery("SELECT ea FROM Ask ea where ea.target.id=:baseEntityId")
+            .setParameter("baseEntityId", id).getResultList();
     return results;
-
   }
 
   public List<Ask> findAsksByTargetBaseEntityCode(final String code) {
-    final List<Ask> results = em
-        .createQuery("SELECT ea FROM Ask ea where ea.target.code=:baseEntityCode")
-        .setParameter("baseEntityCode", code).getResultList();
-
+    final List<Ask> results =
+        em.createQuery("SELECT ea FROM Ask ea where ea.target.code=:baseEntityCode")
+            .setParameter("baseEntityCode", code).getResultList();
     return results;
-
   }
 
   public List<GPS> findGPSByTargetBaseEntityId(final Long id) {
-    final List<GPS> results = em
-        .createQuery("SELECT ea FROM GPS ea where ea.targetId=:baseEntityId")
-        .setParameter("baseEntityId", id).getResultList();
-
+    final List<GPS> results =
+        em.createQuery("SELECT ea FROM GPS ea where ea.targetId=:baseEntityId")
+            .setParameter("baseEntityId", id).getResultList();
     return results;
-
   }
 
   public List<GPS> findGPSByTargetBaseEntityCode(final String targetCode) {
-    final List<GPS> results = em
-        .createQuery("SELECT ea FROM GPS ea where ea.targetCode=:baseEntityCode")
-        .setParameter("baseEntityCode", targetCode).getResultList();
-
+    final List<GPS> results =
+        em.createQuery("SELECT ea FROM GPS ea where ea.targetCode=:baseEntityCode")
+            .setParameter("baseEntityCode", targetCode).getResultList();
     return results;
-
   }
 
   public List<AnswerLink> findAnswersByTargetBaseEntityId(final Long id) {
-    final List<AnswerLink> results = em
-        .createQuery("SELECT ea FROM AnswerLink ea where ea.pk.target.id=:baseEntityId")
-        .setParameter("baseEntityId", id).getResultList();
-
+    final List<AnswerLink> results =
+        em.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.target.id=:baseEntityId")
+            .setParameter("baseEntityId", id).getResultList();
     return results;
-
   }
 
   public List<AnswerLink> findAnswersByTargetBaseEntityCode(final String targetCode) {
-    final List<AnswerLink> results = em
-        .createQuery("SELECT ea FROM AnswerLink ea where ea.pk.target.code=:baseEntityCode")
-        .setParameter("baseEntityCode", targetCode).getResultList();
-
+    final List<AnswerLink> results =
+        em.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.target.code=:baseEntityCode")
+            .setParameter("baseEntityCode", targetCode).getResultList();
     return results;
-
   }
 
   public List<AnswerLink> findAnswersBySourceBaseEntityCode(final String sourceCode) {
-    final List<AnswerLink> results = em
-        .createQuery("SELECT ea FROM AnswerLink ea where ea.pk.source.code=:baseEntityCode")
-        .setParameter("baseEntityCode", sourceCode).getResultList();
-
+    final List<AnswerLink> results =
+        em.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.source.code=:baseEntityCode")
+            .setParameter("baseEntityCode", sourceCode).getResultList();
     return results;
-
   }
 
   public List<Question> findQuestions() throws NoResultException {
-
-    final List<Question> results =
-        em.createQuery("SELECT a FROM Question a").getResultList();
-
+    final List<Question> results = em.createQuery("SELECT a FROM Question a").getResultList();
     return results;
   }
 
   public List<Ask> findAsks() throws NoResultException {
+    final List<Ask> results = em.createQuery("SELECT a FROM Ask a").getResultList();
+    return results;
+  }
 
+  public List<Ask> findAsksWithQuestions() throws NoResultException {
+    // log.info("find asks Realm = " + securityService.getRealm());
     final List<Ask> results =
-        em.createQuery("SELECT a FROM Ask a").getResultList();
-
+        em.createQuery("SELECT a FROM Ask a JOIN a.question q").getResultList();
     return results;
   }
 
   public List<Rule> findRules() throws NoResultException {
-
-    final List<Rule> results =
-        em.createQuery("SELECT a FROM Rule a").getResultList();
-
+    final List<Rule> results = em.createQuery("SELECT a FROM Rule a").getResultList();
     return results;
   }
 
   public List<AnswerLink> findAnswerLinks() throws NoResultException {
-
-    final List<AnswerLink> results =
-        em.createQuery("SELECT a FROM AnswerLink a").getResultList();
-
+    final List<AnswerLink> results = em.createQuery("SELECT a FROM AnswerLink a").getResultList();
     return results;
   }
 
   public List<EntityAttribute> findAttributesByBaseEntityCode(final String code)
       throws NoResultException {
-
     final List<EntityAttribute> results = em
         .createQuery(
             "SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
         .setParameter("baseEntityCode", code).getResultList();
-
     return results;
   }
 
   public Long insert(final GPS entity) {
     try {
       em.persist(entity);
-
     } catch (final EntityExistsException e) {
       // so update otherwise // TODO merge?
       GPS existing = findGPSById(entity.getId());
       existing = em.merge(existing);
       return existing.getId();
-
     }
     return entity.getId();
-
   }
-
-
 
   public List<BaseEntity> findBaseEntitysByAttributeValues(
       final MultivaluedMap<String, String> params, final boolean includeAttributes,
       final Integer pageStart, final Integer pageSize) {
-
     final List<BaseEntity> eeResults;
     new HashMap<String, BaseEntity>();
-
     if (includeAttributes) {
-
 
       // ugly and insecure
       final Integer pairCount = params.size();
@@ -1416,7 +1315,6 @@ public class BaseEntityService {
                                                                                                     // company
                                                                                                     // limiter
             .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
-
 
       } else {
         System.out.println("PAIR COUNT IS NOT ZERO " + pairCount);
@@ -1482,30 +1380,22 @@ public class BaseEntityService {
         query.setFirstResult(pageStart).setMaxResults(pageSize);
         eeResults = query.getResultList();
 
-
       }
     } else {
       Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
-      eeResults = em.createQuery("SELECT be FROM BaseEntity be ")
-          .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
-
-
+      eeResults = em.createQuery("SELECT be FROM BaseEntity be ").setFirstResult(pageStart)
+          .setMaxResults(pageSize).getResultList();
     }
     // TODO: improve
-
     return eeResults;
   }
 
   public Long findBaseEntitysByAttributeValuesCount(final MultivaluedMap<String, String> params) {
-
     final Long result;
     new HashMap<String, BaseEntity>();
-
-
     Log.info(
         "**************** COUNT BE SEARCH WITH ATTRIBUTE VALUE WITH ATTRIBUTES!!  ****************");
-
     // ugly and insecure
     final Integer pairCount = params.size();
     if (pairCount.equals(0)) {
@@ -1524,7 +1414,6 @@ public class BaseEntityService {
         if (entry.getKey().equals("pageStart") || entry.getKey().equals("pageSize")) { // ugly
           continue;
         }
-
         final List<String> qvalueList = entry.getValue();
         if (!qvalueList.isEmpty()) {
           // create the value or
@@ -1546,7 +1435,6 @@ public class BaseEntityService {
           System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
         }
         attributeCodeIndex++;
-
       }
       System.out.println("Query=" + queryStr);
       final Query query = em.createQuery(queryStr);
@@ -1565,25 +1453,17 @@ public class BaseEntityService {
       result = (Long) query.getSingleResult();
 
     }
-
     return result;
-
-
   }
 
-
-  public List<BaseEntity> findDescendantsByAttributeLink( final String sourceCode,
+  public List<BaseEntity> findDescendantsByAttributeLink(final String sourceCode,
       final String linkCode, final boolean includeAttributes, final Integer pageStart,
       final Integer pageSize) {
-
     final List<BaseEntity> eeResults;
     final Map<String, BaseEntity> beMap = new HashMap<String, BaseEntity>();
-
     if (includeAttributes) {
       Log.info("**************** ENTITY ENTITY DESCENDANTS WITH ATTRIBUTES!! pageStart = "
           + pageStart + " pageSize=" + pageSize + " ****************");
-
-
       eeResults = em.createQuery(
           "SELECT be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
@@ -1610,126 +1490,123 @@ public class BaseEntityService {
       }
     }
     // TODO: improve
-
     return beMap.values().stream().collect(Collectors.toList());
   }
 
-//  public Long importKeycloakUsers(final String keycloakUrl, final String realm,
-//      final String username, final String password, final String clientId,
-//      final Integer maxReturned, final String parentGroupCodes) {
-//    Long count = 0L;
-//
-//    AttributeLink linkAttribute = this.findAttributeLinkByCode("LNK_CORE");
-//    List<BaseEntity> parentGroupList = new ArrayList<BaseEntity>();
-//
-//    String[] parentCodes = parentGroupCodes.split(",");
-//    for (String parentCode : parentCodes) {
-//      BaseEntity group = null;
-//
-//      try {
-//        group = this.findBaseEntityByCode(parentCode); // careful as GRPUSERS needs to
-//        parentGroupList.add(group);
-//      } catch (NoResultException e) {
-//        System.out.println("Group Code does not exist :" + parentCode);
-//      }
-//
-//
-//
-//    }
-//
-//    KeycloakService ks;
-//    final Map<String, Map<String, Object>> usersMap = new HashMap<String, Map<String, Object>>();
-//
-//    try {
-//      ks = new KeycloakService(keycloakUrl, realm, username, password, clientId);
-//      final List<LinkedHashMap> users = ks.fetchKeycloakUsers(maxReturned);
-//      for (final Object user : users) {
-//        final LinkedHashMap map = (LinkedHashMap) user;
-//        final Map<String, Object> userMap = new HashMap<String, Object>();
-//        for (final Object key : map.keySet()) {
-//          // System.out.println(key + ":" + map.get(key));
-//          userMap.put((String) key, map.get(key));
-//
-//        }
-//        usersMap.put((String) userMap.get("username"), userMap);
-//        System.out.println();
-//      }
-//
-//      System.out.println("finished");
-//    } catch (final IOException e) {
-//      // TODO Auto-generated catch block
-//      e.printStackTrace();
-//    }
-//
-//    for (final String kcusername : usersMap.keySet()) {
-//      final MultivaluedMap params = new MultivaluedMapImpl();
-//      params.add("PRI_USERNAME", kcusername);
-//      final Map<String, Object> userMap = usersMap.get(kcusername);
-//
-//      final List<BaseEntity> users = findBaseEntitysByAttributeValues(params, true, 0, 1);
-//      if (users.isEmpty()) {
-//        final String code = "PER_CH40_" + kcusername.toUpperCase().replaceAll("\\ ", "")
-//            .replaceAll("\\.", "").replaceAll("\\&", "");
-//        System.out.println("New User Code = " + code);
-//        String firstName = (String) userMap.get("firstName");
-//        firstName = firstName.replaceAll("\\.", " "); // replace dots
-//        firstName = firstName.replaceAll("\\_", " "); // replace dots
-//        String lastName = (String) userMap.get("lastName");
-//        lastName = lastName.replaceAll("\\.", " "); // replace dots
-//        lastName = lastName.replaceAll("\\_", " "); // replace dots
-//        String name = firstName + " " + lastName;
-//
-//        final String email = (String) userMap.get("email");
-//        final String id = (String) userMap.get("id");
-//        final Long unixSeconds = (Long) userMap.get("createdTimestamp");
-//        final Date date = new Date(unixSeconds); // *1000 is to convert seconds to milliseconds
-//        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z"); // the format of
-//                                                                                    // your date
-//        sdf.setTimeZone(TimeZone.getTimeZone("GMT+10")); // give a timezone reference for formating
-//        sdf.format(date);
-//        final Attribute firstNameAtt = findAttributeByCode("PRI_FIRSTNAME");
-//        final Attribute lastNameAtt = findAttributeByCode("PRI_LASTNAME");
-//        final Attribute nameAtt = findAttributeByCode("PRI_NAME");
-//        final Attribute emailAtt = findAttributeByCode("PRI_EMAIL");
-//        final Attribute uuidAtt = findAttributeByCode("PRI_UUID");
-//        final Attribute usernameAtt = findAttributeByCode("PRI_USERNAME");
-//
-//        try {
-//          final BaseEntity user = new BaseEntity(code, name);
-//
-//          user.addAttribute(firstNameAtt, 0.0, firstName);
-//          user.addAttribute(lastNameAtt, 0.0, lastName);
-//          user.addAttribute(nameAtt, 0.0, name);
-//          user.addAttribute(emailAtt, 0.0, email);
-//          user.addAttribute(uuidAtt, 0.0, id);
-//          user.addAttribute(usernameAtt, 0.0, kcusername);
-//          insert(user);
-//
-//          // Now link to groups
-//          for (final BaseEntity parent : parentGroupList) {
-//            if (!parent.containsTarget(user.getCode(), linkAttribute.getCode())) {
-//              parent.addTarget(user, linkAttribute, 1.0);
-//            }
-//          }
-//          count++;
-//          System.out.println("BE:" + user);
-//        } catch (final BadDataException e) {
-//          // TODO Auto-generated catch block
-//          e.printStackTrace();
-//        }
-//
-//      } else {
-//        users.get(0);
-//      }
-//
-//    }
-//
-//    // now save the parents
-//    for (BaseEntity parent : parentGroupList) {
-//      parent = em.merge(parent);
-//    }
-//
-//    return count;
-//  }
+  // public Long importKeycloakUsers(final String keycloakUrl, final String realm,
+  // final String username, final String password, final String clientId,
+  // final Integer maxReturned, final String parentGroupCodes) {
+  // Long count = 0L;
+  //
+  // AttributeLink linkAttribute = this.findAttributeLinkByCode("LNK_CORE");
+  // List<BaseEntity> parentGroupList = new ArrayList<BaseEntity>();
+  //
+  // String[] parentCodes = parentGroupCodes.split(",");
+  // for (String parentCode : parentCodes) {
+  // BaseEntity group = null;
+  //
+  // try {
+  // group = this.findBaseEntityByCode(parentCode); // careful as GRPUSERS needs to
+  // parentGroupList.add(group);
+  // } catch (NoResultException e) {
+  // System.out.println("Group Code does not exist :" + parentCode);
+  // }
+  //
+  // }
+
+  // KeycloakService ks;
+  // final Map<String, Map<String, Object>> usersMap = new HashMap<String, Map<String, Object>>();
+  //
+  // try {
+  // ks = new KeycloakService(keycloakUrl, realm, username, password, clientId);
+  // final List<LinkedHashMap> users = ks.fetchKeycloakUsers(maxReturned);
+  // for (final Object user : users) {
+  // final LinkedHashMap map = (LinkedHashMap) user;
+  // final Map<String, Object> userMap = new HashMap<String, Object>();
+  // for (final Object key : map.keySet()) {
+  // // System.out.println(key + ":" + map.get(key));
+  // userMap.put((String) key, map.get(key));
+  //
+  // }
+  // usersMap.put((String) userMap.get("username"), userMap);
+  // System.out.println();
+  // }
+  //
+  // System.out.println("finished");
+  // } catch (final IOException e) {
+  // // TODO Auto-generated catch block
+  // e.printStackTrace();
+  // }
+  //
+  // for (final String kcusername : usersMap.keySet()) {
+  // final MultivaluedMap params = new MultivaluedMapImpl();
+  // params.add("PRI_USERNAME", kcusername);
+  // final Map<String, Object> userMap = usersMap.get(kcusername);
+  //
+  // final List<BaseEntity> users = findBaseEntitysByAttributeValues(params, true, 0, 1);
+  // if (users.isEmpty()) {
+  // final String code = "PER_CH40_" + kcusername.toUpperCase().replaceAll("\\ ", "")
+  // .replaceAll("\\.", "").replaceAll("\\&", "");
+  // System.out.println("New User Code = " + code);
+  // String firstName = (String) userMap.get("firstName");
+  // firstName = firstName.replaceAll("\\.", " "); // replace dots
+  // firstName = firstName.replaceAll("\\_", " "); // replace dots
+  // String lastName = (String) userMap.get("lastName");
+  // lastName = lastName.replaceAll("\\.", " "); // replace dots
+  // lastName = lastName.replaceAll("\\_", " "); // replace dots
+  // String name = firstName + " " + lastName;
+  //
+  // final String email = (String) userMap.get("email");
+  // final String id = (String) userMap.get("id");
+  // final Long unixSeconds = (Long) userMap.get("createdTimestamp");
+  // final Date date = new Date(unixSeconds); // *1000 is to convert seconds to milliseconds
+  // final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z"); // the format of
+  // // your date
+  // sdf.setTimeZone(TimeZone.getTimeZone("GMT+10")); // give a timezone reference for formating
+  // sdf.format(date);
+  // final Attribute firstNameAtt = findAttributeByCode("PRI_FIRSTNAME");
+  // final Attribute lastNameAtt = findAttributeByCode("PRI_LASTNAME");
+  // final Attribute nameAtt = findAttributeByCode("PRI_NAME");
+  // final Attribute emailAtt = findAttributeByCode("PRI_EMAIL");
+  // final Attribute uuidAtt = findAttributeByCode("PRI_UUID");
+  // final Attribute usernameAtt = findAttributeByCode("PRI_USERNAME");
+  //
+  // try {
+  // final BaseEntity user = new BaseEntity(code, name);
+  //
+  // user.addAttribute(firstNameAtt, 0.0, firstName);
+  // user.addAttribute(lastNameAtt, 0.0, lastName);
+  // user.addAttribute(nameAtt, 0.0, name);
+  // user.addAttribute(emailAtt, 0.0, email);
+  // user.addAttribute(uuidAtt, 0.0, id);
+  // user.addAttribute(usernameAtt, 0.0, kcusername);
+  // insert(user);
+  //
+  // // Now link to groups
+  // for (final BaseEntity parent : parentGroupList) {
+  // if (!parent.containsTarget(user.getCode(), linkAttribute.getCode())) {
+  // parent.addTarget(user, linkAttribute, 1.0);
+  // }
+  // }
+  // count++;
+  // System.out.println("BE:" + user);
+  // } catch (final BadDataException e) {
+  // // TODO Auto-generated catch block
+  // e.printStackTrace();
+  // }
+  //
+  // } else {
+  // users.get(0);
+  // }
+  //
+  // }
+  //
+  // // now save the parents
+  // for (BaseEntity parent : parentGroupList) {
+  // parent = em.merge(parent);
+  // }
+  //
+  // return count;
+  // }
 
 }
