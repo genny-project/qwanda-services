@@ -344,10 +344,8 @@ public class BaseEntityService {
     // always check if answer exists through check for unique code
     try {
       BaseEntity beTarget = findBaseEntityByCode(answer.getTargetCode());
-
       Attribute attribute = findAttributeByCode(answer.getAttributeCode());;
       Ask ask = null;
-
       System.out.println("Answer:" + answer);
       if (answer.getAskId() != null) {
         ask = findAskById(answer.getAskId());
@@ -358,12 +356,9 @@ public class BaseEntityService {
           // return -1L; // need to throw error
         }
       }
-
       answer.setAttribute(attribute);
-
       em.persist(answer);
       // update answerlink
-
       AnswerLink answerLink = null;
       try {
         answerLink = beTarget.addAnswer(answer, 1.0);
@@ -373,9 +368,7 @@ public class BaseEntityService {
         // TODO Auto-generated catch block
         e.printStackTrace();
       }
-
       // baseEntityEventSrc.fire(entity);
-
     } catch (final EntityExistsException e) {
       System.out.println("Answer Insert EntityExistsException");
       // so update otherwise // TODO merge?
@@ -385,10 +378,115 @@ public class BaseEntityService {
       // findAskById(answer.getAsk().getId());
       // }
       return existing.getId();
-
     }
     return answer.getId();
   }
+  
+  
+  
+  
+//  public Long insert(final Answer answer) {
+//    // always check if answer exists through check for unique code
+//    try {
+//      BaseEntity beSource = null;
+//      BaseEntity beTarget = null;
+//      Attribute attribute = null;
+//      Ask ask = null;
+//
+//      System.out.println("Answer:" + answer);
+//      if (answer.getAskId() != null) {
+//        ask = findAskById(answer.getAskId());
+//        beTarget = ask.getTarget();
+//        beSource = ask.getSource();
+//        attribute = ask.getQuestion().getAttribute();
+//        if (!((answer.getSourceCode().equals(beSource.getCode()))
+//            && (answer.getAttributeCode().equals(attribute.getCode()))
+//            && (answer.getTargetCode().equals(beTarget.getCode())))) {
+//          return -1L; // need to throw error
+//        }
+//      } else {
+//        // Need to find source and target by their codes
+//        beSource = findBaseEntityByCode(answer.getSourceCode());
+//        beTarget = findBaseEntityByCode(answer.getTargetCode());
+//        attribute = findAttributeByCode(answer.getAttributeCode());
+//      }
+//
+//      System.out.println("Found Source:" + beSource.getCode() + " AND Target:" + beTarget.getCode()
+//          + " and attribute:" + attribute.getCode());
+//      // now look for existing answerlink
+//      answer.setAsk(ask);
+//      if (ask == null) {
+//        answer.setAttribute(attribute);
+//      }
+//
+//
+//      em.persist(answer);
+//      // update answerlink
+//
+//      // check if answerlink already there
+//      AnswerLink answerLink = null;
+//
+//      try {
+//        answerLink = findAnswerLinkByCodes(beTarget.getCode(), beSource.getCode(),
+//            answer.getAttributeCode());
+//        System.out.println("Merging AnswerLink");
+//        answerLink.setAnswer(answer);
+//        answerLink = em.merge(answerLink);
+//
+//      } catch (final NoResultException e) {
+//
+//        answerLink = beSource.addAnswer(beTarget, answer, answer.getWeight());
+//        beTarget = em.merge(beTarget);
+//        System.out.println("AnswerLink added to Target");
+//      }
+//
+//      // if (answerLink == null) {
+//      //// answerLink = beSource.addAnswer(beTarget, answer, answer.getWeight());
+//      //// beTarget = em.merge(beTarget);
+//      //// System.out.println("AnswerLink added to Target");
+//      // } else {
+//      // System.out.println("Merging AnswerLink");
+//      // answerLink.setAnswer(answer);
+//      // answerLink = em.merge(answerLink);
+//      // }
+//
+//      if (ask != null) {
+//        if (!ask.getAnswerList().getAnswerList().contains(answerLink)) {
+//          System.out.println("Ask does not have answerLink");
+//          ask.getAnswerList().getAnswerList().add(answerLink);
+//          ask = em.merge(ask);
+//        }
+//      }
+//      // baseEntityEventSrc.fire(entity);
+//
+//
+//    } catch (final BadDataException e) {
+//
+//    } catch (final EntityExistsException e) {
+//      System.out.println("Answer Insert EntityExistsException");
+//      // so update otherwise // TODO merge?
+//      Answer existing = findAnswerById(answer.getId());
+//      existing = em.merge(existing);
+//      if (answer.getAskId() != null) {
+//        final Ask ask = findAskById(answer.getAsk().getId());
+//        BaseEntity be = ask.getTarget();
+//        final Set<AnswerLink> answerLinks = be.getAnswers();
+//        // dumbly check if existing answerLink there
+//        for (final AnswerLink al : answerLinks) { // watch for duplicates
+//          // if (al.getAsk().getId().equals(ask.getId())) {
+//          // if (al.getCreated().equals(answer.getCreated())) {
+//          // // this is the same answer
+//          // al.setExpired(answer.getExpired());
+//          // }
+//          // }
+//        }
+//        be = em.merge(be);
+//      }
+//      return existing.getId();
+//
+//    }
+//    return answer.getId();
+//  }
 
   public AnswerLink update(AnswerLink answerLink) {
     // always check if answerLink exists through check for unique code
