@@ -4,9 +4,9 @@
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
                                  http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
     <persistence-unit name="mnf-pu-test" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
         <!-- add classes -->
-        <class>life.genny.qwandautils.Book</class>
 	    <class>life.genny.qwanda.Answer</class>
 		<class>life.genny.qwanda.AnswerLink</class>
 		<class>life.genny.qwanda.Ask</class>
@@ -47,6 +47,57 @@
             <property name="hibernate.format_sql" value="false"/>
             <property name="hibernate.show_sql" value="false"/>
 
+        </properties>
+    </persistence-unit>
+    
+       <persistence-unit name="mysql" transaction-type="RESOURCE_LOCAL">
+
+        <!-- add classes -->
+        <class>life.genny.qwandautils.Book</class>
+	    <class>life.genny.qwanda.Answer</class>
+		<class>life.genny.qwanda.AnswerLink</class>
+		<class>life.genny.qwanda.Ask</class>
+		<class>life.genny.qwanda.Context</class>
+		<class>life.genny.qwanda.ContextList</class>
+		<class>life.genny.qwanda.CodedEntity</class>
+		<class>life.genny.qwanda.AnswerList</class>
+		<class>life.genny.qwanda.GPS</class>
+		<class>life.genny.qwanda.Question</class>
+		<class>life.genny.qwanda.attribute.Attribute</class>
+		<class>life.genny.qwanda.attribute.AttributeText</class>
+		<class>life.genny.qwanda.attribute.AttributeLink</class>
+				<class>life.genny.qwanda.attribute.AttributeDateTime</class>
+		<class>life.genny.qwanda.attribute.EntityAttribute</class>
+		<class>life.genny.qwanda.datatype.DataType</class>
+		<class>life.genny.qwanda.entity.BaseEntity</class>
+		<class>life.genny.qwanda.entity.EntityEntity</class>
+		<class>life.genny.qwanda.entity.BaseEvent</class>
+		<class>life.genny.qwanda.entity.Event</class>
+		<class>life.genny.qwanda.entity.Company</class>
+		<class>life.genny.qwanda.entity.Person</class>
+		<class>life.genny.qwanda.entity.Group</class>
+		<class>life.genny.qwanda.entity.Product</class>
+		<class>life.genny.qwanda.exception.BadDataException</class>
+		<class>life.genny.qwanda.rule.Rule</class>
+		<class>life.genny.qwanda.validation.Validation</class>
+		<class>life.genny.qwanda.validation.ValidationList</class>
+		<class>life.genny.qwanda.QuestionQuestion</class>
+        <properties>
+            <!-- Configuring JDBC properties -->
+          <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
+          <property name="javax.persistence.jdbc.url" value="jdbc:mysql://127.0.0.1:3310/gennydb?autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;zeroDateTimeBehavior=convertToNull&amp;autoReconnect=true" />
+          
+            <property name="javax.persistence.jdbc.user" value="genny" />
+            <property name="javax.persistence.jdbc.password" value="password" />
+
+            <!-- Scan for annotated classes and Hibernate mapping XML files -->
+            <property name="hibernate.archive.autodetection" value="class, hbm" />
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
+            <property name="hibernate.show_sql" value="false" />
+            <property name="hibernate.hbm2ddl.auto" value="create-drop" />
+
+            <!-- Hibernate properties -->
+ 
         </properties>
     </persistence-unit>
 </persistence>
