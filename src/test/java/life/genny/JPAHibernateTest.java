@@ -2,7 +2,7 @@ package life.genny;
 
 
 import org.apache.logging.log4j.Logger;
-import org.junit.After;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import javax.persistence.EntityManager;
@@ -20,9 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import life.genny.daoservices.BaseEntityService;
-import life.genny.daoservices.BaseEntityService2;
-import life.genny.daoservices.GennySheetss;
+
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
@@ -34,7 +32,9 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
+import life.genny.qwandautils.GennySheets;
 import life.genny.qwandautils.GennySheets2;
+import life.genny.services.BaseEntityService2;
 
 public class JPAHibernateTest {
 
@@ -54,9 +54,20 @@ public class JPAHibernateTest {
 
  @BeforeClass
   public static void init() throws FileNotFoundException, SQLException {
-    emf = Persistence.createEntityManagerFactory("mnf-pu-test");
-    em = emf.createEntityManager();
-    import_from_google_docs();
+	 log.info("Setting up EntityManagerFactory");
+    try {
+		emf = Persistence.createEntityManagerFactory("h2-pu");
+	} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+    if (emf==null) {
+    		log.error("EMF is null");
+    } else {
+    	 log.info("Setting up EntityManager");
+    		em = emf.createEntityManager();
+    		import_from_google_docs();
+    }
   }
 
   // @Before
@@ -77,14 +88,19 @@ public class JPAHibernateTest {
 
   // @Before
   public static void import_from_google_docs() {
-
+	 	 log.info("Setting up Import");
     service = new BaseEntityService2(em);
+    
+    if (service == null) {
+    	log.error("BaseEntityService is null");
+    }
+    
     em.getTransaction().begin();
 
     System.out
         .println("**************************** IMPORTING  *************************************");
 
-    final GennySheetss gennySheets = new GennySheetss(secret, gennySheetId, credentialPath);
+    final GennySheets gennySheets = new GennySheets(secret, gennySheetId, credentialPath);
 
 
     System.out.println(
@@ -223,6 +239,8 @@ public class JPAHibernateTest {
 
         }
       });
+      System.out.println(
+              "**************************** IMPORTING BASEENTITY - BASEENTITY LINKS *************************************");
 
       // Now link be to be
       final AttributeLink linkAttribute2 = new AttributeLink("LNK_CORE", "Parent");
@@ -325,11 +343,19 @@ public class JPAHibernateTest {
 
  @AfterClass
   public static void tearDown() {
-    log.info("Tearing down");
+    log.info("Starting Tear down");
+    if (em!=null) {
     org.h2.store.fs.FileUtils.deleteRecursive("mem:test", true);
     em.clear();
     em.close();
+    } else {
+    	log.error("EntityManager not created, so not torn down...");
+    }
+    if (emf != null) {
     emf.close();
+    } else {
+    	log.error("EntityManagerFactory was null");
+    }
   }
 
 

@@ -1,4 +1,4 @@
-package life.genny.daoservices;
+package life.genny.services;
 
 import static java.lang.System.out;
 

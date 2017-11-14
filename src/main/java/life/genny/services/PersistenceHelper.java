@@ -1,4 +1,4 @@
-package life.genny.daoservices;
+package life.genny.services;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.EntityManager;

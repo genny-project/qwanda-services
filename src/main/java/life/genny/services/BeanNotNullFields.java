@@ -1,4 +1,4 @@
-package life.genny.daoservices;
+package life.genny.services;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;

@@ -1,4 +1,4 @@
-package life.genny.daoservices;
+package life.genny.services;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -90,9 +90,6 @@ public class BaseEntityService2 {
 	@Inject
 	Event<DataType> dataTypeRemoveEvent;
 
-	@Inject
-	private PersistenceHelper helper;
-
 	EntityManager em;
 
 	protected BaseEntityService2() {
@@ -112,20 +109,19 @@ public class BaseEntityService2 {
 	public Long insert(final Question question) {
 		// always check if question exists through check for unique code
 		try {
-			helper.getEntityManager().persist(question);
+			em.persist(question);
 			System.out.println("\n\n\n\n\n\n\n11111111\n\n\n\n\n\n\n\n");
-			// baseEntityEventSrc.fire(entity);
 		} catch (final ConstraintViolationException e) {
 			Question existing = findQuestionByCode(question.getCode());
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			return existing.getId();
 		} catch (final PersistenceException e) {
 			Question existing = findQuestionByCode(question.getCode());
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			return existing.getId();
 		} catch (final IllegalStateException e) {
 			Question existing = findQuestionByCode(question.getCode());
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			return existing.getId();
 		}
 		return question.getId();
@@ -151,22 +147,21 @@ public class BaseEntityService2 {
 			Log.info("Creating new Ask " + beSource.getCode() + ":" + beTarget.getCode() + ":" + attribute.getCode()
 					+ ":" + (question == null ? "No Question" : question.getCode()));
 
-			helper.getEntityManager().persist(newAsk);
-			// baseEntityEventSrc.fire(entity);
+			em.persist(newAsk);
 		} catch (final ConstraintViolationException e) {
 			// so update otherwise // TODO merge?
 			Ask existing = findAskById(ask.getId());
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			return existing.getId();
 		} catch (final PersistenceException e) {
 			// so update otherwise // TODO merge?
 			Ask existing = findAskById(ask.getId());
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			return existing.getId();
 		} catch (final IllegalStateException e) {
 			// so update otherwise // TODO merge?
 			Ask existing = findAskById(ask.getId());
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			return existing.getId();
 		}
 		return ask.getId();
@@ -175,13 +170,12 @@ public class BaseEntityService2 {
 	public Long insert(final Rule rule) {
 		// always check if rule exists through check for unique code
 		try {
-			helper.getEntityManager().persist(rule);
-			// baseEntityEventSrc.fire(entity);
+			em.persist(rule);
 
 		} catch (final EntityExistsException e) {
 			// so update otherwise // TODO merge?
 			Rule existing = findRuleById(rule.getId());
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			return existing.getId();
 
 		}
@@ -191,9 +185,8 @@ public class BaseEntityService2 {
 	public Long insert(final Validation validation) {
 		// always check if rule exists through check for unique code
 		try {
-			helper.getEntityManager().persist(validation);
+			em.persist(validation);
 			System.out.println("\n\n\n\n\n\n\n11111111\n\n\n\n\n\n\n\n");
-			// baseEntityEventSrc.fire(entity);
 		} catch (final ConstraintViolationException e) {
 			System.out.println("\n\n\n\n\n\n222222222222\n\n\n\n\n\n\n\n\n");
 			final Validation existing = findValidationByCode(validation.getCode());
@@ -218,13 +211,13 @@ public class BaseEntityService2 {
 
 		AnswerLink existing = findAnswerLinkByCodes(answerLink.getTargetCode(), answerLink.getSourceCode(),
 				answerLink.getAttributeCode());
-		if (existing == null) {
-			helper.getEntityManager().persist(answerLink);
+		if ((existing == null)){
+			
+			em.persist(answerLink);
 			QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(answerLink.getSourceCode(),
 					answerLink.getTargetCode(), answerLink.getAttributeCode(), null, answerLink.getValue(),
 					"DUMMY_TOKEN");
 
-			// qEventAttributeValueChangeMessageEventSrc.fire(msg);
 			sendQEventAttributeValueChangeMessage(msg);
 		}
 
@@ -240,12 +233,11 @@ public class BaseEntityService2 {
 			existing.setValueLong(answerLink.getValueLong());
 			existing.setWeight(answerLink.getWeight());
 
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(answerLink.getSourceCode(),
 					answerLink.getTargetCode(), answerLink.getAttributeCode(), oldValue.toString(),
 					answerLink.getValue(), "DUMMY-UPDATE_TOKEN"/* securityService.getToken() */);
 
-			// qEventAttributeValueChangeMessageEventSrc.fire(msg);
 			sendQEventAttributeValueChangeMessage(msg);
 
 			return existing;
@@ -277,7 +269,7 @@ public class BaseEntityService2 {
 
 			answer.setAttribute(attribute);
 
-			helper.getEntityManager().persist(answer);
+			em.persist(answer);
 			// update answerlink
 
 			AnswerLink answerLink = null;
@@ -290,13 +282,12 @@ public class BaseEntityService2 {
 				e.printStackTrace();
 			}
 
-			// baseEntityEventSrc.fire(entity);
 
 		} catch (final EntityExistsException e) {
 			System.out.println("Answer Insert EntityExistsException");
 			// so update otherwise // TODO merge?
 			Answer existing = findAnswerById(answer.getId());
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			// if (answer.getAskId() != null) {
 			// findAskById(answer.getAsk().getId());
 			// }
@@ -320,10 +311,10 @@ public class BaseEntityService2 {
 	public AnswerLink update(AnswerLink answerLink) {
 		// always check if answerLink exists through check for unique code
 		try {
-			answerLink = helper.getEntityManager().merge(answerLink);
+			answerLink = em.merge(answerLink);
 		} catch (final IllegalArgumentException e) {
 			// so persist otherwise
-			helper.getEntityManager().persist(answerLink);
+			em.persist(answerLink);
 		}
 		return answerLink;
 	}
@@ -338,23 +329,18 @@ public class BaseEntityService2 {
 		entity.setRealm("genny");
 		// always check if baseentity exists through check for unique code
 		try {
-			helper.getEntityManager().persist(entity);
-			baseEntityEventSrc.fire(entity);
-			// baseEntityEventSrc.fire(entity);
+			em.persist(entity);
 		} catch (final ConstraintViolationException e) {
 			// so update otherwise // TODO merge?
-			helper.getEntityManager().merge(entity);
-			baseEntityEventSrc.fire(entity);
+			em.merge(entity);
 			return entity.getId();
 		} catch (final PersistenceException e) {
 			// so update otherwise // TODO merge?
-			helper.getEntityManager().merge(entity);
-			baseEntityEventSrc.fire(entity);
+			em.merge(entity);
 			return entity.getId();
 		} catch (final IllegalStateException e) {
 			// so update otherwise // TODO merge?
-			helper.getEntityManager().merge(entity);
-			baseEntityEventSrc.fire(entity);
+			em.merge(entity);
 			return entity.getId();
 		}
 		// }
@@ -367,15 +353,14 @@ public class BaseEntityService2 {
 	// and created
 	// datetime
 	// try {
-	// helper.getEntityManager().persist(ask);
-	// // baseEntityEventSrc.fire(entity);
+	// em.persist(ask);
 	//
 	// } catch (EntityExistsException e) {
 	// // so update otherwise // TODO merge?
 	// BaseEntity existing = findBaseEntityByCode(entity.getCode());
 	// List<EntityAttribute> changes = existing.merge(entity);
 	// System.out.println("Updated "+existing+ ":"+ changes);
-	// existing = helper.getEntityManager().merge(existing);
+	// existing = em.merge(existing);
 	// return existing.getId();
 	//
 	// }
@@ -385,10 +370,10 @@ public class BaseEntityService2 {
 	public Long update(Ask ask) {
 		// always check if ask exists through check for unique code
 		try {
-			ask = helper.getEntityManager().merge(ask);
+			ask = em.merge(ask);
 		} catch (final IllegalArgumentException e) {
 			// so persist otherwise
-			helper.getEntityManager().persist(ask);
+			em.persist(ask);
 		}
 		return ask.getId();
 	}
@@ -397,23 +382,18 @@ public class BaseEntityService2 {
 	// // always check if baseentity exists through check for unique code
 	// try {
 	// // so persist otherwise
-	// helper.getEntityManager().persist(entity);
-	// // baseEntityEventSrc.fire(entity);
+	// em.persist(entity);
 	// } catch (ConstraintViolationException e) {
-	// entity = helper.getEntityManager().merge(entity);
-	// baseEntityEventSrc.fire(entity);
+	// entity = em.merge(entity);
 	// return entity.getId();
 	// } catch (PersistenceException e) {
-	// entity = helper.getEntityManager().merge(entity);
-	// baseEntityEventSrc.fire(entity);
+	// entity = em.merge(entity);
 	// return entity.getId();
 	// } catch (EJBException e) {
-	// entity = helper.getEntityManager().merge(entity);
-	// baseEntityEventSrc.fire(entity);
+	// entity = em.merge(entity);
 	// return entity.getId();
 	// } catch (IllegalStateException e) {
-	// entity = helper.getEntityManager().merge(entity);
-	// baseEntityEventSrc.fire(entity);
+	// entity = em.merge(entity);
 	// return entity.getId();
 	// }
 	// return entity.getId();
@@ -422,11 +402,10 @@ public class BaseEntityService2 {
 	public Long update(BaseEntity entity) {
 		// always check if baseentity exists through check for unique code
 		try {
-			entity = helper.getEntityManager().merge(entity);
-			baseEntityEventSrc.fire(entity);
+			entity = em.merge(entity);
 		} catch (final IllegalArgumentException e) {
 			// so persist otherwise
-			helper.getEntityManager().persist(entity);
+			em.persist(entity);
 		}
 		return entity.getId();
 	}
@@ -435,64 +414,63 @@ public class BaseEntityService2 {
 		// always check if attribute exists through check for unique code
 		try {
 
-			attribute = helper.getEntityManager().merge(attribute);
-			attributeEventSrc.fire(attribute);
+			attribute = em.merge(attribute);
 		} catch (final IllegalArgumentException e) {
 			// so persist otherwise
-			helper.getEntityManager().persist(attribute);
+			em.persist(attribute);
 		}
 		return attribute.getId();
 	}
 
 	public Ask findAskById(final Long id) {
-		return helper.getEntityManager().find(Ask.class, id);
+		return em.find(Ask.class, id);
 	}
 
 	public GPS findGPSById(final Long id) {
-		return helper.getEntityManager().find(GPS.class, id);
+		return em.find(GPS.class, id);
 	}
 
 	public Question findQuestionById(final Long id) {
-		return helper.getEntityManager().find(Question.class, id);
+		return em.find(Question.class, id);
 	}
 
 	public Answer findAnswerById(final Long id) {
-		return helper.getEntityManager().find(Answer.class, id);
+		return em.find(Answer.class, id);
 	}
 
 	public life.genny.qwanda.Context findContextById(final Long id) {
-		return helper.getEntityManager().find(life.genny.qwanda.Context.class, id);
+		return em.find(life.genny.qwanda.Context.class, id);
 	}
 
 	public BaseEntity findBaseEntityById(final Long id) {
-		return helper.getEntityManager().find(BaseEntity.class, id);
+		return em.find(BaseEntity.class, id);
 	}
 
 	public Attribute findAttributeById(final Long id) {
-		return helper.getEntityManager().find(Attribute.class, id);
+		return em.find(Attribute.class, id);
 	}
 
 	public Rule findRuleById(final Long id) {
-		return helper.getEntityManager().find(Rule.class, id);
+		return em.find(Rule.class, id);
 	}
 
 	public Validation findValidationById(final Long id) {
-		return helper.getEntityManager().find(Validation.class, id);
+		return em.find(Validation.class, id);
 	}
 
 	public DataType findDataTypeById(final Long id) {
-		return helper.getEntityManager().find(DataType.class, id);
+		return em.find(DataType.class, id);
 	}
 
 	public BaseEntity findBaseEntityByCode(@NotNull final String baseEntityCode) throws NoResultException {
 
-		final BaseEntity result = (BaseEntity) helper.getEntityManager()
+		final BaseEntity result = (BaseEntity) em
 				.createQuery("SELECT a FROM BaseEntity a where a.code=:baseEntityCode")
 				.setParameter("baseEntityCode", baseEntityCode.toUpperCase()).getSingleResult();
 
 		// Ugly, add field filtering through header field list
 
-		final List<EntityAttribute> attributes = helper.getEntityManager()
+		final List<EntityAttribute> attributes = em
 				.createQuery("SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
 				.setParameter("baseEntityCode", baseEntityCode).getResultList();
 		result.setBaseEntityAttributes(new ArrayList<EntityAttribute>(attributes));
@@ -502,7 +480,7 @@ public class BaseEntityService2 {
 
 	public Rule findRuleByCode(@NotNull final String ruleCode) throws NoResultException {
 
-		final Rule result = (Rule) helper.getEntityManager().createQuery("SELECT a FROM Rule a where a.code=:ruleCode")
+		final Rule result = (Rule) em.createQuery("SELECT a FROM Rule a where a.code=:ruleCode")
 				.setParameter("ruleCode", ruleCode.toUpperCase()).getSingleResult();
 
 		return result;
@@ -510,7 +488,7 @@ public class BaseEntityService2 {
 
 	public Question findQuestionByCode(@NotNull final String code) throws NoResultException {
 
-		final Question result = (Question) helper.getEntityManager()
+		final Question result = (Question) em
 				.createQuery("SELECT a FROM Question a where a.code=:code").setParameter("code", code.toUpperCase())
 				.getSingleResult();
 
@@ -519,7 +497,7 @@ public class BaseEntityService2 {
 
 	public DataType findDataTypeByCode(@NotNull final String code) throws NoResultException {
 
-		final DataType result = (DataType) helper.getEntityManager()
+		final DataType result = (DataType) em
 				.createQuery("SELECT a FROM DataType a where a.code=:code").setParameter("code", code.toUpperCase())
 				.getSingleResult();
 
@@ -528,7 +506,7 @@ public class BaseEntityService2 {
 
 	public Validation findValidationByCode(@NotNull final String code) throws NoResultException {
 		final String co = "VLD_EMAIL";
-		final Validation result = (Validation) helper.getEntityManager()
+		final Validation result = (Validation) em
 				.createQuery("SELECT a FROM Validation a where a.code=:code").setParameter("code", co)
 				.getSingleResult();
 		// System.out.println("8878978978978977987897987987987" + result);
@@ -537,7 +515,7 @@ public class BaseEntityService2 {
 
 	public AttributeLink findAttributeLinkByCode(@NotNull final String code) throws NoResultException {
 
-		final AttributeLink result = (AttributeLink) helper.getEntityManager()
+		final AttributeLink result = (AttributeLink) em
 				.createQuery("SELECT a FROM AttributeLink a where a.code=:code")
 				.setParameter("code", code.toUpperCase()).getSingleResult();
 
@@ -546,7 +524,7 @@ public class BaseEntityService2 {
 
 	public Attribute findAttributeByCode(@NotNull final String code) throws NoResultException {
 
-		final Attribute result = (Attribute) helper.getEntityManager()
+		final Attribute result = (Attribute) em
 				.createQuery("SELECT a FROM Attribute a where a.code=:code").setParameter("code", code.toUpperCase())
 				.getSingleResult();
 
@@ -556,7 +534,7 @@ public class BaseEntityService2 {
 	public AnswerLink findAnswerLinkByCodes(@NotNull final String targetCode, @NotNull final String sourceCode,
 			@NotNull final String attributeCode) {
 
-		final List<AnswerLink> results = helper.getEntityManager().createQuery(
+		final List<AnswerLink> results = em.createQuery(
 				"SELECT a FROM AnswerLink a where a.targetCode=:targetCode and a.sourceCode=:sourceCode and  attributeCode=:attributeCode")
 				.setParameter("targetCode", targetCode).setParameter("sourceCode", sourceCode)
 				.setParameter("attributeCode", attributeCode).getResultList();
@@ -571,7 +549,7 @@ public class BaseEntityService2 {
 
 	public BaseEntity findUserByAttributeValue(@NotNull final String attributeCode, final Integer value) {
 
-		final List<EntityAttribute> results = helper.getEntityManager().createQuery(
+		final List<EntityAttribute> results = em.createQuery(
 				"SELECT ea FROM EntityAttribute ea where ea.pk.attribute.code=:attributeCode and ea.valueInteger=:valueInteger")
 				.setParameter("attributeCode", attributeCode).setParameter("valueInteger", value).setMaxResults(1)
 				.getResultList();
@@ -585,7 +563,7 @@ public class BaseEntityService2 {
 
 	public BaseEntity findUserByAttributeValue(@NotNull final String attributeCode, final String value) {
 
-		final List<EntityAttribute> results = helper.getEntityManager().createQuery(
+		final List<EntityAttribute> results = em.createQuery(
 				"SELECT ea FROM EntityAttribute ea where ea.pk.attribute.code=:attributeCode and ea.valueString=:value")
 				.setParameter("attributeCode", attributeCode).setParameter("value", value).setMaxResults(1)
 				.getResultList();
@@ -610,7 +588,7 @@ public class BaseEntityService2 {
 			final Integer pairCount = params.size();
 			if (pairCount.equals(0)) {
 				System.out.println("findChildrenByAttributeLink - PairCount==0");
-				eeResults = helper.getEntityManager().createQuery(
+				eeResults = em.createQuery(
 						"SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
 						.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
 						.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
@@ -666,7 +644,7 @@ public class BaseEntityService2 {
 
 				}
 				System.out.println("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
-				final Query query = helper.getEntityManager().createQuery(queryStr);
+				final Query query = em.createQuery(queryStr);
 				int index = 0;
 				for (final String attributeParm : attributeCodeList) {
 					query.setParameter("attributeCode" + index, attributeParm);
@@ -692,7 +670,7 @@ public class BaseEntityService2 {
 			final Integer pairCount = params.size();
 			if (pairCount.equals(0)) {
 
-				eeResults = helper.getEntityManager().createQuery(
+				eeResults = em.createQuery(
 						"SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
 						.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
 						.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
@@ -750,7 +728,7 @@ public class BaseEntityService2 {
 
 				}
 				System.out.println("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
-				final Query query = helper.getEntityManager().createQuery(queryStr);
+				final Query query = em.createQuery(queryStr);
 				int index = 0;
 				for (final String attributeParm : attributeCodeList) {
 					query.setParameter("attributeCode" + index, attributeParm);
@@ -830,7 +808,7 @@ public class BaseEntityService2 {
 
 		}
 		System.out.println("findChildrenByAttributeLinkCount KIDS + ATTRIBUTE Query=" + queryStr);
-		final Query query = helper.getEntityManager().createQuery(queryStr);
+		final Query query = em.createQuery(queryStr);
 		int index = 0;
 		for (final String attributeParm : attributeCodeList) {
 			query.setParameter("attributeCode" + index, attributeParm);
@@ -892,7 +870,7 @@ public class BaseEntityService2 {
 		}
 		// now save the parents
 		for (Group parent : parentGroupList) {
-			parent = helper.getEntityManager().merge(parent);
+			parent = em.merge(parent);
 		}
 		System.out.println(users);
 	}
@@ -906,7 +884,7 @@ public class BaseEntityService2 {
 			attribute = new AttributeText(AttributeText.getDefaultCodePrefix() + attributeName,
 					StringUtils.capitalize(attributeName));
 
-			helper.getEntityManager().persist(attribute);
+			em.persist(attribute);
 		}
 		return attribute;
 	}
@@ -923,45 +901,45 @@ public class BaseEntityService2 {
 
 		final BaseEntity be = new BaseEntity("Test BaseEntity");
 		be.setCode(BaseEntity.getDefaultCodePrefix() + "TEST");
-		helper.getEntityManager().persist(be);
+		em.persist(be);
 
 		Person edison = new Person("Thomas Edison");
 		edison.setCode(Person.getDefaultCodePrefix() + "EDISON");
-		helper.getEntityManager().persist(edison);
+		em.persist(edison);
 
 		final Person tesla = new Person("Nikola Tesla");
 		tesla.setCode(Person.getDefaultCodePrefix() + "TESLA");
-		helper.getEntityManager().persist(tesla);
+		em.persist(tesla);
 
 		final Company crowtech = new Company("crowtech", "Crowtech Pty Ltd");
 		crowtech.setCode(Company.getDefaultCodePrefix() + "CROWTECH");
-		helper.getEntityManager().persist(crowtech);
+		em.persist(crowtech);
 
 		final Company spacex = new Company("spacex", "SpaceX");
 		spacex.setCode(Company.getDefaultCodePrefix() + "SPACEX");
-		helper.getEntityManager().persist(spacex);
+		em.persist(spacex);
 
 		final Product bmw316i = new Product("bmw316i", "BMW 316i");
 		bmw316i.setCode(Product.getDefaultCodePrefix() + "BMW316I");
-		helper.getEntityManager().persist(bmw316i);
+		em.persist(bmw316i);
 
 		final Product mazdaCX5 = new Product("maxdacx5", "Mazda CX-5");
 		mazdaCX5.setCode(Product.getDefaultCodePrefix() + "MAXDACX5");
-		helper.getEntityManager().persist(mazdaCX5);
+		em.persist(mazdaCX5);
 
 		final AttributeText attributeText1 = new AttributeText(AttributeText.getDefaultCodePrefix() + "TEST1",
 				"Test 1");
-		helper.getEntityManager().persist(attributeText1);
+		em.persist(attributeText1);
 		final AttributeText attributeText2 = new AttributeText(AttributeText.getDefaultCodePrefix() + "TEST2",
 				"Test 2");
-		helper.getEntityManager().persist(attributeText2);
+		em.persist(attributeText2);
 		final AttributeText attributeText3 = new AttributeText(AttributeText.getDefaultCodePrefix() + "TEST3",
 				"Test 3");
-		helper.getEntityManager().persist(attributeText3);
+		em.persist(attributeText3);
 
 		Person person = new Person("Barry Allen");
 		person.setCode(Person.getDefaultCodePrefix() + "FLASH");
-		helper.getEntityManager().persist(person);
+		em.persist(person);
 
 		try {
 			person.addAttribute(attributeText1, 1.0);
@@ -970,7 +948,7 @@ public class BaseEntityService2 {
 
 			// Link some BaseEntities
 			final AttributeText link1 = new AttributeText(AttributeText.getDefaultCodePrefix() + "LINK1", "Link1");
-			helper.getEntityManager().persist(link1);
+			em.persist(link1);
 			person.addTarget(bmw316i, link1, 1.0);
 			person.addTarget(mazdaCX5, link1, 0.9);
 			person.addTarget(edison, link1, 0.8);
@@ -978,8 +956,8 @@ public class BaseEntityService2 {
 			edison.addTarget(spacex, link1, 0.5);
 			edison.addTarget(crowtech, link1, 0.4);
 
-			person = helper.getEntityManager().merge(person);
-			edison = helper.getEntityManager().merge(edison);
+			person = em.merge(person);
+			edison = em.merge(edison);
 
 		} catch (final BadDataException e) {
 			// TODO Auto-generated catch block
@@ -992,7 +970,7 @@ public class BaseEntityService2 {
 	 * @return all the {@link BaseEntity} in the db
 	 */
 	public List<BaseEntity> getAll() {
-		final Query query = helper.getEntityManager().createQuery("SELECT e FROM BaseEntity e");
+		final Query query = em.createQuery("SELECT e FROM BaseEntity e");
 		return query.getResultList();
 
 	}
@@ -1007,8 +985,7 @@ public class BaseEntityService2 {
 	public void remove(final BaseEntity entity) {
 		resetMsgLists();
 		final BaseEntity baseEntity = findBaseEntityById(entity.getId());
-		baseEntityRemoveEvent.fire(baseEntity);
-		helper.getEntityManager().remove(baseEntity);
+		em.remove(baseEntity);
 	}
 
 	/**
@@ -1020,8 +997,7 @@ public class BaseEntityService2 {
 	 */
 	public void removeBaseEntity(final String code) {
 		final BaseEntity baseEntity = findBaseEntityByCode(code);
-		baseEntityRemoveEvent.fire(baseEntity);
-		helper.getEntityManager().remove(baseEntity);
+		em.remove(baseEntity);
 	}
 
 	/**
@@ -1033,8 +1009,7 @@ public class BaseEntityService2 {
 	 */
 	public void removeAttribute(final String code) {
 		final Attribute attribute = findAttributeByCode(code);
-		attributeRemoveEvent.fire(attribute);
-		helper.getEntityManager().remove(attribute);
+		em.remove(attribute);
 	}
 
 	public void resetMsgLists() {
@@ -1096,7 +1071,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<EntityAttribute> findAttributesByBaseEntityId(final Long id) {
-		final List<EntityAttribute> results = helper.getEntityManager()
+		final List<EntityAttribute> results = em
 				.createQuery("SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.id=:baseEntityId")
 				.setParameter("baseEntityId", id).getResultList();
 
@@ -1124,7 +1099,7 @@ public class BaseEntityService2 {
 						Attribute attribute = findAttributeByCode(code_name[0]);
 						if (attribute == null) {
 							attribute = new AttributeText(code_name[0], code_name[1]);
-							helper.getEntityManager().persist(attribute);
+							em.persist(attribute);
 						}
 
 						attributes.put(i, attribute);
@@ -1176,7 +1151,7 @@ public class BaseEntityService2 {
 							Attribute nameAttribute = findAttributeByCode("PRI_NAME");
 							if (nameAttribute == null) {
 								nameAttribute = new AttributeText("PRI_NAME", "Name");
-								helper.getEntityManager().persist(nameAttribute);
+								em.persist(nameAttribute);
 
 							}
 							try {
@@ -1190,7 +1165,7 @@ public class BaseEntityService2 {
 						}
 					}
 					// Now check if not already there by comparing specific fields
-					helper.getEntityManager().persist(entity);
+					em.persist(entity);
 				}
 				rowNumber++;
 			}
@@ -1204,30 +1179,28 @@ public class BaseEntityService2 {
 	public Long insert(final Attribute attribute) {
 		// always check if baseentity exists through check for unique code
 		try {
-			helper.getEntityManager().persist(attribute);
-			attributeEventSrc.fire(attribute);
-			// baseEntityEventSrc.fire(entity);
+			em.persist(attribute);
 		} catch (final ConstraintViolationException e) {
 			// so update otherwise // TODO merge?
 			Attribute existing = findAttributeByCode(attribute.getCode());
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			return existing.getId();
 		} catch (final PersistenceException e) {
 			// so update otherwise // TODO merge?
 			Attribute existing = findAttributeByCode(attribute.getCode());
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			return existing.getId();
 		} catch (final IllegalStateException e) {
 			// so update otherwise // TODO merge?
 			Attribute existing = findAttributeByCode(attribute.getCode());
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			return existing.getId();
 		}
 		return attribute.getId();
 	}
 
 	public List<Ask> findAsksBySourceBaseEntityId(final Long id) {
-		final List<Ask> results = helper.getEntityManager()
+		final List<Ask> results = em
 				.createQuery("SELECT ea FROM Ask ea where ea.source.id=:baseEntityId").setParameter("baseEntityId", id)
 				.getResultList();
 
@@ -1236,7 +1209,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<Ask> findAsksBySourceBaseEntityCode(final String code) {
-		final List<Ask> results = helper.getEntityManager()
+		final List<Ask> results = em
 				.createQuery("SELECT ea FROM Ask ea where ea.source.code=:baseEntityCode")
 				.setParameter("baseEntityCode", code).getResultList();
 
@@ -1245,7 +1218,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<Ask> findAsksByTargetBaseEntityId(final Long id) {
-		final List<Ask> results = helper.getEntityManager()
+		final List<Ask> results = em
 				.createQuery("SELECT ea FROM Ask ea where ea.target.id=:baseEntityId").setParameter("baseEntityId", id)
 				.getResultList();
 
@@ -1254,7 +1227,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<Ask> findAsksByTargetBaseEntityCode(final String code) {
-		final List<Ask> results = helper.getEntityManager()
+		final List<Ask> results = em
 				.createQuery("SELECT ea FROM Ask ea where ea.target.code=:baseEntityCode")
 				.setParameter("baseEntityCode", code).getResultList();
 
@@ -1263,7 +1236,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<GPS> findGPSByTargetBaseEntityId(final Long id) {
-		final List<GPS> results = helper.getEntityManager()
+		final List<GPS> results = em
 				.createQuery("SELECT ea FROM GPS ea where ea.targetId=:baseEntityId").setParameter("baseEntityId", id)
 				.getResultList();
 
@@ -1272,7 +1245,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<GPS> findGPSByTargetBaseEntityCode(final String targetCode) {
-		final List<GPS> results = helper.getEntityManager()
+		final List<GPS> results = em
 				.createQuery("SELECT ea FROM GPS ea where ea.targetCode=:baseEntityCode")
 				.setParameter("baseEntityCode", targetCode).getResultList();
 
@@ -1281,7 +1254,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<AnswerLink> findAnswersByTargetBaseEntityId(final Long id) {
-		final List<AnswerLink> results = helper.getEntityManager()
+		final List<AnswerLink> results = em
 				.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.target.id=:baseEntityId")
 				.setParameter("baseEntityId", id).getResultList();
 
@@ -1290,7 +1263,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<AnswerLink> findAnswersByTargetBaseEntityCode(final String targetCode) {
-		final List<AnswerLink> results = helper.getEntityManager()
+		final List<AnswerLink> results = em
 				.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.target.code=:baseEntityCode")
 				.setParameter("baseEntityCode", targetCode).getResultList();
 
@@ -1299,7 +1272,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<AnswerLink> findAnswersBySourceBaseEntityCode(final String sourceCode) {
-		final List<AnswerLink> results = helper.getEntityManager()
+		final List<AnswerLink> results = em
 				.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.source.code=:baseEntityCode")
 				.setParameter("baseEntityCode", sourceCode).getResultList();
 
@@ -1309,7 +1282,7 @@ public class BaseEntityService2 {
 
 	public List<Question> findQuestions() throws NoResultException {
 
-		final List<Question> results = helper.getEntityManager().createQuery("SELECT a FROM Question a")
+		final List<Question> results = em.createQuery("SELECT a FROM Question a")
 				.getResultList();
 
 		return results;
@@ -1317,7 +1290,7 @@ public class BaseEntityService2 {
 
 	public List<Ask> findAsks() throws NoResultException {
 
-		final List<Ask> results = helper.getEntityManager().createQuery("SELECT a FROM Ask a").getResultList();
+		final List<Ask> results = em.createQuery("SELECT a FROM Ask a").getResultList();
 
 		return results;
 	}
@@ -1326,7 +1299,7 @@ public class BaseEntityService2 {
 
 		// log.info("find asks Realm = " + securityService.getRealm());
 
-		final List<Ask> results = helper.getEntityManager().createQuery("SELECT a FROM Ask a JOIN a.question q")
+		final List<Ask> results = em.createQuery("SELECT a FROM Ask a JOIN a.question q")
 				.getResultList();
 
 		return results;
@@ -1334,14 +1307,14 @@ public class BaseEntityService2 {
 
 	public List<Rule> findRules() throws NoResultException {
 
-		final List<Rule> results = helper.getEntityManager().createQuery("SELECT a FROM Rule a").getResultList();
+		final List<Rule> results = em.createQuery("SELECT a FROM Rule a").getResultList();
 
 		return results;
 	}
 
 	public List<AnswerLink> findAnswerLinks() throws NoResultException {
 
-		final List<AnswerLink> results = helper.getEntityManager().createQuery("SELECT a FROM AnswerLink a")
+		final List<AnswerLink> results = em.createQuery("SELECT a FROM AnswerLink a")
 				.getResultList();
 
 		return results;
@@ -1349,7 +1322,7 @@ public class BaseEntityService2 {
 
 	public List<EntityAttribute> findAttributesByBaseEntityCode(final String code) throws NoResultException {
 
-		final List<EntityAttribute> results = helper.getEntityManager()
+		final List<EntityAttribute> results = em
 				.createQuery("SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
 				.setParameter("baseEntityCode", code).getResultList();
 
@@ -1358,12 +1331,12 @@ public class BaseEntityService2 {
 
 	public Long insert(final GPS entity) {
 		try {
-			helper.getEntityManager().persist(entity);
+			em.persist(entity);
 
 		} catch (final EntityExistsException e) {
 			// so update otherwise // TODO merge?
 			GPS existing = findGPSById(entity.getId());
-			existing = helper.getEntityManager().merge(existing);
+			existing = em.merge(existing);
 			return existing.getId();
 
 		}
@@ -1382,7 +1355,7 @@ public class BaseEntityService2 {
 			// ugly and insecure
 			final Integer pairCount = params.size();
 			if (pairCount.equals(0)) {
-				eeResults = helper.getEntityManager()
+				eeResults = em
 						.createQuery("SELECT distinct be FROM BaseEntity be JOIN be.baseEntityAttributes bee ") // add
 																												// company
 																												// limiter
@@ -1434,7 +1407,7 @@ public class BaseEntityService2 {
 					attributeCodeIndex++;
 
 				}
-				final Query query = helper.getEntityManager().createQuery(queryStr);
+				final Query query = em.createQuery(queryStr);
 				int index = 0;
 				for (final String attributeParm : attributeCodeList) {
 					query.setParameter("attributeCode" + index, attributeParm);
@@ -1455,7 +1428,7 @@ public class BaseEntityService2 {
 		} else {
 			Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
-			eeResults = helper.getEntityManager().createQuery("SELECT be FROM BaseEntity be ").setFirstResult(pageStart)
+			eeResults = em.createQuery("SELECT be FROM BaseEntity be ").setFirstResult(pageStart)
 					.setMaxResults(pageSize).getResultList();
 
 		}
@@ -1474,7 +1447,7 @@ public class BaseEntityService2 {
 		// ugly and insecure
 		final Integer pairCount = params.size();
 		if (pairCount.equals(0)) {
-			result = (Long) helper.getEntityManager()
+			result = (Long) em
 					.createQuery("SELECT count(be.code) FROM BaseEntity be JOIN be.baseEntityAttributes bee")
 					.getSingleResult();
 		} else {
@@ -1512,7 +1485,7 @@ public class BaseEntityService2 {
 
 			}
 			System.out.println("Query=" + queryStr);
-			final Query query = helper.getEntityManager().createQuery(queryStr);
+			final Query query = em.createQuery(queryStr);
 			int index = 0;
 			for (final String attributeParm : attributeCodeList) {
 				query.setParameter("attributeCode" + index, attributeParm);
@@ -1543,7 +1516,7 @@ public class BaseEntityService2 {
 			Log.info("**************** ENTITY ENTITY DESCENDANTS WITH ATTRIBUTES!! pageStart = " + pageStart
 					+ " pageSize=" + pageSize + " ****************");
 
-			eeResults = helper.getEntityManager().createQuery(
+			eeResults = em.createQuery(
 					"SELECT be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
 					.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
 					.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
@@ -1558,7 +1531,7 @@ public class BaseEntityService2 {
 		} else {
 			Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
-			eeResults = helper.getEntityManager().createQuery(
+			eeResults = em.createQuery(
 					"SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
 					.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
 					.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
@@ -1682,7 +1655,7 @@ public class BaseEntityService2 {
 
 		// now save the parents
 		for (BaseEntity parent : parentGroupList) {
-			parent = helper.getEntityManager().merge(parent);
+			parent = em.merge(parent);
 		}
 
 		return count;

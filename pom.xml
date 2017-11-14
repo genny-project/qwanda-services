@@ -3,21 +3,23 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>life.genny</groupId>
 	<artifactId>qwanda-services</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>daoservices</name>
+	<version>0.4</version>
+	<name>qwanda-services</name>
+	<description>Question and Answer Engine Services</description>
+
 
 	<properties>
 		<jar.finalName>${project.name}</jar.finalName>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<qwanda.version>0.5.5</qwanda.version>
+		<qwanda-utils.version>0.4</qwanda-utils.version>
 
 		<!--java version -->
 		<java-version>1.8</java-version>
 
 		<junit-version>4.12</junit-version>
 		<log4j-core-version>2.5</log4j-core-version>
-
-		<qwanda-utils.version>0.4</qwanda-utils.version>
-
 		<qwanda.version>0.5.5</qwanda.version>
 
 		<!-- plugin versions -->
@@ -34,6 +36,8 @@
 		<!-- EJB spec version -->
 		<ejb-spec-version>3.2</ejb-spec-version>
 
+
+
 		<!-- <jackson.version>2.8.7</jackson.version> -->
 		<jackson.version>2.6.3</jackson.version>
 		<version.mysql-connector>6.0.6</version.mysql-connector>
@@ -46,13 +50,52 @@
 		<keycloak-core.version>3.2.0.Final</keycloak-core.version>
 		<keycloak-adapter-core.version>3.2.0.Final</keycloak-adapter-core.version>
 		<version.resteasy>3.0.10.Final</version.resteasy>
+
+
 	</properties>
+
+	<scm>
+		<url>https://github.com/genny-project/qwanda-utils</url>
+	</scm>
+
+	<ciManagement>
+		<system>jenkins</system>
+		<url>https://jenkins.outcome-hub.com</url>
+	</ciManagement>
+	<repositories>
+		<repository>
+			<url>http://download.java.net/maven/2/</url>
+			<id>hibernate-support</id>
+			<layout>default</layout>
+			<name>Repository for Hibernate Support</name>
+		</repository>
+		<repository>
+			<id>JBoss repository</id>
+			<url>http://repository.jboss.org/nexus/content/groups/public/</url>
+			<name>Repository for JBoss</name>
+		</repository>
+		<repository>
+			<id>java.net</id>
+			<url>https://maven.java.net/content/repositories/public/</url>
+		</repository>
+		<repository>
+			<id>Sonatype repository</id>
+			<url>https://oss.sonatype.org/content/repositories/releases/</url>
+		</repository>
+		<repository>
+			<id>life.genny</id>
+			<url>http://nexus.outcome-hub.com/nexus/content/repositories/life.genny</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
+		<!-- https://mvnrepository.com/artifact/javax.validation/validation-api -->
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.22</version>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>2.0.0.Final</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
@@ -63,31 +106,7 @@
 			<artifactId>log4j-core</artifactId>
 			<version>2.9.1</version>
 		</dependency>
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-entitymanager</artifactId>
-			<version>${hibernate.version}</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-validator</artifactId>
-			<version>${hibernate.version}</version>
-		</dependency>
-		<!-- testing -->
 
-		<dependency>
-			<groupId>life.genny</groupId>
-			<artifactId>qwanda-utils</artifactId>
-			<version>${qwanda-utils.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>1.4.192</version>
-			<scope>test</scope>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -112,6 +131,20 @@
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-library</artifactId>
 			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+			<version>${hibernate.version}</version>
+		</dependency>
+
+		<!-- testing -->
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.192</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -156,8 +189,18 @@
 					<artifactId>hsqldb</artifactId>
 					<groupId>org.hsqldb</groupId>
 				</exclusion>
+				<exclusion>
+					<groupId>javax.persistence</groupId>
+					<artifactId>persistence-api</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
+		<dependency>
+			<groupId>life.genny</groupId>
+			<artifactId>qwanda-utils</artifactId>
+			<version>${qwanda-utils.version}</version>
+		</dependency>
+
 		<!-- <dependency> <groupId>junit</groupId> <artifactId>junit</artifactId> 
 			<version>${junit-version}</version> <scope>test</scope> </dependency> -->
 		<!-- http://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
@@ -277,32 +320,6 @@
 		</dependency>
 
 	</dependencies>
-	<repositories>
-		<repository>
-			<url>http://download.java.net/maven/2/</url>
-			<id>hibernate-support</id>
-			<layout>default</layout>
-			<name>Repository for Hibernate Support</name>
-		</repository>
-		<repository>
-			<id>JBoss repository</id>
-			<url>http://repository.jboss.org/nexus/content/groups/public/</url>
-			<name>Repository for JBoss</name>
-		</repository>
-		<repository>
-			<id>java.net</id>
-			<url>https://maven.java.net/content/repositories/public/</url>
-		</repository>
-		<repository>
-			<id>Sonatype repository</id>
-			<url>https://oss.sonatype.org/content/repositories/releases/</url>
-		</repository>
-		<repository>
-			<id>life.genny</id>
-			<url>http://nexus.outcome-hub.com/nexus/content/repositories/life.genny</url>
-		</repository>
-	</repositories>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -327,11 +344,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19</version>
-            </plugin>
+
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -515,4 +528,5 @@
 			</plugin>
 		</plugins>
 	</build>
+
 </project>

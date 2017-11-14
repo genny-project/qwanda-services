@@ -93,17 +93,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     log.info("answerId2=" + answerId2);
 
 
-    final BaseEntity person = service.findBaseEntityByCode("PER_USER1");
-    try {
-      final AnswerLink al = person.addAnswer(answer, 1.0);
-      final AnswerLink al2 = person.addAnswer(answer2, 1.0);
-      service.insert(al);
-      service.insert(al2);
-      service.update(person);
-    } catch (final BadDataException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+ 
 
     final List<AnswerLink> answers = service.findAnswerLinks();
     log.info(answers);
@@ -165,7 +155,9 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     final String sql =
         "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bea where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode";
 
-
+    if (em == null) {
+    	log.error("EntityManager is NULL!");
+    }
     final List<BaseEntity> eeResults = em.createQuery(sql).setParameter("sourceCode", "GRP_USERS")
         .setParameter("linkAttributeCode", "LNK_CORE").setFirstResult(0).setMaxResults(1000)
         .getResultList();

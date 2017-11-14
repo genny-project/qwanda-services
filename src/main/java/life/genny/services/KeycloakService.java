@@ -1,4 +1,4 @@
-package life.genny.daoservices;
+package life.genny.services;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
