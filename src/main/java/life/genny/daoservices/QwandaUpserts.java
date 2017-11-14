@@ -1,14 +1,18 @@
 package life.genny.daoservices;
 
 import static java.lang.System.out;
+
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
+
 import org.hibernate.exception.ConstraintViolationException;
+
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
@@ -140,7 +144,7 @@ public class QwandaUpserts {
         .createQuery(
             "SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
         .setParameter("baseEntityCode", baseEntityCode).getResultList();
-    result.setBaseEntityAttributes(new HashSet<EntityAttribute>(attributes));
+    result.setBaseEntityAttributes(new ArrayList<EntityAttribute>(attributes));
     return result;
   }
 

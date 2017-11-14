@@ -92,6 +92,11 @@ public class BaseEntityService {
 
   EntityManager em;
 
+  protected BaseEntityService()
+  {
+	  
+  }
+  
   public BaseEntityService(final EntityManager em) {
     this.em = em;
   }
@@ -183,7 +188,7 @@ public class BaseEntityService {
         .createQuery(
             "SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
         .setParameter("baseEntityCode", baseEntityCode).getResultList();
-    result.setBaseEntityAttributes(new HashSet<EntityAttribute>(attributes));
+    result.setBaseEntityAttributes(new ArrayList<EntityAttribute>(attributes));
     return result;
   }
   
@@ -1590,6 +1595,14 @@ public class BaseEntityService {
     // TODO: improve
     return beMap.values().stream().collect(Collectors.toList());
   }
+
+public EntityManager getEm() {
+	return em;
+}
+
+public void setEm(EntityManager em) {
+	this.em = em;
+}
 
   // public Long importKeycloakUsers(final String keycloakUrl, final String realm,
   // final String username, final String password, final String clientId,
