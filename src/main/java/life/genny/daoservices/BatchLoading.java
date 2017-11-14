@@ -7,9 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.NoResultException;
-import javax.persistence.Persistence;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
@@ -23,28 +21,32 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySheets;
-
 /**
  * @author helios
  *
  */
 public class BatchLoading {
 
+  
+//  @Inject
+  private BaseEntityService service;
+  
+//  private BaseEntityService service;
   public BatchLoading(EntityManager em) {
     service = new BaseEntityService(em);
   }
 
-  protected static BaseEntityService service = null;
-  // protected static BaseEntityService service1 = null;
-  protected static EntityManagerFactory emf;
-  protected static EntityManager em;
+//  protected BaseEntityService service = null;
+  // protected BaseEntityService service1 = null;
+//  protected EntityManagerFactory emf;
+//  protected EntityManager em;
 
 
-  // static File credentialPath = new File(System.getProperty("user.home"), ".credentials/genny");
+  // File credentialPath = new File(System.getProperty("user.home"), ".credentials/genny");
 
-  private final static String secret = System.getenv("GOOGLE_CLIENT_SECRET");
-  private final static String sheetId = "1HAppJufvePWSiSyvPkxNfZp6NHdB8PANeH1IJopdEsE";
-  static File credentialPath = new File(System.getProperty("user.home"),
+  private final String secret = System.getenv("GOOGLE_CLIENT_SECRET");
+  private final String sheetId = "1HAppJufvePWSiSyvPkxNfZp6NHdB8PANeH1IJopdEsE";
+  File credentialPath = new File(System.getProperty("user.home"),
       ".credentials/sheets.googleapis.com-java-quickstart");
 
   /**
@@ -52,7 +54,7 @@ public class BatchLoading {
    * 
    * @param project
    */
-  public static void validations(Map<String, Object> project) {
+  public void validations(Map<String, Object> project) {
     ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
     ((HashMap<String, HashMap>) project.get("validations")).entrySet().stream().forEach(data -> {
@@ -81,7 +83,7 @@ public class BatchLoading {
    * @param project
    * @param dataTypeMap
    */
-  public static void attributes(Map<String, Object> project, Map<String, DataType> dataTypeMap) {
+  public void attributes(Map<String, Object> project, Map<String, DataType> dataTypeMap) {
     ((HashMap<String, HashMap>) project.get("attributes")).entrySet().stream().forEach(data -> {
       Map<String, Object> attributes = data.getValue();
       String code = ((String) attributes.get("code")).replaceAll("^\"|\"$", "");;
@@ -100,7 +102,7 @@ public class BatchLoading {
    * @param project
    * @return
    */
-  public static Map<String, DataType> dataType(Map<String, Object> project) {
+  public Map<String, DataType> dataType(Map<String, Object> project) {
     final Map<String, DataType> dataTypeMap = new HashMap<String, DataType>();
     ((HashMap<String, HashMap>) project.get("dataType")).entrySet().stream().forEach(data -> {
       Map<String, Object> dataType = data.getValue();
@@ -129,7 +131,7 @@ public class BatchLoading {
    * 
    * @param project
    */
-  public static void baseEntitys(Map<String, Object> project) {
+  public void baseEntitys(Map<String, Object> project) {
     ((HashMap<String, HashMap>) project.get("baseEntitys")).entrySet().stream().forEach(data -> {
       Map<String, Object> baseEntitys = data.getValue();
       String code = ((String) baseEntitys.get("code")).replaceAll("^\"|\"$", "");;
@@ -144,7 +146,7 @@ public class BatchLoading {
    * 
    * @param project
    */
-  public static void baseEntityAttributes(Map<String, Object> project) {
+  public void baseEntityAttributes(Map<String, Object> project) {
     ((HashMap<String, HashMap>) project.get("attibutesEntity")).entrySet().stream()
         .forEach(data -> {
           Map<String, Object> baseEntityAttr = data.getValue();
@@ -174,7 +176,7 @@ public class BatchLoading {
    * 
    * @param project
    */
-  public static void entityEntitys(Map<String, Object> project) {
+  public void entityEntitys(Map<String, Object> project) {
     ((HashMap<String, HashMap>) project.get("basebase")).entrySet().stream().forEach(data -> {
       Map<String, Object> entEnts = data.getValue();
       String linkCode = ((String) entEnts.get("linkCode")).replaceAll("^\"|\"$", "");;
@@ -202,7 +204,7 @@ public class BatchLoading {
    * 
    * @param project
    */
-  public static void attributeLinks(Map<String, Object> project) {
+  public void attributeLinks(Map<String, Object> project) {
     ((HashMap<String, HashMap>) project.get("attributeLink")).entrySet().stream().forEach(data -> {
       Map<String, Object> attributeLink = data.getValue();
       String code = ((String) attributeLink.get("code")).replaceAll("^\"|\"$", "");;
@@ -217,7 +219,7 @@ public class BatchLoading {
    * 
    * @param project
    */
-  public static void questions(Map<String, Object> project) {
+  public void questions(Map<String, Object> project) {
     ((HashMap<String, HashMap>) project.get("questions")).entrySet().stream().forEach(data -> {
       Map<String, Object> questions = data.getValue();
       String code = (String) questions.get("code");
@@ -235,7 +237,7 @@ public class BatchLoading {
    * 
    * @param project
    */
-  public static void asks(Map<String, Object> project) {
+  public void asks(Map<String, Object> project) {
     ((HashMap<String, HashMap>) project.get("ask")).entrySet().stream().forEach(data -> {
       Map<String, Object> asks = data.getValue();
       String attributeCode = (String) asks.get("attributeCode");
@@ -254,15 +256,15 @@ public class BatchLoading {
   }
 
 
-  public static void main(String... args) {
-    emf = Persistence.createEntityManagerFactory("mysql");
-    em = emf.createEntityManager();
-    service = new BaseEntityService(em);
-    em.getTransaction().begin();
-    persistProject();
-    em.getTransaction().commit();
-    em.close();
-  }
+//  public void main(String... args) {
+//    emf = Persistence.createEntityManagerFactory("mysql");
+//    em = emf.createEntityManager();
+//    service = new BaseEntityService(em);
+//    em.getTransaction().begin();
+//    persistProject();
+//    em.getTransaction().commit();
+//    em.close();
+//  }
 
   /**
    * Get the Project named on the last row inheriting or updating records from previous projects
@@ -270,7 +272,7 @@ public class BatchLoading {
    * 
    * @return
    */
-  public static Map<String, Object> getProject() {
+  public Map<String, Object> getProject() {
     Map<String, Object> lastProject = null;
     if (getProjects().size() == 1) {
       return getProjects().get(0);
@@ -289,9 +291,9 @@ public class BatchLoading {
   }
 
   /**
-   * Call static functions named after the classes
+   * Call functions named after the classes
    */
-  public static void persistProject() {
+  public void persistProject() {
     Map<String, Object> lastProject = getProject();
     validations(lastProject);
     Map<String, DataType> dataTypes = dataType(lastProject);
@@ -309,7 +311,7 @@ public class BatchLoading {
    * 
    * @return
    */
-  public static List<Map<String, Object>> getProjects() {
+  public List<Map<String, Object>> getProjects() {
     GennySheets sheets = new GennySheets(secret, sheetId, credentialPath);
     List<Map> projectsConfig = sheets.projectsImport(credentialPath);
     return projectsConfig.stream().map(data -> {
@@ -331,7 +333,7 @@ public class BatchLoading {
    * @param path
    * @return
    */
-  public static Map<String, Object> project(final String projectType) {
+  public Map<String, Object> project(final String projectType) {
     GennySheets sheets = new GennySheets(secret, projectType, credentialPath);
     Map<String, Map> validations = sheets.newGetVal();
     Map<String, Map> dataTypes = sheets.newGetDType();
@@ -363,7 +365,7 @@ public class BatchLoading {
    * @return
    */
   @SuppressWarnings({"unchecked", "unused"})
-  public static Map<String, Object> upsertProjectMapProps(Map<String, Object> superProject,
+  public Map<String, Object> upsertProjectMapProps(Map<String, Object> superProject,
       Map<String, Object> subProject) {
     subProject.entrySet().stream().forEach(map -> {
       final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());

@@ -49,6 +49,22 @@ public class KeycloakService {
   Keycloak keycloak = null;
 
   public KeycloakService(final String keycloakUrl, final String realm, final String username,
+      final String password, final String clientid) throws IOException {
+
+
+    this.keycloakUrl = keycloakUrl;
+    this.realm = realm;
+    this.username = username;
+    this.password = password;
+    this.clientid = clientid;
+    this.secret = "public";
+
+
+    accessToken = getToken();
+
+  }
+
+  public KeycloakService(final String keycloakUrl, final String realm, final String username,
       final String password, final String clientid, final String secret) throws IOException {
 
 
@@ -58,24 +74,6 @@ public class KeycloakService {
     this.password = password;
     this.clientid = clientid;
     this.secret = secret;
-
-
-    accessToken = getToken();
-
-  }
-
-
-
-  public KeycloakService(final String keycloakUrl, final String realm, final String username,
-      final String password, final String clientid) throws IOException {
-
-
-    this.keycloakUrl = keycloakUrl;
-    this.realm = realm;
-    this.username = username;
-    this.password = password;
-    this.clientid = clientid;
-    this.secret = "public"; // public mode
 
 
     accessToken = getToken();
@@ -148,11 +146,11 @@ public class KeycloakService {
 
   }
 
-  public List<LinkedHashMap> fetchKeycloakUsers() {
+  public List<LinkedHashMap> fetchKeycloakUsers(final Integer maxReturned) {
     final HttpClient client = new DefaultHttpClient();
     try {
-      final HttpGet get =
-          new HttpGet(this.keycloakUrl + "/auth/admin/realms/" + this.realm + "/users");
+      final HttpGet get = new HttpGet(
+          this.keycloakUrl + "/auth/admin/realms/" + this.realm + "/users?max=" + maxReturned);
       get.addHeader("Authorization", "Bearer " + this.accessToken.getToken());
       try {
         final HttpResponse response = client.execute(get);
@@ -173,20 +171,4 @@ public class KeycloakService {
       client.getConnectionManager().shutdown();
     }
   }
-
-  /**
-   * @return the keycloak
-   */
-  public Keycloak getKeycloak() {
-    return keycloak;
-  }
-
-  /**
-   * @param keycloak the keycloak to set
-   */
-  public void setKeycloak(final Keycloak keycloak) {
-    this.keycloak = keycloak;
-  }
-
-
 }
