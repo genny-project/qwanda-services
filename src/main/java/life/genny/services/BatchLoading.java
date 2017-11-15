@@ -45,7 +45,7 @@ public class BatchLoading {
   // File credentialPath = new File(System.getProperty("user.home"), ".credentials/genny");
 
   private final String secret = System.getenv("GOOGLE_CLIENT_SECRET");
-  private final String sheetId = "1HAppJufvePWSiSyvPkxNfZp6NHdB8PANeH1IJopdEsE";
+  private final String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");//"1HAppJufvePWSiSyvPkxNfZp6NHdB8PANeH1IJopdEsE";
   File credentialPath = new File(System.getProperty("user.home"),
       ".credentials/sheets.googleapis.com-java-quickstart");
 
@@ -312,7 +312,7 @@ public class BatchLoading {
    * @return
    */
   public List<Map<String, Object>> getProjects() {
-    GennySheets sheets = new GennySheets(secret, sheetId, credentialPath);
+    GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
     List<Map> projectsConfig = sheets.projectsImport(credentialPath);
     return projectsConfig.stream().map(data -> {
       String sheetID = (String) data.get("sheetID");
