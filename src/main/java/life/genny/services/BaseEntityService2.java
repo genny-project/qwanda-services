@@ -209,11 +209,23 @@ public class BaseEntityService2 {
 	public AnswerLink insert(final AnswerLink answerLink) {
 		// always check if rule exists through check for unique code
 
-		AnswerLink existing = findAnswerLinkByCodes(answerLink.getTargetCode(), answerLink.getSourceCode(),
-				answerLink.getAttributeCode());
+		AnswerLink existing = null;
+		
+		try {
+			existing = findAnswerLinkByCodes(answerLink.getTargetCode(), answerLink.getSourceCode(),
+					answerLink.getAttributeCode());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			existing = null;
+		}
 		if ((existing == null)){
 			
-			em.persist(answerLink);
+			try {
+				em.persist(answerLink);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(answerLink.getSourceCode(),
 					answerLink.getTargetCode(), answerLink.getAttributeCode(), null, answerLink.getValue(),
 					"DUMMY_TOKEN");
@@ -228,7 +240,7 @@ public class BaseEntityService2 {
 			existing.setExpired(answerLink.getExpired());
 			existing.setRefused(answerLink.getRefused());
 			existing.setValueBoolean(answerLink.getValueBoolean());
-			existing.setValueDateTime(answerLink.getValueDateTime());
+			existing.setValueDateTime(answerLink.getValueDateTime());existing.setValueDate(answerLink.getValueDate());
 			existing.setValueDouble(answerLink.getValueDouble());
 			existing.setValueLong(answerLink.getValueLong());
 			existing.setWeight(answerLink.getWeight());
@@ -249,9 +261,11 @@ public class BaseEntityService2 {
 	public Long insert(final Answer answer) {
 		// always check if answer exists through check for unique code
 		BaseEntity beTarget = null;
+		BaseEntity beSource = null;
 		Attribute attribute = null;
 		try {
 			beTarget = findBaseEntityByCode(answer.getTargetCode());
+		//	beSource = findBaseEntityByCode(answer.getSourceCode());
 			attribute = findAttributeByCode(answer.getAttributeCode());
 			;
 			Ask ask = null;
@@ -274,7 +288,7 @@ public class BaseEntityService2 {
 
 			AnswerLink answerLink = null;
 			try {
-				answerLink = beTarget.addAnswer(answer, 1.0);
+				answerLink = beTarget.addAnswer(beTarget/*beSource*/,answer, 1.0); // TODo replace with soucr
 				answerLink = insert(answerLink);
 				update(beTarget);
 			} catch (final BadDataException e) {
@@ -757,6 +771,7 @@ public class BaseEntityService2 {
 		return eeResults;
 	}
 
+
 	public Long findChildrenByAttributeLinkCount(@NotNull final String sourceCode, final String linkCode,
 			final MultivaluedMap<String, String> params) {
 
@@ -823,7 +838,12 @@ public class BaseEntityService2 {
 		}
 		query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
 
-		total = (Long) query.getSingleResult();
+		try {
+			total = (Long) query.getSingleResult();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		return total;
 	}
