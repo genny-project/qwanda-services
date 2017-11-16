@@ -56,7 +56,7 @@ public class JPAHibernateTest {
   public static void init() throws FileNotFoundException, SQLException {
 	 log.info("Setting up EntityManagerFactory");
     try {
-		emf = Persistence.createEntityManagerFactory("h2-pu");
+ 		emf = Persistence.createEntityManagerFactory("h2-pu2");
 	} catch (Exception e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();

@@ -19,8 +19,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
+
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -72,27 +71,7 @@ public class BaseEntityService2 {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	@Inject
-	private Event<QEventAttributeValueChangeMessage> qEventAttributeValueChangeMessageEventSrc;
-
-	@Inject
-	private Event<BaseEntity> baseEntityEventSrc;
-
-	@Inject
-	private Event<Attribute> attributeEventSrc;
-
-	@Inject
-	private Event<DataType> dataTypeEventSrc;
-
-	@Inject
-	Event<BaseEntity> baseEntityRemoveEvent;
-
-	@Inject
-	Event<Attribute> attributeRemoveEvent;
-
-	@Inject
-	Event<DataType> dataTypeRemoveEvent;
-
+	
 	EntityManager em;
 
 	protected BaseEntityService2() {

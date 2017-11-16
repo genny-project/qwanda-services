@@ -7,13 +7,13 @@
 	<name>qwanda-services</name>
 	<description>Question and Answer Engine Services</description>
 
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <distribution>repo</distribution>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-        </license>
-    </licenses>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<distribution>repo</distribution>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
 
 	<properties>
 		<jar.finalName>${project.name}</jar.finalName>
@@ -200,8 +200,10 @@
 					<groupId>javax.persistence</groupId>
 					<artifactId>persistence-api</artifactId>
 				</exclusion>
-			</exclusions>
+		
+ </exclusions>
 		</dependency>
+
 		<dependency>
 			<groupId>life.genny</groupId>
 			<artifactId>qwanda-utils</artifactId>
@@ -325,7 +327,6 @@
 			<artifactId>google-api-services-sheets</artifactId>
 			<version>v4-rev483-1.22.0</version>
 		</dependency>
-
 	</dependencies>
 	<build>
 		<plugins>
