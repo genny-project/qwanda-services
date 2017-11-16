@@ -1818,4 +1818,18 @@ public class BaseEntityService2 {
 		return ee;
 	}
 
+	public List<EntityEntity> findLinks(@NotNull final String targetCode, final String linkCode) {
+
+		final List<EntityEntity> eeResults;
+				eeResults = em.createQuery(
+						"SELECT ee FROM EntityEntity  where  ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.target.code=:targetCode")
+						.setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode)
+						.getResultList();
+
+	
+
+		return eeResults;
+	}
+
+	
 }
