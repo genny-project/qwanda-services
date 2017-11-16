@@ -1,10 +1,12 @@
 package life.genny.services;
 
+import static java.lang.System.out;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -13,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
@@ -106,6 +109,71 @@ public class BaseEntityService2 {
 		log.info("Send Attribute Change:"+event);
 	}
 
+	public Validation upsert(Validation validation) {
+	    try {
+	      String code = validation.getCode();
+	      Validation val = findValidationByCode(code);
+	      BeanNotNullFields copyFields = new BeanNotNullFields();
+	      copyFields.copyProperties(val, validation);
+	      val = em.merge(val);
+	      // BeanUtils.copyProperties(validation, val);
+	      return val;
+	    } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+	      em.persist(validation);
+	      Validation id = validation;
+	      return id;
+	    }
+	  }
+	public Attribute upsert(Attribute attr) {
+	    try {
+	      String code = attr.getCode();
+	      Attribute val = findAttributeByCode(code);
+	      BeanNotNullFields copyFields = new BeanNotNullFields();
+	      copyFields.copyProperties(val, attr);
+	      val = em.merge(val);
+	      // BeanUtils.copyProperties(attr, val);
+	      return val;
+	    } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+	      em.persist(attr);
+	      Long id = attr.getId();
+	      return attr;
+	    }
+	  }
+	
+	public BaseEntity upsert(BaseEntity be) {
+	    try {
+	      String code = be.getCode();
+	      BaseEntity val = findBaseEntityByCode(code);
+
+	      BeanNotNullFields copyFields = new BeanNotNullFields();
+	      copyFields.copyProperties(val, be);
+	      System.out.println("***********" + val);
+	      val = em.merge(val);
+	      System.out.println("*******&&&&&&&&&&&&****");
+	      return be;
+	    } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+	      Long id = insert(be);
+	      return be;
+	    }
+	  }
+	
+	public Long upsert(final BaseEntity be, Set<EntityAttribute> ba) {
+	    try {
+	      // be.setBaseEntityAttributes(null);
+	      out.println("****3*****" + be.getBaseEntityAttributes().stream().map(data -> data.pk)
+	          .reduce((d1, d2) -> d1).get());
+	      String code = be.getCode();
+	      final BaseEntity val = findBaseEntityByCode(code);
+	      BeanNotNullFields copyFields = new BeanNotNullFields();
+	      // copyFields.copyProperties(val, be);
+	      em.merge(val);
+	      return val.getId();
+	    } catch (NoResultException e) {
+	      Long id = insert(be);
+	      return id;
+	    }
+
+	  }
 	public Long insert(final Question question) {
 		// always check if question exists through check for unique code
 		try {

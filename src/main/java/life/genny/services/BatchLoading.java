@@ -29,11 +29,11 @@ public class BatchLoading {
 
   
 //  @Inject
-  private BaseEntityService service;
+  private BaseEntityService2 service;
   
 //  private BaseEntityService service;
   public BatchLoading(EntityManager em) {
-    service = new BaseEntityService(em);
+    service = new BaseEntityService2(em);
   }
 
 //  protected BaseEntityService service = null;

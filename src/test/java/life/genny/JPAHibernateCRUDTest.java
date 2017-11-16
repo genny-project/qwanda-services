@@ -41,6 +41,7 @@ import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwandautils.KeycloakService;
+import life.genny.qwandautils.MergeUtil;
 
 public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
@@ -652,6 +653,36 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     user.setLastName(ln);
     userResource.update(user);
 
+  }
+  
+  @Test
+  public void mergeUtilTest() {
+	  
+	  	//String template = "Template.ftl";
+	  	String teststr = "Welcome {{USER.PRI_FIRSTNAME}} {{USER.PRI_LASTNAME}} !! Your contact number is {{USER.PRI_MOBILE}} and email ID is {{USER.PRI_EMAIL}} !!";
+		
+		BaseEntity projectBaseEnt = service.findBaseEntityByCode("PRJ_GENNY");
+		BaseEntity userBaseEnt = service.findBaseEntityByCode("PER_USER2");
+		BaseEntity dashboardBaseEnt = service.findBaseEntityByCode("GRP_DASHBOARD");
+	  	
+	  	Map<String, BaseEntity> templateEntityMap = new HashMap<>();
+		templateEntityMap.put("PROJECT", projectBaseEnt);
+		templateEntityMap.put("USER", userBaseEnt);
+		templateEntityMap.put("JOB", dashboardBaseEnt);
+				
+		String mergedString = MergeUtil.merge(teststr, templateEntityMap);
+		System.out.println("merged string in template ::"+mergedString);
+		
+		
+		/*BaseEntity projectBaseEnt1 = service.findBaseEntityByCode("PRJ_CHANNEL40");
+		BaseEntity userBaseEnt1 = service.findBaseEntityByCode("PER_USER1");
+		BaseEntity dashboardBaseEnt1 = service.findBaseEntityByCode("GRP_USERS");
+	  	
+	  	Map<String, BaseEntity> templateEntityMap1 = new HashMap<>();
+		templateEntityMap1.put("PROJECT", projectBaseEnt1);
+		templateEntityMap1.put("USER", userBaseEnt1);
+		templateEntityMap1.put("JOB", dashboardBaseEnt1);
+		*/
   }
 
 
