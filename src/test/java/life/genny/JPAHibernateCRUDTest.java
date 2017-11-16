@@ -50,7 +50,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   private static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
- @Test
+ //@Test
   public void saveAnswerTest() {
     final Gson gson = new GsonBuilder()
         .registerTypeAdapter(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
@@ -101,19 +101,19 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
   }
 
-@Test
+//@Test
   public void fetchAttribute() {
     final Attribute at = service.findAttributeByCode("PRI_FIRSTNAME");
     log.info(at);
   }
 
-@Test
+//@Test
   public void fetchBE() {
     final BaseEntity be = service.findBaseEntityByCode("PER_USER1");
     log.info(be);
   }
 
-@Test
+//@Test
   public void countBE() {
     final Long count =
         (Long) em.createQuery("SELECT count(be) FROM BaseEntity be where  be.code=:sourceCode")
@@ -121,7 +121,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     assertThat(count, is(1L));
   }
 
-@Test
+//@Test
   public void sqlCountTest() {
     final String sql =
         "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode";
@@ -133,7 +133,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     assertThat(count, is(3L));
   }
 
-@Test
+//@Test
   public void sqlBETest() {
     final String sql =
         "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode";
@@ -150,7 +150,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
 
 
-@Test
+//@Test
   public void sqlBEandAttributesTest() {
 
     final String sql =
@@ -169,7 +169,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     assertThat(eeResults.get(0).getBaseEntityAttributes().size(), greaterThan(5));
   }
 
-@Test
+//@Test
   public void test_Query() {
     final String sourceCode = "GRP_USERS";
     final String linkCode = "LNK_CORE";
@@ -205,7 +205,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   }
 
 
-@Test
+//@Test
   public void getBesWithAttributesPaged() {
     Integer pageStart = 0;
     Integer pageSize = 10; // default
@@ -310,7 +310,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
   }
 
-@Test
+//@Test
   public void getChildrenWithAttributesPaged() {
     System.out.println("\n\n******************* KIDS WITH ATTRIBUTE!**************");
     final MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
@@ -530,7 +530,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
   }
 
-@Test
+//@Test
   public void sqlBEFilterTest() {
     // final String sql =
     // "SELECT distinct be FROM BaseEntity be,EntityEntity ee,EntityAttribute ea0,EntityAttribute
@@ -562,7 +562,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   }
 
 
-//@Test
+////@Test
   public void getKeycloakUsersTest() {
     KeycloakService ks;
     final Map<String, Map<String, Object>> usersMap = new HashMap<String, Map<String, Object>>();
@@ -655,7 +655,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
   }
   
-  @Test
+  //@Test
   public void mergeUtilTest() {
 	  
 	  	//String template = "Template.ftl";
