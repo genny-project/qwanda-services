@@ -35,6 +35,7 @@ import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySheets;
 import life.genny.qwandautils.GennySheets2;
 import life.genny.services.BaseEntityService2;
+import life.genny.services.BatchLoading;
 
 public class JPAHibernateTest {
 
@@ -88,6 +89,12 @@ public class JPAHibernateTest {
 
   // @Before
   public static void import_from_google_docs() {
+		BatchLoading bl = new BatchLoading(em);
+		bl.persistProject();
+  }
+  
+  public static void import_from_google_docs2()
+  {
 	 	 log.info("Setting up Import");
     service = new BaseEntityService2(em);
     

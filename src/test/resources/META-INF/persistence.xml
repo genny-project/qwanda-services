@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<persistence version="2.0" xmlns="http://java.sun.com/xml/ns/persistence"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
-                                 http://xmlns.jcp.org/xml/ns/persistence/persistence_2_0.xsd">
-    <persistence-unit name="h2-pu2" transaction-type="RESOURCE_LOCAL">
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
+             http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
+	version="2.1">
+	<persistence-unit name="h2-pu2">
+<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-    
-        <!-- add classes -->
-	    <class>life.genny.qwanda.Answer</class>
+		<!-- add classes -->
+		<class>life.genny.qwanda.Answer</class>
 		<class>life.genny.qwanda.AnswerLink</class>
 		<class>life.genny.qwanda.Ask</class>
 		<class>life.genny.qwanda.Context</class>
@@ -19,7 +20,7 @@
 		<class>life.genny.qwanda.attribute.Attribute</class>
 		<class>life.genny.qwanda.attribute.AttributeText</class>
 		<class>life.genny.qwanda.attribute.AttributeLink</class>
-				<class>life.genny.qwanda.attribute.AttributeDateTime</class>
+		<class>life.genny.qwanda.attribute.AttributeDateTime</class>
 		<class>life.genny.qwanda.attribute.EntityAttribute</class>
 		<class>life.genny.qwanda.datatype.DataType</class>
 		<class>life.genny.qwanda.entity.BaseEntity</class>
@@ -35,18 +36,19 @@
 		<class>life.genny.qwanda.validation.Validation</class>
 		<class>life.genny.qwanda.validation.ValidationList</class>
 		<class>life.genny.qwanda.QuestionQuestion</class>
-        <properties>
-            <!-- Configuring JDBC properties -->
-            <property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:test;DB_CLOSE_DELAY=0;"/>
-            <!-- <property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;INIT=RUNSCRIPT FROM 'classpath:create.sql'\;RUNSCRIPT FROM 'classpath:data.sql'"/>-->
-            <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>
+		<properties>
+			<!-- Configuring JDBC properties -->
+			<property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:test;DB_CLOSE_DELAY=0;" />
+			<!-- <property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;INIT=RUNSCRIPT 
+				FROM 'classpath:create.sql'\;RUNSCRIPT FROM 'classpath:data.sql'"/> -->
+			<property name="javax.persistence.jdbc.driver" value="org.h2.Driver" />
 
-            <!-- Hibernate properties -->
-            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
-            <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
-            <property name="hibernate.format_sql" value="false"/>
-            <property name="hibernate.show_sql" value="false"/>
+			<!-- Hibernate properties -->
+			<property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect" />
+			<property name="hibernate.hbm2ddl.auto" value="create-drop" />
+			<property name="hibernate.format_sql" value="false" />
+			<property name="hibernate.show_sql" value="false" />
 
-        </properties>
-    </persistence-unit>
+		</properties>
+	</persistence-unit>
 </persistence>
