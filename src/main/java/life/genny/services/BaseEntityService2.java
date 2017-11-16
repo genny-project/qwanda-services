@@ -224,7 +224,8 @@ public class BaseEntityService2 {
 				em.persist(answerLink);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				//e.printStackTrace();
+				log.error("Eror in persisting answerlink");
 			}
 			QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(answerLink.getSourceCode(),
 					answerLink.getTargetCode(), answerLink.getAttributeCode(), null, answerLink.getValue(),
@@ -265,7 +266,7 @@ public class BaseEntityService2 {
 		Attribute attribute = null;
 		try {
 			beTarget = findBaseEntityByCode(answer.getTargetCode());
-		//	beSource = findBaseEntityByCode(answer.getSourceCode());
+			beSource = findBaseEntityByCode(answer.getSourceCode());
 			attribute = findAttributeByCode(answer.getAttributeCode());
 			;
 			Ask ask = null;
@@ -277,7 +278,7 @@ public class BaseEntityService2 {
 						&& (answer.getAttributeCode().equals(ask.getAttributeCode()))
 						&& (answer.getTargetCode().equals(ask.getTargetCode())))) {
 					log.error("Answer codes do not match Ask codes! " + answer);
-					// return -1L; // need to throw error
+					 return -1L; // need to throw error
 				}
 			}
 
@@ -288,7 +289,7 @@ public class BaseEntityService2 {
 
 			AnswerLink answerLink = null;
 			try {
-				answerLink = beTarget.addAnswer(beTarget/*beSource*/,answer, 1.0); // TODo replace with soucr
+				answerLink = beTarget.addAnswer(beSource,answer, 1.0); // TODo replace with soucr
 				answerLink = insert(answerLink);
 				update(beTarget);
 			} catch (final BadDataException e) {
@@ -309,15 +310,6 @@ public class BaseEntityService2 {
 
 		}
 
-		// Update the BaseEntity_Attribute item
-		// check if it exists
-		if (beTarget.containsEntityAttribute(attribute.getCode())) {
-
-		} else {
-
-		}
-
-		// update or create it
 
 		return answer.getId();
 	}
