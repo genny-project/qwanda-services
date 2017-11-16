@@ -1,6 +1,7 @@
 package life.genny.services;
 
 import static java.lang.System.out;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +19,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
-
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
@@ -50,6 +50,7 @@ import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.Company;
+import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.entity.Group;
 import life.genny.qwanda.entity.Person;
 import life.genny.qwanda.entity.Product;
@@ -71,7 +72,6 @@ public class BaseEntityService2 {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	
 	EntityManager em;
 
 	protected BaseEntityService2() {
@@ -83,76 +83,77 @@ public class BaseEntityService2 {
 	}
 
 	// Override as required
-	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event)
-	{
-		log.info("Send Attribute Change:"+event);
+	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
+		log.info("Send Attribute Change:" + event);
 	}
 
 	public Validation upsert(Validation validation) {
-	    try {
-	      String code = validation.getCode();
-	      Validation val = findValidationByCode(code);
-	      BeanNotNullFields copyFields = new BeanNotNullFields();
-	      copyFields.copyProperties(val, validation);
-	      val = em.merge(val);
-	      // BeanUtils.copyProperties(validation, val);
-	      return val;
-	    } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
-	      em.persist(validation);
-	      Validation id = validation;
-	      return id;
-	    }
-	  }
+		try {
+			String code = validation.getCode();
+			Validation val = findValidationByCode(code);
+			BeanNotNullFields copyFields = new BeanNotNullFields();
+			copyFields.copyProperties(val, validation);
+			val = em.merge(val);
+			// BeanUtils.copyProperties(validation, val);
+			return val;
+		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+			em.persist(validation);
+			Validation id = validation;
+			return id;
+		}
+	}
+
 	public Attribute upsert(Attribute attr) {
-	    try {
-	      String code = attr.getCode();
-	      Attribute val = findAttributeByCode(code);
-	      BeanNotNullFields copyFields = new BeanNotNullFields();
-	      copyFields.copyProperties(val, attr);
-	      val = em.merge(val);
-	      // BeanUtils.copyProperties(attr, val);
-	      return val;
-	    } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
-	      em.persist(attr);
-	      Long id = attr.getId();
-	      return attr;
-	    }
-	  }
-	
+		try {
+			String code = attr.getCode();
+			Attribute val = findAttributeByCode(code);
+			BeanNotNullFields copyFields = new BeanNotNullFields();
+			copyFields.copyProperties(val, attr);
+			val = em.merge(val);
+			// BeanUtils.copyProperties(attr, val);
+			return val;
+		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+			em.persist(attr);
+			Long id = attr.getId();
+			return attr;
+		}
+	}
+
 	public BaseEntity upsert(BaseEntity be) {
-	    try {
-	      String code = be.getCode();
-	      BaseEntity val = findBaseEntityByCode(code);
+		try {
+			String code = be.getCode();
+			BaseEntity val = findBaseEntityByCode(code);
 
-	      BeanNotNullFields copyFields = new BeanNotNullFields();
-	      copyFields.copyProperties(val, be);
-	      System.out.println("***********" + val);
-	      val = em.merge(val);
-	      System.out.println("*******&&&&&&&&&&&&****");
-	      return be;
-	    } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
-	      Long id = insert(be);
-	      return be;
-	    }
-	  }
-	
+			BeanNotNullFields copyFields = new BeanNotNullFields();
+			copyFields.copyProperties(val, be);
+			System.out.println("***********" + val);
+			val = em.merge(val);
+			System.out.println("*******&&&&&&&&&&&&****");
+			return be;
+		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+			Long id = insert(be);
+			return be;
+		}
+	}
+
 	public Long upsert(final BaseEntity be, Set<EntityAttribute> ba) {
-	    try {
-	      // be.setBaseEntityAttributes(null);
-	      out.println("****3*****" + be.getBaseEntityAttributes().stream().map(data -> data.pk)
-	          .reduce((d1, d2) -> d1).get());
-	      String code = be.getCode();
-	      final BaseEntity val = findBaseEntityByCode(code);
-	      BeanNotNullFields copyFields = new BeanNotNullFields();
-	      // copyFields.copyProperties(val, be);
-	      em.merge(val);
-	      return val.getId();
-	    } catch (NoResultException e) {
-	      Long id = insert(be);
-	      return id;
-	    }
+		try {
+			// be.setBaseEntityAttributes(null);
+			out.println("****3*****"
+					+ be.getBaseEntityAttributes().stream().map(data -> data.pk).reduce((d1, d2) -> d1).get());
+			String code = be.getCode();
+			final BaseEntity val = findBaseEntityByCode(code);
+			BeanNotNullFields copyFields = new BeanNotNullFields();
+			// copyFields.copyProperties(val, be);
+			em.merge(val);
+			return val.getId();
+		} catch (NoResultException e) {
+			Long id = insert(be);
+			return id;
+		}
 
-	  }
+	}
+
 	public Long insert(final Question question) {
 		// always check if question exists through check for unique code
 		try {
@@ -257,7 +258,7 @@ public class BaseEntityService2 {
 		// always check if rule exists through check for unique code
 
 		AnswerLink existing = null;
-		
+
 		try {
 			existing = findAnswerLinkByCodes(answerLink.getTargetCode(), answerLink.getSourceCode(),
 					answerLink.getAttributeCode());
@@ -265,13 +266,13 @@ public class BaseEntityService2 {
 			// TODO Auto-generated catch block
 			existing = null;
 		}
-		if ((existing == null)){
-			
+		if ((existing == null)) {
+
 			try {
 				em.persist(answerLink);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
-				//e.printStackTrace();
+				// e.printStackTrace();
 				log.error("Eror in persisting answerlink");
 			}
 			QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(answerLink.getSourceCode(),
@@ -288,7 +289,8 @@ public class BaseEntityService2 {
 			existing.setExpired(answerLink.getExpired());
 			existing.setRefused(answerLink.getRefused());
 			existing.setValueBoolean(answerLink.getValueBoolean());
-			existing.setValueDateTime(answerLink.getValueDateTime());existing.setValueDate(answerLink.getValueDate());
+			existing.setValueDateTime(answerLink.getValueDateTime());
+			existing.setValueDate(answerLink.getValueDate());
 			existing.setValueDouble(answerLink.getValueDouble());
 			existing.setValueLong(answerLink.getValueLong());
 			existing.setWeight(answerLink.getWeight());
@@ -325,7 +327,7 @@ public class BaseEntityService2 {
 						&& (answer.getAttributeCode().equals(ask.getAttributeCode()))
 						&& (answer.getTargetCode().equals(ask.getTargetCode())))) {
 					log.error("Answer codes do not match Ask codes! " + answer);
-					 return -1L; // need to throw error
+					return -1L; // need to throw error
 				}
 			}
 
@@ -336,14 +338,13 @@ public class BaseEntityService2 {
 
 			AnswerLink answerLink = null;
 			try {
-				answerLink = beTarget.addAnswer(beSource,answer, 1.0); // TODo replace with soucr
+				answerLink = beTarget.addAnswer(beSource, answer, 1.0); // TODo replace with soucr
 				answerLink = insert(answerLink);
 				update(beTarget);
 			} catch (final BadDataException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
 
 		} catch (final EntityExistsException e) {
 			System.out.println("Answer Insert EntityExistsException");
@@ -356,7 +357,6 @@ public class BaseEntityService2 {
 			return existing.getId();
 
 		}
-
 
 		return answer.getId();
 	}
@@ -517,8 +517,7 @@ public class BaseEntityService2 {
 
 	public BaseEntity findBaseEntityByCode(@NotNull final String baseEntityCode) throws NoResultException {
 
-		final BaseEntity result = (BaseEntity) em
-				.createQuery("SELECT a FROM BaseEntity a where a.code=:baseEntityCode")
+		final BaseEntity result = (BaseEntity) em.createQuery("SELECT a FROM BaseEntity a where a.code=:baseEntityCode")
 				.setParameter("baseEntityCode", baseEntityCode.toUpperCase()).getSingleResult();
 
 		// Ugly, add field filtering through header field list
@@ -541,35 +540,31 @@ public class BaseEntityService2 {
 
 	public Question findQuestionByCode(@NotNull final String code) throws NoResultException {
 
-		final Question result = (Question) em
-				.createQuery("SELECT a FROM Question a where a.code=:code").setParameter("code", code.toUpperCase())
-				.getSingleResult();
+		final Question result = (Question) em.createQuery("SELECT a FROM Question a where a.code=:code")
+				.setParameter("code", code.toUpperCase()).getSingleResult();
 
 		return result;
 	}
 
 	public DataType findDataTypeByCode(@NotNull final String code) throws NoResultException {
 
-		final DataType result = (DataType) em
-				.createQuery("SELECT a FROM DataType a where a.code=:code").setParameter("code", code.toUpperCase())
-				.getSingleResult();
+		final DataType result = (DataType) em.createQuery("SELECT a FROM DataType a where a.code=:code")
+				.setParameter("code", code.toUpperCase()).getSingleResult();
 
 		return result;
 	}
 
 	public Validation findValidationByCode(@NotNull final String code) throws NoResultException {
 		final String co = "VLD_EMAIL";
-		final Validation result = (Validation) em
-				.createQuery("SELECT a FROM Validation a where a.code=:code").setParameter("code", co)
-				.getSingleResult();
+		final Validation result = (Validation) em.createQuery("SELECT a FROM Validation a where a.code=:code")
+				.setParameter("code", co).getSingleResult();
 		// System.out.println("8878978978978977987897987987987" + result);
 		return result;
 	}
 
 	public AttributeLink findAttributeLinkByCode(@NotNull final String code) throws NoResultException {
 
-		final AttributeLink result = (AttributeLink) em
-				.createQuery("SELECT a FROM AttributeLink a where a.code=:code")
+		final AttributeLink result = (AttributeLink) em.createQuery("SELECT a FROM AttributeLink a where a.code=:code")
 				.setParameter("code", code.toUpperCase()).getSingleResult();
 
 		return result;
@@ -577,9 +572,8 @@ public class BaseEntityService2 {
 
 	public Attribute findAttributeByCode(@NotNull final String code) throws NoResultException {
 
-		final Attribute result = (Attribute) em
-				.createQuery("SELECT a FROM Attribute a where a.code=:code").setParameter("code", code.toUpperCase())
-				.getSingleResult();
+		final Attribute result = (Attribute) em.createQuery("SELECT a FROM Attribute a where a.code=:code")
+				.setParameter("code", code.toUpperCase()).getSingleResult();
 
 		return result;
 	}
@@ -809,7 +803,6 @@ public class BaseEntityService2 {
 
 		return eeResults;
 	}
-
 
 	public Long findChildrenByAttributeLinkCount(@NotNull final String sourceCode, final String linkCode,
 			final MultivaluedMap<String, String> params) {
@@ -1259,17 +1252,15 @@ public class BaseEntityService2 {
 	}
 
 	public List<Ask> findAsksBySourceBaseEntityId(final Long id) {
-		final List<Ask> results = em
-				.createQuery("SELECT ea FROM Ask ea where ea.source.id=:baseEntityId").setParameter("baseEntityId", id)
-				.getResultList();
+		final List<Ask> results = em.createQuery("SELECT ea FROM Ask ea where ea.source.id=:baseEntityId")
+				.setParameter("baseEntityId", id).getResultList();
 
 		return results;
 
 	}
 
 	public List<Ask> findAsksBySourceBaseEntityCode(final String code) {
-		final List<Ask> results = em
-				.createQuery("SELECT ea FROM Ask ea where ea.source.code=:baseEntityCode")
+		final List<Ask> results = em.createQuery("SELECT ea FROM Ask ea where ea.source.code=:baseEntityCode")
 				.setParameter("baseEntityCode", code).getResultList();
 
 		return results;
@@ -1277,17 +1268,15 @@ public class BaseEntityService2 {
 	}
 
 	public List<Ask> findAsksByTargetBaseEntityId(final Long id) {
-		final List<Ask> results = em
-				.createQuery("SELECT ea FROM Ask ea where ea.target.id=:baseEntityId").setParameter("baseEntityId", id)
-				.getResultList();
+		final List<Ask> results = em.createQuery("SELECT ea FROM Ask ea where ea.target.id=:baseEntityId")
+				.setParameter("baseEntityId", id).getResultList();
 
 		return results;
 
 	}
 
 	public List<Ask> findAsksByTargetBaseEntityCode(final String code) {
-		final List<Ask> results = em
-				.createQuery("SELECT ea FROM Ask ea where ea.target.code=:baseEntityCode")
+		final List<Ask> results = em.createQuery("SELECT ea FROM Ask ea where ea.target.code=:baseEntityCode")
 				.setParameter("baseEntityCode", code).getResultList();
 
 		return results;
@@ -1295,17 +1284,15 @@ public class BaseEntityService2 {
 	}
 
 	public List<GPS> findGPSByTargetBaseEntityId(final Long id) {
-		final List<GPS> results = em
-				.createQuery("SELECT ea FROM GPS ea where ea.targetId=:baseEntityId").setParameter("baseEntityId", id)
-				.getResultList();
+		final List<GPS> results = em.createQuery("SELECT ea FROM GPS ea where ea.targetId=:baseEntityId")
+				.setParameter("baseEntityId", id).getResultList();
 
 		return results;
 
 	}
 
 	public List<GPS> findGPSByTargetBaseEntityCode(final String targetCode) {
-		final List<GPS> results = em
-				.createQuery("SELECT ea FROM GPS ea where ea.targetCode=:baseEntityCode")
+		final List<GPS> results = em.createQuery("SELECT ea FROM GPS ea where ea.targetCode=:baseEntityCode")
 				.setParameter("baseEntityCode", targetCode).getResultList();
 
 		return results;
@@ -1341,8 +1328,7 @@ public class BaseEntityService2 {
 
 	public List<Question> findQuestions() throws NoResultException {
 
-		final List<Question> results = em.createQuery("SELECT a FROM Question a")
-				.getResultList();
+		final List<Question> results = em.createQuery("SELECT a FROM Question a").getResultList();
 
 		return results;
 	}
@@ -1358,8 +1344,7 @@ public class BaseEntityService2 {
 
 		// log.info("find asks Realm = " + securityService.getRealm());
 
-		final List<Ask> results = em.createQuery("SELECT a FROM Ask a JOIN a.question q")
-				.getResultList();
+		final List<Ask> results = em.createQuery("SELECT a FROM Ask a JOIN a.question q").getResultList();
 
 		return results;
 	}
@@ -1373,8 +1358,7 @@ public class BaseEntityService2 {
 
 	public List<AnswerLink> findAnswerLinks() throws NoResultException {
 
-		final List<AnswerLink> results = em.createQuery("SELECT a FROM AnswerLink a")
-				.getResultList();
+		final List<AnswerLink> results = em.createQuery("SELECT a FROM AnswerLink a").getResultList();
 
 		return results;
 	}
@@ -1414,10 +1398,9 @@ public class BaseEntityService2 {
 			// ugly and insecure
 			final Integer pairCount = params.size();
 			if (pairCount.equals(0)) {
-				eeResults = em
-						.createQuery("SELECT distinct be FROM BaseEntity be JOIN be.baseEntityAttributes bee ") // add
-																												// company
-																												// limiter
+				eeResults = em.createQuery("SELECT distinct be FROM BaseEntity be JOIN be.baseEntityAttributes bee ") // add
+																														// company
+																														// limiter
 						.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
 			} else {
@@ -1506,8 +1489,7 @@ public class BaseEntityService2 {
 		// ugly and insecure
 		final Integer pairCount = params.size();
 		if (pairCount.equals(0)) {
-			result = (Long) em
-					.createQuery("SELECT count(be.code) FROM BaseEntity be JOIN be.baseEntityAttributes bee")
+			result = (Long) em.createQuery("SELECT count(be.code) FROM BaseEntity be JOIN be.baseEntityAttributes bee")
 					.getSingleResult();
 		} else {
 			String queryStr = "SELECT count(be.code) FROM BaseEntity be JOIN be.baseEntityAttributes bee where  ";
@@ -1726,6 +1708,114 @@ public class BaseEntityService2 {
 
 	public void setEm(EntityManager em) {
 		this.em = em;
+	}
+
+	public EntityEntity findEntityEntity(final String sourceCode, final String targetCode, final String linkCode) throws NoResultException {
+		EntityEntity ee = null;
+
+		try {
+			ee = (EntityEntity) em.createQuery(
+					"SELECT distinct ee FROM EntityEntity  where ee.pk.target.code=:targetCode and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+					.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+					.setParameter("targetCode", targetCode).getSingleResult();
+			
+		} catch (Exception e) {
+			log.error("EntityEntity "+sourceCode+":"+targetCode+":"+linkCode+" not found");
+			throw new NoResultException("EntityEntity "+sourceCode+":"+targetCode+":"+linkCode+" not found");
+		}
+		return ee;
+	}
+	
+
+	
+	public void removeEntityEntity(final EntityEntity ee) {
+		try {
+		em.getTransaction().begin();
+			em.remove(ee);
+			em.getTransaction().commit();
+		} catch (Exception e) {
+// rollback
+		}
+	}
+	
+	public EntityEntity insertEntityEntity(final EntityEntity ee) {
+
+		try {
+			em.getTransaction().begin();
+			em.persist(ee);
+			em.getTransaction().commit();
+		} catch (Exception e) {
+			// rollback
+		}
+		return ee;
+	}
+	
+	public EntityEntity addLink(final String sourceCode, final String targetCode, final String linkCode, Object value, Double weight) throws IllegalArgumentException, BadDataException {
+		EntityEntity ee = null;
+		
+		try {
+			ee = findEntityEntity(sourceCode,targetCode,linkCode);
+		
+		} catch (NoResultException e) {
+			BaseEntity beSource = null;
+			BaseEntity beTarget = null;
+			AttributeLink linkAttribute = null;
+			
+			try {
+			beSource = findBaseEntityByCode(sourceCode);
+			} catch (NoResultException es) {
+				throw new IllegalArgumentException("sourceCode"+sourceCode+" not found");
+			}
+			
+			try {
+			beTarget = findBaseEntityByCode(targetCode);
+			} catch (NoResultException es) {
+				throw new IllegalArgumentException("targetCode"+targetCode+" not found");
+			}
+			
+			try {
+			linkAttribute = findAttributeLinkByCode(linkCode);
+			} catch (NoResultException es) {
+				throw new IllegalArgumentException("linkCode"+linkCode+" not found");
+			}
+			
+		       beSource.addTarget(beTarget, linkAttribute, weight);
+		       upsert(beSource);
+
+		}
+		
+		return ee;
+	}
+	
+	public void removeLink(final String sourceCode, final String targetCode, final String linkCode) {
+		EntityEntity ee = null;
+
+		try {
+			ee = findEntityEntity(sourceCode,targetCode,linkCode);
+			removeEntityEntity(ee);
+		} catch (Exception e) {
+			log.error("EntityEntity "+sourceCode+":"+targetCode+":"+linkCode+" not found");
+		}
+	}
+	
+	public EntityEntity moveLink(final String originalSourceCode, final String targetCode, final String linkCode, final String destinationSourceCode) throws IllegalArgumentException{
+		EntityEntity ee = null;
+		
+		try {
+			em.getTransaction().begin();
+			
+			EntityEntity oldLink = findEntityEntity(originalSourceCode,targetCode,linkCode);
+			// add new link
+			ee = addLink(destinationSourceCode,targetCode,linkCode, oldLink.getValue(), oldLink.getWeight());
+			
+			// remove old one
+			removeEntityEntity(oldLink);
+
+			em.getTransaction().commit();
+		} catch (Exception e) {
+			throw new IllegalArgumentException("linkCode"+linkCode+" not found");
+		}
+		return ee;
 	}
 
 }
