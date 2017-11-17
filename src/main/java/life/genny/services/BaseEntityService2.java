@@ -275,9 +275,12 @@ public class BaseEntityService2 {
 				// e.printStackTrace();
 				log.error("Eror in persisting answerlink");
 			}
+			
+		
+			
 			QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(answerLink.getSourceCode(),
 					answerLink.getTargetCode(), answerLink.getAttributeCode(), null, answerLink.getValue(),
-					"DUMMY_TOKEN");
+					getCurrentToken());
 
 			sendQEventAttributeValueChangeMessage(msg);
 		}
@@ -298,7 +301,7 @@ public class BaseEntityService2 {
 			existing = em.merge(existing);
 			QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(answerLink.getSourceCode(),
 					answerLink.getTargetCode(), answerLink.getAttributeCode(), oldValue.toString(),
-					answerLink.getValue(), "DUMMY-UPDATE_TOKEN"/* securityService.getToken() */);
+					answerLink.getValue(), getCurrentToken());
 
 			sendQEventAttributeValueChangeMessage(msg);
 
@@ -308,6 +311,11 @@ public class BaseEntityService2 {
 		return answerLink;
 	}
 
+	protected String getCurrentToken()
+	{
+		return "DUMMY_TOKEN";
+	}
+	
 	public Long insert(final Answer answer) {
 		// always check if answer exists through check for unique code
 		BaseEntity beTarget = null;
@@ -327,7 +335,7 @@ public class BaseEntityService2 {
 						&& (answer.getAttributeCode().equals(ask.getAttributeCode()))
 						&& (answer.getTargetCode().equals(ask.getTargetCode())))) {
 					log.error("Answer codes do not match Ask codes! " + answer);
-					return -1L; // need to throw error
+					//return -1L; // need to throw error
 				}
 			}
 
