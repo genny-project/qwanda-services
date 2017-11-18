@@ -117,5 +117,6 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="/qwanda/target/qwanda-0.5.6-sources.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

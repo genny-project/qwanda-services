@@ -1,6 +1,7 @@
 package life.genny.services;
 
 import java.io.File;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,9 @@ import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+
+import org.apache.logging.log4j.Logger;
+
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
@@ -26,6 +30,12 @@ import life.genny.qwandautils.GennySheets;
  *
  */
 public class BatchLoading {
+	/**
+	 * Stores logger object.
+	 */
+	protected static final Logger log = org.apache.logging.log4j.LogManager
+			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
 
   
 //  @Inject
@@ -63,10 +73,7 @@ public class BatchLoading {
       String code = ((String) validations.get("code")).replaceAll("^\"|\"$", "");;
       String name = ((String) validations.get("name")).replaceAll("^\"|\"$", "");;
       Validation val = new Validation(code, name, regex);
-      System.out.println("val " + val);
-      System.out.println("regex " + regex);
-      System.out.println("code " + code);
-      System.out.println("name " + name);
+      System.out.print("code " + code+",name:"+name+",val:"+val);
          
       Set<ConstraintViolation<Validation>> constraints = validator.validate(val); 
       for (ConstraintViolation<Validation> constraint : constraints) {
@@ -334,26 +341,48 @@ public class BatchLoading {
    * @return
    */
   public Map<String, Object> project(final String projectType) {
+	   final Map<String, Object> genny = new HashMap<String, Object>();
+	   
     GennySheets sheets = new GennySheets(secret, projectType, credentialPath);
-    Map<String, Map> validations = sheets.newGetVal();
-    Map<String, Map> dataTypes = sheets.newGetDType();
-    Map<String, Map> attrs = sheets.newGetAttr();
-    Map<String, Map> bes = sheets.newGetBase();
-    Map<String, Map> attr2Bes = sheets.newGetEntAttr();
-    Map<String, Map> attrLink = sheets.newGetAttrLink();
-    Map<String, Map> bes2Bes = sheets.newGetEntEnt();
-    Map<String, Map> gQuestions = sheets.newGetQtn();
-    Map<String, Map> asks = sheets.newGetAsk();
-    final Map<String, Object> genny = new HashMap<String, Object>();
-    genny.put("validations", validations);
-    genny.put("dataType", dataTypes);
-    genny.put("attributes", attrs);
-    genny.put("baseEntitys", bes);
-    genny.put("attibutesEntity", attr2Bes);
-    genny.put("attributeLink", attrLink);
-    genny.put("basebase", bes2Bes);
-    genny.put("questions", gQuestions);
-    genny.put("ask", asks);
+    
+    Integer numOfTries = 3; 
+    
+    while (numOfTries > 0) {
+    try {
+		Map<String, Map> validations = sheets.newGetVal();
+		Map<String, Map> dataTypes = sheets.newGetDType();
+		Map<String, Map> attrs = sheets.newGetAttr();
+		Map<String, Map> bes = sheets.newGetBase();
+		Map<String, Map> attr2Bes = sheets.newGetEntAttr();
+		Map<String, Map> attrLink = sheets.newGetAttrLink();
+		Map<String, Map> bes2Bes = sheets.newGetEntEnt();
+		Map<String, Map> gQuestions = sheets.newGetQtn();
+		Map<String, Map> asks = sheets.newGetAsk();
+		
+	    genny.put("validations", validations);
+	    genny.put("dataType", dataTypes);
+	    genny.put("attributes", attrs);
+	    genny.put("baseEntitys", bes);
+	    genny.put("attibutesEntity", attr2Bes);
+	    genny.put("attributeLink", attrLink);
+	    genny.put("basebase", bes2Bes);
+	    genny.put("questions", gQuestions);
+	    genny.put("ask", asks);
+
+	} catch (Exception e) {
+		log.error("Failed to download Google Docs Configuration ... , will retry , trys left="+numOfTries);
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e1) {
+			log.error("sleep exception..");
+		}  // sleep for 10 secs
+	}
+    
+    numOfTries--;
+    }
+    
+	log.error("Failed to download Google Docs Configuration ... given up ...");
+  
     return genny;
   }
 
