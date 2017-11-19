@@ -45,8 +45,6 @@ import life.genny.qwandautils.MergeUtil;
 
 public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
-
-
   private static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 

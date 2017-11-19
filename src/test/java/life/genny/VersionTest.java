@@ -7,7 +7,7 @@ import life.genny.qwandautils.QwandaUtilsVersion;
 import life.genny.services.QwandaServicesVersion;
 
 public class VersionTest {
-	@Test
+//	@Test
 	public void versionTest()
 	{
 		System.out.println("------------- qwanda-services version ---------------------------\n");
@@ -21,7 +21,7 @@ public class VersionTest {
 
 	}
 
-	@Test
+//	@Test
 	public void qwandaUtilsVersionTest()
 	{
 		System.out.println("------------- qwanda-utils version ---------------------------\n");
@@ -35,7 +35,7 @@ public class VersionTest {
 
 	}
 	
-	@Test
+//	@Test
 	public void qwandaVersionTest()
 	{
 		System.out.println("------------- qwanda version ---------------------------\n");

@@ -12,9 +12,7 @@ import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-
 import org.apache.logging.log4j.Logger;
-
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
@@ -25,37 +23,38 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySheets;
+
 /**
  * @author helios
  *
  */
 public class BatchLoading {
-	/**
-	 * Stores logger object.
-	 */
-	protected static final Logger log = org.apache.logging.log4j.LogManager
-			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+  /**
+   * Stores logger object.
+   */
+  protected static final Logger log = org.apache.logging.log4j.LogManager
+      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
 
-  
-//  @Inject
+
+  // @Inject
   private BaseEntityService2 service;
-  
-//  private BaseEntityService service;
+
+  // private BaseEntityService service;
   public BatchLoading(EntityManager em) {
     service = new BaseEntityService2(em);
   }
 
-//  protected BaseEntityService service = null;
+  // protected BaseEntityService service = null;
   // protected BaseEntityService service1 = null;
-//  protected EntityManagerFactory emf;
-//  protected EntityManager em;
+  // protected EntityManagerFactory emf;
+  // protected EntityManager em;
 
 
   // File credentialPath = new File(System.getProperty("user.home"), ".credentials/genny");
 
   private final String secret = System.getenv("GOOGLE_CLIENT_SECRET");
-  private final String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");//"1HAppJufvePWSiSyvPkxNfZp6NHdB8PANeH1IJopdEsE";
+  private final String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");// "1HAppJufvePWSiSyvPkxNfZp6NHdB8PANeH1IJopdEsE";
   File credentialPath = new File(System.getProperty("user.home"),
       ".credentials/sheets.googleapis.com-java-quickstart");
 
@@ -65,20 +64,19 @@ public class BatchLoading {
    * @param project
    */
   public void validations(Map<String, Object> project) {
-    ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
-    Validator validator = factory.getValidator();
+     ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+     Validator validator = factory.getValidator();
     ((HashMap<String, HashMap>) project.get("validations")).entrySet().stream().forEach(data -> {
       Map<String, Object> validations = data.getValue();
       String regex = ((String) validations.get("regex")).replaceAll("^\"|\"$", "");;
       String code = ((String) validations.get("code")).replaceAll("^\"|\"$", "");;
       String name = ((String) validations.get("name")).replaceAll("^\"|\"$", "");;
       Validation val = new Validation(code, name, regex);
-      System.out.print("code " + code+",name:"+name+",val:"+val);
-         
-      Set<ConstraintViolation<Validation>> constraints = validator.validate(val); 
+      System.out.print("code " + code + ",name:" + name + ",val:" + val);
+
+      Set<ConstraintViolation<Validation>> constraints = validator.validate(val);
       for (ConstraintViolation<Validation> constraint : constraints) {
-          System.out.println(constraint.getPropertyPath() + "  "
-          + constraint.getMessage());
+        System.out.println(constraint.getPropertyPath() + " " + constraint.getMessage());
       }
       service.upsert(val);
     });
@@ -157,9 +155,12 @@ public class BatchLoading {
     ((HashMap<String, HashMap>) project.get("attibutesEntity")).entrySet().stream()
         .forEach(data -> {
           Map<String, Object> baseEntityAttr = data.getValue();
-          String attributeCode = ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");;
-          String valueString = ((String) baseEntityAttr.get("valueString")).replaceAll("^\"|\"$", "");;
-          String baseEntityCode = ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");;
+          String attributeCode =
+              ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");;
+          String valueString =
+              ((String) baseEntityAttr.get("valueString")).replaceAll("^\"|\"$", "");;
+          String baseEntityCode =
+              ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");;
           String weight = (String) baseEntityAttr.get("weight");
           Attribute attribute = null;
           BaseEntity be = null;
@@ -263,15 +264,15 @@ public class BatchLoading {
   }
 
 
-//  public void main(String... args) {
-//    emf = Persistence.createEntityManagerFactory("mysql");
-//    em = emf.createEntityManager();
-//    service = new BaseEntityService(em);
-//    em.getTransaction().begin();
-//    persistProject();
-//    em.getTransaction().commit();
-//    em.close();
-//  }
+  // public void main(String... args) {
+  // emf = Persistence.createEntityManagerFactory("mysql");
+  // em = emf.createEntityManager();
+  // service = new BaseEntityService(em);
+  // em.getTransaction().begin();
+  // persistProject();
+  // em.getTransaction().commit();
+  // em.close();
+  // }
 
   /**
    * Get the Project named on the last row inheriting or updating records from previous projects
@@ -341,48 +342,50 @@ public class BatchLoading {
    * @return
    */
   public Map<String, Object> project(final String projectType) {
-	   final Map<String, Object> genny = new HashMap<String, Object>();
-	   
-    GennySheets sheets = new GennySheets(secret, projectType, credentialPath);
-    
-    Integer numOfTries = 3; 
-    
-    while (numOfTries > 0) {
-    try {
-		Map<String, Map> validations = sheets.newGetVal();
-		Map<String, Map> dataTypes = sheets.newGetDType();
-		Map<String, Map> attrs = sheets.newGetAttr();
-		Map<String, Map> bes = sheets.newGetBase();
-		Map<String, Map> attr2Bes = sheets.newGetEntAttr();
-		Map<String, Map> attrLink = sheets.newGetAttrLink();
-		Map<String, Map> bes2Bes = sheets.newGetEntEnt();
-		Map<String, Map> gQuestions = sheets.newGetQtn();
-		Map<String, Map> asks = sheets.newGetAsk();
-		
-	    genny.put("validations", validations);
-	    genny.put("dataType", dataTypes);
-	    genny.put("attributes", attrs);
-	    genny.put("baseEntitys", bes);
-	    genny.put("attibutesEntity", attr2Bes);
-	    genny.put("attributeLink", attrLink);
-	    genny.put("basebase", bes2Bes);
-	    genny.put("questions", gQuestions);
-	    genny.put("ask", asks);
+    final Map<String, Object> genny = new HashMap<String, Object>();
 
-	} catch (Exception e) {
-		log.error("Failed to download Google Docs Configuration ... , will retry , trys left="+numOfTries);
-		try {
-			Thread.sleep(10000);
-		} catch (InterruptedException e1) {
-			log.error("sleep exception..");
-		}  // sleep for 10 secs
-	}
-    
-    numOfTries--;
+    GennySheets sheets = new GennySheets(secret, projectType, credentialPath);
+
+    Integer numOfTries = 3;
+
+    while (numOfTries > 0) {
+      try {
+        Map<String, Map> validations = sheets.newGetVal();
+        Map<String, Map> dataTypes = sheets.newGetDType();
+        Map<String, Map> attrs = sheets.newGetAttr();
+        Map<String, Map> bes = sheets.newGetBase();
+        Map<String, Map> attr2Bes = sheets.newGetEntAttr();
+        Map<String, Map> attrLink = sheets.newGetAttrLink();
+        Map<String, Map> bes2Bes = sheets.newGetEntEnt();
+        Map<String, Map> gQuestions = sheets.newGetQtn();
+        Map<String, Map> asks = sheets.newGetAsk();
+
+        genny.put("validations", validations);
+        genny.put("dataType", dataTypes);
+        genny.put("attributes", attrs);
+        genny.put("baseEntitys", bes);
+        genny.put("attibutesEntity", attr2Bes);
+        genny.put("attributeLink", attrLink);
+        genny.put("basebase", bes2Bes);
+        genny.put("questions", gQuestions);
+        genny.put("ask", asks);
+        break;
+      } catch (Exception e) {
+        log.error("Failed to download Google Docs Configuration ... , will retry , trys left="
+            + numOfTries);
+        try {
+          Thread.sleep(10000);
+        } catch (InterruptedException e1) {
+          log.error("sleep exception..");
+        } // sleep for 10 secs
+      }
+
+      numOfTries--;
     }
-    
-	log.error("Failed to download Google Docs Configuration ... given up ...");
-  
+
+    if (numOfTries == 0)
+      log.error("Failed to download Google Docs Configuration ... given up ...");
+
     return genny;
   }
 
