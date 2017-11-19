@@ -363,10 +363,32 @@ public class BaseEntityService2 {
 
 				AnswerLink answerLink = null;
 				try {
+					Optional<EntityAttribute> optExisting = beTarget.findEntityAttribute(answer.getAttributeCode());
+					Object old = optExisting.isPresent()?optExisting.get().getValue():null;
 					answerLink = beTarget.addAnswer(beSource, answer, 1.0); // TODo replace with soucr
 			//		answerLink = insert(answerLink);
 			//		getEntityManager().persist(answerLink);
 					update(beTarget);
+					boolean sendAttributeChangeEvent = false;
+					if (!optExisting.isPresent()) {
+						sendAttributeChangeEvent = true;
+					}
+					if (optExisting.isPresent()) {
+						Object newOne = answerLink.getValue();
+						if (newOne!=null) {
+							if (old.hashCode()!=(newOne.hashCode())) {
+								sendAttributeChangeEvent = true;
+							}
+						}
+					}
+					if (sendAttributeChangeEvent) {
+					QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(answerLink.getSourceCode(),
+							answerLink.getTargetCode(), answerLink.getAttributeCode(), (old.toString()), answerLink.getValue(),
+							getCurrentToken());
+
+					sendQEventAttributeValueChangeMessage(msg);
+					}
+
 				} catch (final Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
