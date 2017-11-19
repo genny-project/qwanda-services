@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -261,7 +262,7 @@ public class BaseEntityService2 {
 		return validation.getId();
 	}
 
-	public AnswerLink insert(final AnswerLink answerLink) {
+	public AnswerLink insert(AnswerLink answerLink) {
 		// always check if rule exists through check for unique code
 
 		AnswerLink existing = null;
@@ -322,7 +323,7 @@ public class BaseEntityService2 {
 		return "DUMMY_TOKEN";
 	}
 
-	public Long insert(final Answer answer) {
+	public Long insert(Answer answer) {
 		// always check if answer exists through check for unique code
 		BaseEntity beTarget = null;
 		BaseEntity beSource = null;
@@ -335,7 +336,7 @@ public class BaseEntityService2 {
 //			ut.begin();
 
 			// Join the EntityManager operations to this UserTransaction
-			getEntityManager().joinTransaction();
+	//		getEntityManager().joinTransaction();
 
 			try {
 				// check that the codes exist
@@ -356,16 +357,17 @@ public class BaseEntityService2 {
 				answer.setAttribute(attribute);
 
 				getEntityManager().persist(answer);
-				em.flush();
+				getEntityManager().flush();
 
 				// update answerlink
 
 				AnswerLink answerLink = null;
 				try {
 					answerLink = beTarget.addAnswer(beSource, answer, 1.0); // TODo replace with soucr
-					answerLink = insert(answerLink);
+			//		answerLink = insert(answerLink);
+			//		getEntityManager().persist(answerLink);
 					update(beTarget);
-				} catch (final BadDataException e) {
+				} catch (final Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -404,7 +406,7 @@ public class BaseEntityService2 {
 		return answerLink;
 	}
 
-	public Long insert(final BaseEntity entity) {
+	public Long insert(BaseEntity entity) {
 
 		// get security
 		// if (securityService.isAuthorised()) {
@@ -555,10 +557,10 @@ public class BaseEntityService2 {
 
 		// Ugly, add field filtering through header field list
 
-		final List<EntityAttribute> attributes = em
+		final List<EntityAttribute> attributes = getEntityManager()
 				.createQuery("SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
 				.setParameter("baseEntityCode", baseEntityCode).getResultList();
-		result.setBaseEntityAttributes(new ArrayList<EntityAttribute>(attributes));
+		result.setBaseEntityAttributes(new HashSet<EntityAttribute>(attributes));
 		return result;
 
 	}
@@ -617,12 +619,19 @@ public class BaseEntityService2 {
 	public AnswerLink findAnswerLinkByCodes(@NotNull final String targetCode, @NotNull final String sourceCode,
 			@NotNull final String attributeCode) {
 
-		final List<AnswerLink> results = getEntityManager().createQuery(
-				"SELECT a FROM AnswerLink a where a.targetCode=:targetCode and a.sourceCode=:sourceCode and  attributeCode=:attributeCode")
-				.setParameter("targetCode", targetCode).setParameter("sourceCode", sourceCode)
-				.setParameter("attributeCode", attributeCode).getResultList();
+	 List<AnswerLink> results = null;
+		
+		try {
+			results = getEntityManager().createQuery(
+					"SELECT a FROM AnswerLink a where a.targetCode=:targetCode and a.sourceCode=:sourceCode and  attributeCode=:attributeCode")
+					.setParameter("targetCode", targetCode).setParameter("sourceCode", sourceCode)
+					.setParameter("attributeCode", attributeCode).getResultList();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-		if (results.isEmpty()) {
+		if ((results == null)||(results.isEmpty())) {
 			return null; // throw new NoResultException(sourceCode + ":" + targetCode + ":" +
 							// attributeCode);
 		} else
@@ -1073,7 +1082,7 @@ public class BaseEntityService2 {
 	public void remove(final BaseEntity entity) {
 		resetMsgLists();
 		final BaseEntity baseEntity = findBaseEntityById(entity.getId());
-		em.remove(baseEntity);
+		getEntityManager().remove(baseEntity);
 	}
 
 	/**
@@ -1085,7 +1094,7 @@ public class BaseEntityService2 {
 	 */
 	public void removeBaseEntity(final String code) {
 		final BaseEntity baseEntity = findBaseEntityByCode(code);
-		em.remove(baseEntity);
+		getEntityManager().remove(baseEntity);
 	}
 
 	/**
@@ -1097,7 +1106,7 @@ public class BaseEntityService2 {
 	 */
 	public void removeAttribute(final String code) {
 		final Attribute attribute = findAttributeByCode(code);
-		em.remove(attribute);
+		getEntityManager().remove(attribute);
 	}
 
 	public void resetMsgLists() {
@@ -1159,7 +1168,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<EntityAttribute> findAttributesByBaseEntityId(final Long id) {
-		final List<EntityAttribute> results = em
+		final List<EntityAttribute> results = getEntityManager()
 				.createQuery("SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.id=:baseEntityId")
 				.setParameter("baseEntityId", id).getResultList();
 
@@ -1342,7 +1351,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<AnswerLink> findAnswersByTargetBaseEntityId(final Long id) {
-		final List<AnswerLink> results = em
+		final List<AnswerLink> results = getEntityManager()
 				.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.target.id=:baseEntityId")
 				.setParameter("baseEntityId", id).getResultList();
 
@@ -1351,7 +1360,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<AnswerLink> findAnswersByTargetBaseEntityCode(final String targetCode) {
-		final List<AnswerLink> results = em
+		final List<AnswerLink> results = getEntityManager()
 				.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.target.code=:baseEntityCode")
 				.setParameter("baseEntityCode", targetCode).getResultList();
 
@@ -1360,7 +1369,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<AnswerLink> findAnswersBySourceBaseEntityCode(final String sourceCode) {
-		final List<AnswerLink> results = em
+		final List<AnswerLink> results = getEntityManager()
 				.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.source.code=:baseEntityCode")
 				.setParameter("baseEntityCode", sourceCode).getResultList();
 
@@ -1408,7 +1417,7 @@ public class BaseEntityService2 {
 
 	public List<EntityAttribute> findAttributesByBaseEntityCode(final String code) throws NoResultException {
 
-		final List<EntityAttribute> results = em
+		final List<EntityAttribute> results = getEntityManager()
 				.createQuery("SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
 				.setParameter("baseEntityCode", code).getResultList();
 

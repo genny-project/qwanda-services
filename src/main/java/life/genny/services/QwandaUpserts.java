@@ -4,6 +4,7 @@ import static java.lang.System.out;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -144,7 +145,7 @@ public class QwandaUpserts {
         .createQuery(
             "SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
         .setParameter("baseEntityCode", baseEntityCode).getResultList();
-    result.setBaseEntityAttributes(new ArrayList<EntityAttribute>(attributes));
+    result.setBaseEntityAttributes(new HashSet<EntityAttribute>(attributes));
     return result;
   }
 
