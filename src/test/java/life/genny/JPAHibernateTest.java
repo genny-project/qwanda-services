@@ -30,7 +30,7 @@ public class JPAHibernateTest {
 //  static File channelPath = new File(System.getProperty("user.home"), ".credentials/channel");
 
   protected static BaseEntityService2 service = null;
-  BatchLoading bl;
+  static BatchLoading bl;
 
   @BeforeClass
   public static void init() throws FileNotFoundException, SQLException {
@@ -47,11 +47,12 @@ public class JPAHibernateTest {
       log.info("Setting up EntityManager");      
       em = emf.createEntityManager();
       service = new BaseEntityService2(em);
+      import_from_google_docs();
     }
   }
 
-  @Test
-  public void import_from_google_docs() {
+
+  public static void import_from_google_docs() {
     em.getTransaction().begin();
     bl = new BatchLoading(service);
     bl.persistProject();
@@ -75,5 +76,22 @@ public class JPAHibernateTest {
     }
   }
 
+
+/**
+ * @return the em
+ */
+public static EntityManager getEm() {
+	return em;
+}
+
+
+/**
+ * @param em the em to set
+ */
+public static void setEm(EntityManager em) {
+	JPAHibernateTest.em = em;
+}
+
+  
 
 }

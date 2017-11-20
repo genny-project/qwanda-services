@@ -50,6 +50,8 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
   @Test
   public void saveAnswerTest() {
+	 getEm().getTransaction().begin();
+
     final Gson gson = new GsonBuilder()
         .registerTypeAdapter(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
           @Override
@@ -91,7 +93,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
     log.info("answerId2=" + answerId2);
 
-
+    getEm().getTransaction().commit();
 
     final List<AnswerLink> answers = service.findAnswerLinks();
     log.info(answers);

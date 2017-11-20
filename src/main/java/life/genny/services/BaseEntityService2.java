@@ -357,7 +357,6 @@ public class BaseEntityService2 {
 				answer.setAttribute(attribute);
 
 				getEntityManager().persist(answer);
-				getEntityManager().flush();
 
 				// update answerlink
 
@@ -403,12 +402,12 @@ public class BaseEntityService2 {
 				existing.setWeight(answer.getWeight());
 				existing.setValue(answer.getValue());
 				existing = getEntityManager().merge(existing);
-				em.flush();
-				getEntityManager().lock(answer, LockModeType.WRITE);
+//				em.flush();
+//				getEntityManager().lock(answer, LockModeType.WRITE);
 				return existing.getId();
 
 			}
-			getEntityManager().lock(answer, LockModeType.WRITE);
+//			getEntityManager().lock(answer, LockModeType.WRITE);
 //			ut.commit();
 		} catch (Exception transactionException) {
 			log.error("Transaction Exception in saving Answer" + answer);
@@ -1778,13 +1777,7 @@ public class BaseEntityService2 {
 		return count;
 	}
 
-	public EntityManager getEm() {
-		return em;
-	}
 
-	public void setEm(EntityManager em) {
-		this.em = em;
-	}
 
 	public EntityEntity findEntityEntity(final String sourceCode, final String targetCode, final String linkCode)
 			throws NoResultException {
