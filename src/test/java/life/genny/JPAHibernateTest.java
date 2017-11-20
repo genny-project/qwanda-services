@@ -46,13 +46,14 @@ public class JPAHibernateTest {
     } else {
       log.info("Setting up EntityManager");      
       em = emf.createEntityManager();
+      service = new BaseEntityService2(em);
     }
   }
 
   @Test
   public void import_from_google_docs() {
     em.getTransaction().begin();
-    bl = new BatchLoading(em);
+    bl = new BatchLoading(service);
     bl.persistProject();
     em.getTransaction().commit();
   }

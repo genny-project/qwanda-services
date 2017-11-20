@@ -41,8 +41,8 @@ public class BatchLoading {
   private BaseEntityService2 service;
 
   // private BaseEntityService service;
-  public BatchLoading(EntityManager em) {
-    service = new BaseEntityService2(em);
+  public BatchLoading(BaseEntityService2 service) {
+    this.service = service;
   }
 
   // protected BaseEntityService service = null;
