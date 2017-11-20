@@ -48,7 +48,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   private static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-// @Test
+  @Test
   public void saveAnswerTest() {
     final Gson gson = new GsonBuilder()
         .registerTypeAdapter(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
@@ -92,26 +92,25 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     log.info("answerId2=" + answerId2);
 
 
- 
 
     final List<AnswerLink> answers = service.findAnswerLinks();
     log.info(answers);
 
   }
 
-//@Test
+  // @Test
   public void fetchAttribute() {
     final Attribute at = service.findAttributeByCode("PRI_FIRSTNAME");
     log.info(at);
   }
 
-//@Test
+  // @Test
   public void fetchBE() {
     final BaseEntity be = service.findBaseEntityByCode("PER_USER1");
     log.info(be);
   }
 
-//@Test
+  // @Test
   public void countBE() {
     final Long count =
         (Long) em.createQuery("SELECT count(be) FROM BaseEntity be where  be.code=:sourceCode")
@@ -119,7 +118,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     assertThat(count, is(1L));
   }
 
-//@Test
+  // @Test
   public void sqlCountTest() {
     final String sql =
         "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode";
@@ -131,7 +130,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     assertThat(count, is(3L));
   }
 
-//@Test
+  // @Test
   public void sqlBETest() {
     final String sql =
         "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode";
@@ -148,14 +147,14 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
 
 
-//@Test
+  // @Test
   public void sqlBEandAttributesTest() {
 
     final String sql =
         "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bea where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode";
 
     if (em == null) {
-    	log.error("EntityManager is NULL!");
+      log.error("EntityManager is NULL!");
     }
     final List<BaseEntity> eeResults = em.createQuery(sql).setParameter("sourceCode", "GRP_USERS")
         .setParameter("linkAttributeCode", "LNK_CORE").setFirstResult(0).setMaxResults(1000)
@@ -167,7 +166,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     assertThat(eeResults.get(0).getBaseEntityAttributes().size(), greaterThan(5));
   }
 
-//@Test
+  // @Test
   public void test_Query() {
     final String sourceCode = "GRP_USERS";
     final String linkCode = "LNK_CORE";
@@ -193,7 +192,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
       level = Integer.decode(levelStr);
     }
     final List<BaseEntity> targets = service.findChildrenByAttributeLink(sourceCode, linkCode,
-        false, pageStart, pageSize, level,params);
+        false, pageStart, pageSize, level, params);
 
     BaseEntity[] beArr = new BaseEntity[targets.size()];
     assertThat(beArr.length, is(2));
@@ -203,7 +202,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   }
 
 
-//@Test
+  // @Test
   public void getBesWithAttributesPaged() {
     Integer pageStart = 0;
     Integer pageSize = 10; // default
@@ -308,7 +307,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
   }
 
-//@Test
+  // @Test
   public void getChildrenWithAttributesPaged() {
     System.out.println("\n\n******************* KIDS WITH ATTRIBUTE!**************");
     final MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
@@ -528,7 +527,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
   }
 
-//@Test
+  // @Test
   public void sqlBEFilterTest() {
     // final String sql =
     // "SELECT distinct be FROM BaseEntity be,EntityEntity ee,EntityAttribute ea0,EntityAttribute
@@ -560,14 +559,13 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   }
 
 
-////@Test
+  //// @Test
   public void getKeycloakUsersTest() {
     KeycloakService ks;
     final Map<String, Map<String, Object>> usersMap = new HashMap<String, Map<String, Object>>();
 
     try {
-      ks = new KeycloakService("https://keycloakUrl", "genny", "user1",
-          "password1", "genny");
+      ks = new KeycloakService("https://keycloakUrl", "genny", "user1", "password1", "genny");
       final List<LinkedHashMap> users = ks.fetchKeycloakUsers();
       for (final Object user : users) {
         final LinkedHashMap map = (LinkedHashMap) user;
@@ -642,8 +640,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
       final String ln) throws Exception {
     KeycloakService ks;
 
-    ks = new KeycloakService("https://keycloakUrl", "genny", "user1",
-        "password1", "genny");
+    ks = new KeycloakService("https://keycloakUrl", "genny", "user1", "password1", "genny");
 
     final UserResource userResource = ks.getKeycloak().realm(realm).users().get(keycloakId);
     final UserRepresentation user = userResource.toRepresentation();
@@ -652,35 +649,36 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     userResource.update(user);
 
   }
-  
-  //@Test
+
+  // @Test
   public void mergeUtilTest() {
-	  
-	  	//String template = "Template.ftl";
-	  	String teststr = "Welcome {{USER.PRI_FIRSTNAME}} {{USER.PRI_LASTNAME}} !! Your contact number is {{USER.PRI_MOBILE}} and email ID is {{USER.PRI_EMAIL}} !!";
-		
-		BaseEntity projectBaseEnt = service.findBaseEntityByCode("PRJ_GENNY");
-		BaseEntity userBaseEnt = service.findBaseEntityByCode("PER_USER2");
-		BaseEntity dashboardBaseEnt = service.findBaseEntityByCode("GRP_DASHBOARD");
-	  	
-	  	Map<String, BaseEntity> templateEntityMap = new HashMap<>();
-		templateEntityMap.put("PROJECT", projectBaseEnt);
-		templateEntityMap.put("USER", userBaseEnt);
-		templateEntityMap.put("JOB", dashboardBaseEnt);
-				
-		String mergedString = MergeUtil.merge(teststr, templateEntityMap);
-		System.out.println("merged string in template ::"+mergedString);
-		
-		
-		/*BaseEntity projectBaseEnt1 = service.findBaseEntityByCode("PRJ_CHANNEL40");
-		BaseEntity userBaseEnt1 = service.findBaseEntityByCode("PER_USER1");
-		BaseEntity dashboardBaseEnt1 = service.findBaseEntityByCode("GRP_USERS");
-	  	
-	  	Map<String, BaseEntity> templateEntityMap1 = new HashMap<>();
-		templateEntityMap1.put("PROJECT", projectBaseEnt1);
-		templateEntityMap1.put("USER", userBaseEnt1);
-		templateEntityMap1.put("JOB", dashboardBaseEnt1);
-		*/
+
+    // String template = "Template.ftl";
+    String teststr =
+        "Welcome {{USER.PRI_FIRSTNAME}} {{USER.PRI_LASTNAME}} !! Your contact number is {{USER.PRI_MOBILE}} and email ID is {{USER.PRI_EMAIL}} !!";
+
+    BaseEntity projectBaseEnt = service.findBaseEntityByCode("PRJ_GENNY");
+    BaseEntity userBaseEnt = service.findBaseEntityByCode("PER_USER2");
+    BaseEntity dashboardBaseEnt = service.findBaseEntityByCode("GRP_DASHBOARD");
+
+    Map<String, BaseEntity> templateEntityMap = new HashMap<>();
+    templateEntityMap.put("PROJECT", projectBaseEnt);
+    templateEntityMap.put("USER", userBaseEnt);
+    templateEntityMap.put("JOB", dashboardBaseEnt);
+
+    String mergedString = MergeUtil.merge(teststr, templateEntityMap);
+    System.out.println("merged string in template ::" + mergedString);
+
+
+    /*
+     * BaseEntity projectBaseEnt1 = service.findBaseEntityByCode("PRJ_CHANNEL40"); BaseEntity
+     * userBaseEnt1 = service.findBaseEntityByCode("PER_USER1"); BaseEntity dashboardBaseEnt1 =
+     * service.findBaseEntityByCode("GRP_USERS");
+     * 
+     * Map<String, BaseEntity> templateEntityMap1 = new HashMap<>();
+     * templateEntityMap1.put("PROJECT", projectBaseEnt1); templateEntityMap1.put("USER",
+     * userBaseEnt1); templateEntityMap1.put("JOB", dashboardBaseEnt1);
+     */
   }
 
 
