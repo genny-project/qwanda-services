@@ -1785,7 +1785,7 @@ public class BaseEntityService2 {
 
 		try {
 			ee = (EntityEntity) getEntityManager().createQuery(
-					"SELECT distinct ee FROM EntityEntity  where ee.pk.target.code=:targetCode and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+					"SELECT distinct ee FROM EntityEntity ee where ee.pk.targetCode=:targetCode and ee.pk.attributeCode=:linkAttributeCode and ee.pk.sourceCode=:sourceCode")
 					.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
 					.setParameter("targetCode", targetCode).getSingleResult();
 
@@ -1849,8 +1849,9 @@ public class BaseEntityService2 {
 				throw new IllegalArgumentException("linkCode" + linkCode + " not found");
 			}
 
-			beSource.addTarget(beTarget, linkAttribute, weight);
-			upsert(beSource);
+			ee = beSource.addTarget(beTarget, linkAttribute, weight);
+			beSource = getEntityManager().merge(beSource);
+	
 
 		}
 
@@ -1873,7 +1874,7 @@ public class BaseEntityService2 {
 		EntityEntity ee = null;
 
 		try {
-			getEntityManager().getTransaction().begin();
+//			getEntityManager().getTransaction().begin();
 
 			EntityEntity oldLink = findEntityEntity(originalSourceCode, targetCode, linkCode);
 			// add new link
@@ -1882,7 +1883,7 @@ public class BaseEntityService2 {
 			// remove old one
 			removeEntityEntity(oldLink);
 
-			getEntityManager().getTransaction().commit();
+//			getEntityManager().getTransaction().commit();
 		} catch (Exception e) {
 			throw new IllegalArgumentException("linkCode" + linkCode + " not found");
 		}

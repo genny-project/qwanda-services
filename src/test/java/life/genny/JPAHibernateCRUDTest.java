@@ -3,6 +3,7 @@ package life.genny;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -38,6 +39,7 @@ import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwandautils.KeycloakService;
@@ -683,5 +685,73 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
      */
   }
 
+  @Test
+  public void addLinkTest() {
+	 getEm().getTransaction().begin();
 
+    final Gson gson = new GsonBuilder()
+        .registerTypeAdapter(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
+          @Override
+          public LocalDateTime deserialize(final JsonElement json, final Type type,
+              final JsonDeserializationContext jsonDeserializationContext)
+              throws JsonParseException {
+            return ZonedDateTime.parse(json.getAsJsonPrimitive().getAsString()).toLocalDateTime();
+          }
+
+          public JsonElement serialize(final LocalDateTime date, final Type typeOfSrc,
+              final JsonSerializationContext context) {
+            return new JsonPrimitive(date.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)); // "yyyy-mm-dd"
+          }
+        }).create();
+
+
+    String json = "{ " + "\"created\": \"2014-11-01T12:34:56+10:00\"," + "\"value\": \"Bob\","
+        + "\"expired\": false," + "\"refused\": false," + "\"weight\": 1," + "\"version\": 1,"
+        + "\"targetCode\": \"PER_USER1\"," + "\"sourceCode\": \"PER_USER1\","
+        + "\"attributeCode\": \"PRI_FIRSTNAME\"" + "}";
+
+    final Answer answer = gson.fromJson(json, Answer.class);
+    log.info("Answer loaded :" + answer);
+    final Long answerId = service.insert(answer);
+
+    log.info("answerId=" + answerId);
+
+    BaseEntity user1 = service.findBaseEntityByCode("PER_USER1");
+    BaseEntity testGroup = service.findBaseEntityByCode("GRP_TEST");
+    BaseEntity testGroup2 = service.findBaseEntityByCode("GRP_TEST2");
+    
+    try {
+		EntityEntity ee = service.addLink(testGroup.getCode(), user1.getCode(), "LNK_TEST", new Double(3.14), 1.2);
+	
+		assertEquals(ee.getLinkAttribute().getCode(),"LNK_TEST");
+		
+		// fetch link
+		EntityEntity newEntity = service.findEntityEntity(testGroup.getCode(), user1.getCode(), "LNK_TEST");
+		assertEquals(newEntity.getLinkAttribute().getCode(),"LNK_TEST");
+		assertEquals(newEntity.getSource().getCode(),testGroup.getCode());
+		assertEquals(newEntity.getTarget().getCode(),user1.getCode());
+		
+	    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<String, String>();
+	//    params.add("pageStart", "0");
+	//    params.add("pageSize", "2");
+
+
+		List<BaseEntity> baseEntitys = service.findChildrenByAttributeLink(testGroup.getCode(), "LNK_TEST", false, 0, 10, 2, params);
+		List<BaseEntity> baseEntitys2 = service.findChildrenByAttributeLink(testGroup2.getCode(), "LNK_TEST", false, 0, 10, 2, params);
+		// Check baseEntitys has testGroup and no testGroup2
+		assertEquals(baseEntitys.contains(user1),true);
+		assertEquals(baseEntitys2.contains(user1),false);
+		
+	} catch (IllegalArgumentException | BadDataException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+    
+    
+
+    getEm().getTransaction().commit();
+
+  
+  }
+  
 }
