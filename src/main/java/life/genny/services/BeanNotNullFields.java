@@ -96,7 +96,7 @@ public class BeanNotNullFields extends BeanUtilsBean {
           }
         }
       }
-      System.out.println("Java property on standard JavaBean");
+     // System.out.println("Java property on standard JavaBean");
     }
 
   }

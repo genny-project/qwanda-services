@@ -134,9 +134,9 @@ public class BaseEntityService2 {
 
 			BeanNotNullFields copyFields = new BeanNotNullFields();
 			copyFields.copyProperties(val, be);
-			System.out.println("***********" + val);
+			//System.out.println("***********" + val);
 			val = getEntityManager().merge(val);
-			System.out.println("*******&&&&&&&&&&&&****");
+			//System.out.println("*******&&&&&&&&&&&&****");
 			return be;
 		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
 			Long id = insert(be);
@@ -166,7 +166,7 @@ public class BaseEntityService2 {
 		// always check if question exists through check for unique code
 		try {
 			getEntityManager().persist(question);
-			System.out.println("\n\n\n\n\n\n\n11111111\n\n\n\n\n\n\n\n");
+			System.out.println("Loaded "+question.getCode());
 		} catch (final ConstraintViolationException e) {
 			Question existing = findQuestionByCode(question.getCode());
 			existing = getEntityManager().merge(existing);
@@ -242,7 +242,7 @@ public class BaseEntityService2 {
 		// always check if rule exists through check for unique code
 		try {
 			getEntityManager().persist(validation);
-			System.out.println("\n\n\n\n\n\n\n11111111\n\n\n\n\n\n\n\n");
+			System.out.println("Loaded Validation "+validation.getCode());
 		} catch (final ConstraintViolationException e) {
 			System.out.println("\n\n\n\n\n\n222222222222\n\n\n\n\n\n\n\n\n");
 			final Validation existing = findValidationByCode(validation.getCode());
@@ -324,6 +324,7 @@ public class BaseEntityService2 {
 	}
 
 	public Long insert(Answer answer) {
+		log.info("insert(Answer):"+answer.getSourceCode()+":"+answer.getTargetCode()+":"+answer.getAttributeCode()+":"+StringUtils.abbreviateMiddle(answer.getValue(), "...", 30));
 		// always check if answer exists through check for unique code
 		BaseEntity beTarget = null;
 		BaseEntity beSource = null;
@@ -331,12 +332,6 @@ public class BaseEntityService2 {
 		Ask ask = null;
 
 		try {
-//			UserTransaction ut = (UserTransaction) new InitialContext().lookup("java:comp/UserTransaction");
-//			ut.setTransactionTimeout(300);
-//			ut.begin();
-
-			// Join the EntityManager operations to this UserTransaction
-	//		getEntityManager().joinTransaction();
 
 			try {
 				// check that the codes exist
@@ -365,8 +360,6 @@ public class BaseEntityService2 {
 					Optional<EntityAttribute> optExisting = beTarget.findEntityAttribute(answer.getAttributeCode());
 					Object old = optExisting.isPresent()?optExisting.get().getValue():null;
 					answerLink = beTarget.addAnswer(beSource, answer, 1.0); // TODo replace with soucr
-			//		answerLink = insert(answerLink);
-			//		getEntityManager().persist(answerLink);
 					update(beTarget);
 					boolean sendAttributeChangeEvent = false;
 					if (!optExisting.isPresent()) {
@@ -402,13 +395,9 @@ public class BaseEntityService2 {
 				existing.setWeight(answer.getWeight());
 				existing.setValue(answer.getValue());
 				existing = getEntityManager().merge(existing);
-//				em.flush();
-//				getEntityManager().lock(answer, LockModeType.WRITE);
 				return existing.getId();
 
 			}
-//			getEntityManager().lock(answer, LockModeType.WRITE);
-//			ut.commit();
 		} catch (Exception transactionException) {
 			log.error("Transaction Exception in saving Answer" + answer);
 		}
