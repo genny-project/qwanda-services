@@ -742,6 +742,21 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 		assertEquals(baseEntitys.contains(user1),true);
 		assertEquals(baseEntitys2.contains(user1),false);
 		
+		
+		// Move link!
+		
+		service.moveLink(testGroup.getCode(), user1.getCode(), "LNK_TEST", testGroup2.getCode());
+		List<BaseEntity> baseEntitysA = service.findChildrenByAttributeLink(testGroup.getCode(), "LNK_TEST", false, 0, 10, 2, params);
+		List<BaseEntity> baseEntitys2A = service.findChildrenByAttributeLink(testGroup2.getCode(), "LNK_TEST", false, 0, 10, 2, params);
+		// Check baseEntitys has testGroup and no testGroup2
+		assertEquals(baseEntitysA.contains(user1),false);
+		assertEquals(baseEntitys2A.contains(user1),true);
+		
+		// now fetch all the links for a target
+		List<EntityEntity> links = service.findLinks(user1.getCode(), "LNK_TEST");
+		Integer linkCount = links.size();
+		assertEquals(linkCount==1,true);
+		assertEquals(links.get(0).getParentCode().equals(testGroup2.getCode()),true); // check it moved
 	} catch (IllegalArgumentException | BadDataException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();

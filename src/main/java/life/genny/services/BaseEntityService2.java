@@ -1788,9 +1788,12 @@ public class BaseEntityService2 {
 
 	public void removeEntityEntity(final EntityEntity ee) {
 		try {
-			getEntityManager().getTransaction().begin();
-			em.remove(ee);
-			getEntityManager().getTransaction().commit();
+	//		getEntityManager().getTransaction().begin();
+			ee.getSource().getLinks().remove(ee);
+			getEntityManager().merge(ee.getSource() );
+			getEntityManager().remove(ee);
+			
+	//		getEntityManager().getTransaction().commit();
 		} catch (Exception e) {
 			// rollback
 		}
@@ -1799,9 +1802,9 @@ public class BaseEntityService2 {
 	public EntityEntity insertEntityEntity(final EntityEntity ee) {
 
 		try {
-			getEntityManager().getTransaction().begin();
+	//		getEntityManager().getTransaction().begin();
 			getEntityManager().persist(ee);
-			getEntityManager().getTransaction().commit();
+	//		getEntityManager().getTransaction().commit();
 		} catch (Exception e) {
 			// rollback
 		}
@@ -1868,7 +1871,7 @@ public class BaseEntityService2 {
 			EntityEntity oldLink = findEntityEntity(originalSourceCode, targetCode, linkCode);
 			// add new link
 			ee = addLink(destinationSourceCode, targetCode, linkCode, oldLink.getValue(), oldLink.getWeight());
-
+			
 			// remove old one
 			removeEntityEntity(oldLink);
 
@@ -1883,7 +1886,7 @@ public class BaseEntityService2 {
 
 		final List<EntityEntity> eeResults;
 		eeResults = getEntityManager().createQuery(
-				"SELECT ee FROM EntityEntity  where  ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.target.code=:targetCode")
+				"SELECT ee FROM EntityEntity ee where  ee.pk.targetCode=:targetCode and ee.pk.attributeCode=:linkAttributeCode ")
 				.setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode).getResultList();
 
 		return eeResults;
