@@ -383,7 +383,7 @@ public class BatchLoading {
       numOfTries--;
     }
 
-    if (numOfTries == 0)
+    if (numOfTries <= 0)
       log.error("Failed to download Google Docs Configuration ... given up ...");
 
     return genny;
