@@ -47,7 +47,7 @@ public class JPAHibernateTest {
       log.info("Setting up EntityManager");      
       em = emf.createEntityManager();
       service = new BaseEntityService2(em);
-//      import_from_google_docs();
+      import_from_google_docs();
     }
   }
 
