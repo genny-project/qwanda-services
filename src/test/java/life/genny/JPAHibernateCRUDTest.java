@@ -761,12 +761,17 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
-    
-    
-
     getEm().getTransaction().commit();
-
   
   }
   
+  @Test
+  public <T> void testGen() {
+    System.out.println("\n\n\n\n******222*******\n\n\n\n\n\n");
+    getEm().getTransaction().begin();
+    T object = (T) new BaseEntity("PER_1","codi");
+    System.out.println("ooo b j e c t "+service.upsert(object));
+    System.out.println("ooo b j e c t "+service.findBaseEntityByCode("PER_1"));
+    getEm().getTransaction().commit();
+  }
 }
