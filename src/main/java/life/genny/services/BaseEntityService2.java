@@ -41,6 +41,7 @@ import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.GPS;
+import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeLink;
@@ -1889,20 +1890,22 @@ public class BaseEntityService2 {
     System.out.println(users);
   }
 
-  public EntityEntity moveLink(final String originalSourceCode, final String targetCode,
+  public Link moveLink(final String originalSourceCode, final String targetCode,
       final String linkCode, final String destinationSourceCode) throws IllegalArgumentException {
-    EntityEntity ee = null;
+    Link ee = null;
 
     try {
       // getEntityManager().getTransaction().begin();
 
       EntityEntity oldLink = findEntityEntity(originalSourceCode, targetCode, linkCode);
       // add new link
-      ee = addLink(destinationSourceCode, targetCode, linkCode, oldLink.getValue(),
+      EntityEntity eee = addLink(destinationSourceCode, targetCode, linkCode, oldLink.getValue(),
           oldLink.getWeight());
 
       // remove old one
       removeEntityEntity(oldLink);
+      
+      ee = new Link(eee.getParentCode(),eee.getTargetCode(),eee.getLinkCode(),eee.getValueString(),eee.getWeight());
 
       // getEntityManager().getTransaction().commit();
     } catch (Exception e) {
