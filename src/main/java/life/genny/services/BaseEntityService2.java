@@ -1,6 +1,7 @@
 package life.genny.services;
 
 import static java.lang.System.out;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +12,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,24 +19,25 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
-import javax.naming.InitialContext;
+
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
-import javax.transaction.UserTransaction;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.exception.ConstraintViolationException;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.KeycloakSecurityContext;
 import org.mortbay.log.Log;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
@@ -716,19 +717,34 @@ public class BaseEntityService2 {
   }
 
   public BaseEntity findBaseEntityByCode(@NotNull final String baseEntityCode)
+	      throws NoResultException {
+
+	  return findBaseEntityByCode(baseEntityCode, false);
+
+	  }
+  
+  public BaseEntity findBaseEntityByCode(@NotNull final String baseEntityCode, boolean includeEntityAttributes)
       throws NoResultException {
 
-    final BaseEntity result = (BaseEntity) getEntityManager()
-        .createQuery("SELECT a FROM BaseEntity a where a.code=:baseEntityCode")
+    BaseEntity result = null;
+    if (includeEntityAttributes) {
+    result = (BaseEntity) getEntityManager()
+        .createQuery("SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode")
         .setParameter("baseEntityCode", baseEntityCode.toUpperCase()).getSingleResult();
+    } else {
+        result = (BaseEntity) getEntityManager()
+                .createQuery("SELECT be FROM BaseEntity be where be.code=:baseEntityCode")
+                .setParameter("baseEntityCode", baseEntityCode.toUpperCase()).getSingleResult();
+   	
+    }
 
-    // Ugly, add field filtering through header field list
-
-    final List<EntityAttribute> attributes = getEntityManager()
-        .createQuery(
-            "SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
-        .setParameter("baseEntityCode", baseEntityCode).getResultList();
-    result.setBaseEntityAttributes(new HashSet<EntityAttribute>(attributes));
+//    // Ugly, add field filtering through header field list
+//
+//    final List<EntityAttribute> attributes = getEntityManager()
+//        .createQuery(
+//            "SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
+//        .setParameter("baseEntityCode", baseEntityCode).getResultList();
+//    result.setBaseEntityAttributes(new HashSet<EntityAttribute>(attributes));
     return result;
 
   }
@@ -875,7 +891,7 @@ public class BaseEntityService2 {
 
         String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
             + "  JOIN be.baseEntityAttributes bee where " + eaStringsQ
-            + "  ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
+            + "  ee.pk.target.code=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
         int attributeCodeIndex = 0;
         int valueIndex = 0;
         final List<String> attributeCodeList = new ArrayList<String>();
@@ -939,7 +955,7 @@ public class BaseEntityService2 {
       if (pairCount.equals(0)) {
 
         eeResults = getEntityManager().createQuery(
-            "SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+            "SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.target.code=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
             .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
             .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
@@ -959,7 +975,7 @@ public class BaseEntityService2 {
 
         String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
             + "  where " + eaStringsQ
-            + " ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
+            + " ee.pk.target.code=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
         int attributeCodeIndex = 0;
         int valueIndex = 0;
         final List<String> attributeCodeList = new ArrayList<String>();
@@ -1046,7 +1062,7 @@ public class BaseEntityService2 {
 
     String queryStr = "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee" + eaStrings
         + "  where " + eaStringsQ
-        + "  ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode  ";
+        + "  ee.pk.targetCode=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode  ";
     int attributeCodeIndex = 0;
     int valueIndex = 0;
     final List<String> attributeCodeList = new ArrayList<String>();
@@ -1425,7 +1441,7 @@ public class BaseEntityService2 {
           + pageStart + " pageSize=" + pageSize + " ****************");
 
       eeResults = getEntityManager().createQuery(
-          "SELECT be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+          "SELECT be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.targetCode=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
           .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
       if (eeResults.isEmpty()) {
@@ -1440,7 +1456,7 @@ public class BaseEntityService2 {
       Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
       eeResults = getEntityManager().createQuery(
-          "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+          "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
           .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
@@ -1458,7 +1474,7 @@ public class BaseEntityService2 {
 
     final List<EntityEntity> eeResults;
     eeResults = getEntityManager().createQuery(
-        "SELECT ee FROM EntityEntity ee where  ee.pk.targetCode=:targetCode and ee.pk.attributeCode=:linkAttributeCode ")
+        "SELECT ee FROM EntityEntity ee where  ee.pk.target.code=:targetCode and ee.pk.attribute.code=:linkAttributeCode ")
         .setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode)
         .getResultList();
 
@@ -1471,12 +1487,12 @@ public class BaseEntityService2 {
 
     try {
       ee = (EntityEntity) getEntityManager().createQuery(
-          "SELECT distinct ee FROM EntityEntity ee where ee.pk.targetCode=:targetCode and ee.pk.attributeCode=:linkAttributeCode and ee.pk.sourceCode=:sourceCode")
+          "SELECT ee FROM EntityEntity ee where ee.pk.target.code=:targetCode and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
           .setParameter("targetCode", targetCode).getSingleResult();
 
     } catch (Exception e) {
-      log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode + " not found");
+    //  log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode + " not found");
       throw new NoResultException(
           "EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode + " not found");
     }
@@ -1486,8 +1502,9 @@ public class BaseEntityService2 {
   public void removeEntityEntity(final EntityEntity ee) {
     try {
       // getEntityManager().getTransaction().begin();
-      ee.getSource().getLinks().remove(ee);
-      getEntityManager().merge(ee.getSource());
+    	BaseEntity source = findBaseEntityByCode(ee.getSource().getCode());
+      source.getLinks().remove(ee);
+      getEntityManager().merge(source);
       getEntityManager().remove(ee);
 
       // getEntityManager().getTransaction().commit();
@@ -1905,7 +1922,7 @@ public class BaseEntityService2 {
       // remove old one
       removeEntityEntity(oldLink);
       
-      ee = new Link(eee.getParentCode(),eee.getTargetCode(),eee.getLinkCode(),eee.getValueString(),eee.getWeight());
+      ee = new Link(eee.getPk().getSource().getCode(),eee.getPk().getTarget().getCode(),eee.getPk().getAttribute().getCode(),eee.getValueString(),eee.getWeight());
 
       // getEntityManager().getTransaction().commit();
     } catch (Exception e) {

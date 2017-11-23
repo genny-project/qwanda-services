@@ -167,15 +167,21 @@ public class BatchLoading {
           try {
             attribute = service.findAttributeByCode(attributeCode);
             be = service.findBaseEntityByCode(baseEntityCode);
-            final Double weightField = Double.valueOf(weight);
+            Double weightField = null;
+            try {
+            		weightField = Double.valueOf(weight);
+            } catch (java.lang.NumberFormatException ee) {
+            	weightField = 0.0;
+            }
             try {
               be.addAttribute(attribute, weightField, valueString);
             } catch (final BadDataException e) {
               e.printStackTrace();
             }
-            service.upsert(be);
+            service.update(be);
           } catch (final NoResultException e) {
-          }
+          
+        }
         });
   }
 
@@ -199,7 +205,7 @@ public class BatchLoading {
         sbe = service.findBaseEntityByCode(parentCode);
         tbe = service.findBaseEntityByCode(targetCode);
         sbe.addTarget(tbe, linkAttribute, weight);
-        service.upsert(sbe);
+        service.update(sbe);
       } catch (final NoResultException e) {
       } catch (final BadDataException e) {
         e.printStackTrace();

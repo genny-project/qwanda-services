@@ -723,13 +723,13 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     try {
 		EntityEntity ee = service.addLink(testGroup.getCode(), user1.getCode(), "LNK_TEST", new Double(3.14), 1.2);
 	
-		assertEquals(ee.getLinkAttribute().getCode(),"LNK_TEST");
+		assertEquals(ee.getPk().getAttribute().getCode(),"LNK_TEST");
 		
 		// fetch link
 		EntityEntity newEntity = service.findEntityEntity(testGroup.getCode(), user1.getCode(), "LNK_TEST");
-		assertEquals(newEntity.getLinkAttribute().getCode(),"LNK_TEST");
-		assertEquals(newEntity.getSource().getCode(),testGroup.getCode());
-		assertEquals(newEntity.getTarget().getCode(),user1.getCode());
+		assertEquals(newEntity.getPk().getAttribute().getCode(),"LNK_TEST");
+		assertEquals(newEntity.getPk().getSource().getCode(),testGroup.getCode());
+		assertEquals(newEntity.getPk().getTarget().getCode(),user1.getCode());
 		
 	    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<String, String>();
 	//    params.add("pageStart", "0");
@@ -756,7 +756,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 		List<EntityEntity> links = service.findLinks(user1.getCode(), "LNK_TEST");
 		Integer linkCount = links.size();
 		assertEquals(linkCount==1,true);
-		assertEquals(links.get(0).getParentCode().equals(testGroup2.getCode()),true); // check it moved
+		assertEquals(links.get(0).getSource().getCode().equals(testGroup2.getCode()),true); // check it moved
 	} catch (IllegalArgumentException | BadDataException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
