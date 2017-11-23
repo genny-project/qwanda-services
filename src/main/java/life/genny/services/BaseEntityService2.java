@@ -1062,7 +1062,7 @@ public class BaseEntityService2 {
 
     String queryStr = "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee" + eaStrings
         + "  where " + eaStringsQ
-        + "  ee.pk.targetCode=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode  ";
+        + "  ee.pk.target.code=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode  ";
     int attributeCodeIndex = 0;
     int valueIndex = 0;
     final List<String> attributeCodeList = new ArrayList<String>();
@@ -1441,7 +1441,7 @@ public class BaseEntityService2 {
           + pageStart + " pageSize=" + pageSize + " ****************");
 
       eeResults = getEntityManager().createQuery(
-          "SELECT be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.targetCode=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+          "SELECT be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
           .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
       if (eeResults.isEmpty()) {
