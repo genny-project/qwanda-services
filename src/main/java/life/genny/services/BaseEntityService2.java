@@ -1502,7 +1502,7 @@ public class BaseEntityService2 {
   public void removeEntityEntity(final EntityEntity ee) {
     try {
       // getEntityManager().getTransaction().begin();
-    	BaseEntity source = findBaseEntityByCode(ee.getSource().getCode());
+    	BaseEntity source = findBaseEntityByCode(ee.getLink().getSourceCode());
       source.getLinks().remove(ee);
       getEntityManager().merge(source);
       getEntityManager().remove(ee);
@@ -1918,12 +1918,10 @@ public class BaseEntityService2 {
       // add new link
       EntityEntity eee = addLink(destinationSourceCode, targetCode, linkCode, oldLink.getValue(),
           oldLink.getWeight());
-
+      
       // remove old one
       removeEntityEntity(oldLink);
-      
-      ee = new Link(eee.getPk().getSource().getCode(),eee.getPk().getTargetCode(),eee.getPk().getAttribute().getCode(),eee.getValueString(),eee.getWeight());
-
+      ee = eee.getLink();
       // getEntityManager().getTransaction().commit();
     } catch (Exception e) {
       throw new IllegalArgumentException("linkCode" + linkCode + " not found");
