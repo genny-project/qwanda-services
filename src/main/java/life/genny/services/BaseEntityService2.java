@@ -871,7 +871,7 @@ public class BaseEntityService2 {
       if (pairCount.equals(0)) {
         System.out.println("findChildrenByAttributeLink - PairCount==0");
         eeResults = getEntityManager().createQuery(
-            "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+            "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.targetCode=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
             .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
             .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
@@ -891,7 +891,7 @@ public class BaseEntityService2 {
 
         String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
             + "  JOIN be.baseEntityAttributes bee where " + eaStringsQ
-            + "  ee.pk.target.code=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
+            + "  ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
         int attributeCodeIndex = 0;
         int valueIndex = 0;
         final List<String> attributeCodeList = new ArrayList<String>();
@@ -955,7 +955,7 @@ public class BaseEntityService2 {
       if (pairCount.equals(0)) {
 
         eeResults = getEntityManager().createQuery(
-            "SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.target.code=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+            "SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
             .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
             .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
@@ -975,7 +975,7 @@ public class BaseEntityService2 {
 
         String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
             + "  where " + eaStringsQ
-            + " ee.pk.target.code=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
+            + " ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
         int attributeCodeIndex = 0;
         int valueIndex = 0;
         final List<String> attributeCodeList = new ArrayList<String>();
@@ -1062,7 +1062,7 @@ public class BaseEntityService2 {
 
     String queryStr = "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee" + eaStrings
         + "  where " + eaStringsQ
-        + "  ee.pk.target.code=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode  ";
+        + "  ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode  ";
     int attributeCodeIndex = 0;
     int valueIndex = 0;
     final List<String> attributeCodeList = new ArrayList<String>();
@@ -1192,7 +1192,7 @@ public class BaseEntityService2 {
 
   public List<AnswerLink> findAnswersByTargetBaseEntityCode(final String targetCode) {
     final List<AnswerLink> results = getEntityManager()
-        .createQuery("SELECT ea FROM AnswerLink ea where ea.pk.target.code=:baseEntityCode")
+        .createQuery("SELECT ea FROM AnswerLink ea where ea.pk.targetCode=:baseEntityCode")
         .setParameter("baseEntityCode", targetCode).getResultList();
 
     return results;
@@ -1441,7 +1441,7 @@ public class BaseEntityService2 {
           + pageStart + " pageSize=" + pageSize + " ****************");
 
       eeResults = getEntityManager().createQuery(
-          "SELECT be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+          "SELECT be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
           .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
       if (eeResults.isEmpty()) {
@@ -1456,7 +1456,7 @@ public class BaseEntityService2 {
       Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
       eeResults = getEntityManager().createQuery(
-          "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+          "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
           .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
@@ -1470,11 +1470,11 @@ public class BaseEntityService2 {
     return beMap.values().stream().collect(Collectors.toList());
   }
 
-  public List<EntityEntity> findLinks(@NotNull final String targetCode, final String linkCode) {
+  public List<Link> findLinks(@NotNull final String targetCode, final String linkCode) {
 
-    final List<EntityEntity> eeResults;
+    final List<Link> eeResults;
     eeResults = getEntityManager().createQuery(
-        "SELECT ee FROM EntityEntity ee where  ee.pk.target.code=:targetCode and ee.pk.attribute.code=:linkAttributeCode ")
+        "SELECT ee.link FROM EntityEntity ee where  ee.pk.targetCode=:targetCode and ee.pk.attribute.code=:linkAttributeCode ")
         .setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode)
         .getResultList();
 
@@ -1487,7 +1487,7 @@ public class BaseEntityService2 {
 
     try {
       ee = (EntityEntity) getEntityManager().createQuery(
-          "SELECT ee FROM EntityEntity ee where ee.pk.target.code=:targetCode and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+          "SELECT ee FROM EntityEntity ee where ee.pk.targetCode=:targetCode and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
           .setParameter("targetCode", targetCode).getSingleResult();
 
@@ -1922,7 +1922,7 @@ public class BaseEntityService2 {
       // remove old one
       removeEntityEntity(oldLink);
       
-      ee = new Link(eee.getPk().getSource().getCode(),eee.getPk().getTarget().getCode(),eee.getPk().getAttribute().getCode(),eee.getValueString(),eee.getWeight());
+      ee = new Link(eee.getPk().getSource().getCode(),eee.getPk().getTargetCode(),eee.getPk().getAttribute().getCode(),eee.getValueString(),eee.getWeight());
 
       // getEntityManager().getTransaction().commit();
     } catch (Exception e) {

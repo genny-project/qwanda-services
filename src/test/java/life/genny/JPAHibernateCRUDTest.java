@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
+import life.genny.qwanda.Link;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
@@ -729,7 +730,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 		EntityEntity newEntity = service.findEntityEntity(testGroup.getCode(), user1.getCode(), "LNK_TEST");
 		assertEquals(newEntity.getPk().getAttribute().getCode(),"LNK_TEST");
 		assertEquals(newEntity.getPk().getSource().getCode(),testGroup.getCode());
-		assertEquals(newEntity.getPk().getTarget().getCode(),user1.getCode());
+		assertEquals(newEntity.getPk().getTargetCode(),user1.getCode());
 		
 	    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<String, String>();
 	//    params.add("pageStart", "0");
@@ -753,10 +754,10 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 		assertEquals(baseEntitys2A.contains(user1),true);
 		
 		// now fetch all the links for a target
-		List<EntityEntity> links = service.findLinks(user1.getCode(), "LNK_TEST");
+		List<Link> links = service.findLinks(user1.getCode(), "LNK_TEST");
 		Integer linkCount = links.size();
 		assertEquals(linkCount==1,true);
-		assertEquals(links.get(0).getSource().getCode().equals(testGroup2.getCode()),true); // check it moved
+		assertEquals(links.get(0).getSourceCode().equals(testGroup2.getCode()),true); // check it moved
 	} catch (IllegalArgumentException | BadDataException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
