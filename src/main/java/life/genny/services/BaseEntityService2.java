@@ -777,10 +777,9 @@ public class BaseEntityService2 {
   }
 
   public Validation findValidationByCode(@NotNull final String code) throws NoResultException {
-    final String co = "VLD_EMAIL";
     final Validation result =
         (Validation) getEntityManager().createQuery("SELECT a FROM Validation a where a.code=:code")
-            .setParameter("code", co).getSingleResult();
+            .setParameter("code", code).getSingleResult();
     // System.out.println("8878978978978977987897987987987" + result);
     return result;
   }
