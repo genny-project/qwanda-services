@@ -871,7 +871,7 @@ public class BaseEntityService2 {
       if (pairCount.equals(0)) {
         System.out.println("findChildrenByAttributeLink - PairCount==0");
         eeResults = getEntityManager().createQuery(
-            "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.targetCode=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+            "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
             .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
             .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 

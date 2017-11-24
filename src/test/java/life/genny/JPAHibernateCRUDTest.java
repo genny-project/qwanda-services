@@ -126,7 +126,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   // @Test
   public void sqlCountTest() {
     final String sql =
-        "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode";
+        "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode";
 
     final Long count = (Long) em.createQuery(sql).setParameter("sourceCode", "GRP_USERS")
         .setParameter("linkAttributeCode", "LNK_CORE").getSingleResult();
@@ -138,7 +138,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   // @Test
   public void sqlBETest() {
     final String sql =
-        "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode";
+        "SELECT be FROM BaseEntity be,EntityEntity ee where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode";
 
 
     final List<BaseEntity> eeResults = em.createQuery(sql).setParameter("sourceCode", "GRP_USERS")
@@ -156,7 +156,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   public void sqlBEandAttributesTest() {
 
     final String sql =
-        "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bea where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode";
+        "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bea where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode";
 
     if (em == null) {
       log.error("EntityManager is NULL!");
@@ -358,7 +358,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
       final Integer pairCount = params.size();
       if (pairCount == 0) {
         eeResults = em.createQuery(
-            "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+            "SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
             .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
             .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
@@ -380,7 +380,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
         String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
             + "  JOIN be.baseEntityAttributes bee where " + eaStringsQ
-            + "  ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
+            + "  ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
         int attributeCodeIndex = 0;
         int valueIndex = 0;
         final List<String> attributeCodeList = new ArrayList<String>();
@@ -443,7 +443,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
       final Integer pairCount = params.size();
       if (pairCount == 0) {
         eeResults = em.createQuery(
-            "SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+            "SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
             .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
             .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
@@ -464,7 +464,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
         String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
             + "  where " + eaStringsQ
-            + " ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
+            + " ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
         int attributeCodeIndex = 0;
         int valueIndex = 0;
         final List<String> attributeCodeList = new ArrayList<String>();
@@ -537,17 +537,17 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     // final String sql =
     // "SELECT distinct be FROM BaseEntity be,EntityEntity ee,EntityAttribute ea0,EntityAttribute
     // ea1 JOIN be.baseEntityAttributes bee where (ea0.baseEntityCode=be.code or
-    // ea1.baseEntityCode=be.code) and ee.pk.target.code=be.code and
-    // ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and
+    // ea1.baseEntityCode=be.code) and ee.pk.targetCode=be.code and
+    // ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and
     // ea0.attributeCode=:attributeCode0 and (ea0.valueString='user1') and
     // ea1.attributeCode=:attributeCode1 and (ea1.valueString='user2')";
     final String sql =
         // "SELECT distinct be FROM BaseEntity be,EntityEntity ee,EntityAttribute ea0 JOIN
         // be.baseEntityAttributes bee where (ea0.baseEntityCode=be.code ) and
-        // ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and
+        // ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and
         // ee.pk.source.code=:sourceCode and ea0.attributeCode=:attributeCode0 and
         // (ea0.valueString=:valueString0)";
-        "SELECT distinct be FROM BaseEntity be,EntityEntity ee,EntityAttribute ea0  JOIN be.baseEntityAttributes bee where (ea0.baseEntityCode=be.code) and ee.pk.target.code=be.code and ee.pk.linkAttribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and  ea0.attributeCode=:attributeCode0 and (ea0.valueString=:valueString0)";
+        "SELECT distinct be FROM BaseEntity be,EntityEntity ee,EntityAttribute ea0  JOIN be.baseEntityAttributes bee where (ea0.baseEntityCode=be.code) and ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and  ea0.attributeCode=:attributeCode0 and (ea0.valueString=:valueString0)";
     try {
       final List<BaseEntity> eeResults = em.createQuery(sql).setParameter("sourceCode", "GRP_USERS")
           .setParameter("linkAttributeCode", "LNK_CORE")
