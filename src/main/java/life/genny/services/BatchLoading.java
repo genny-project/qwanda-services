@@ -193,10 +193,11 @@ public class BatchLoading {
   public void entityEntitys(Map<String, Object> project) {
     ((HashMap<String, HashMap>) project.get("basebase")).entrySet().stream().forEach(data -> {
       Map<String, Object> entEnts = data.getValue();
-      String linkCode = ((String) entEnts.get("linkCode")).replaceAll("^\"|\"$", "");;
-      String parentCode = ((String) entEnts.get("parentCode")).replaceAll("^\"|\"$", "");;
-      String targetCode = ((String) entEnts.get("targetCode")).replaceAll("^\"|\"$", "");;
-      String weightStr = ((String) entEnts.get("weight")).replaceAll("^\"|\"$", "");;
+      String linkCode = ((String) entEnts.get("linkCode"));
+      String parentCode = ((String) entEnts.get("parentCode"));
+      String targetCode = ((String) entEnts.get("targetCode"));
+      String weightStr = ((String) entEnts.get("weight"));
+      String valueString = ((String) entEnts.get("valueString"));
       final Double weight = Double.valueOf(weightStr);
       BaseEntity sbe = null;
       BaseEntity tbe = null;
@@ -204,7 +205,8 @@ public class BatchLoading {
       try {
         sbe = service.findBaseEntityByCode(parentCode);
         tbe = service.findBaseEntityByCode(targetCode);
-        sbe.addTarget(tbe, linkAttribute, weight);
+        sbe.addTarget(tbe, linkAttribute, weight, valueString);
+        
         service.update(sbe);
       } catch (final NoResultException e) {
       } catch (final BadDataException e) {
