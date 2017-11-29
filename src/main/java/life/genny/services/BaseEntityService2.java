@@ -1479,6 +1479,17 @@ public class BaseEntityService2 {
 
     return eeResults;
   }
+  
+  public List<Link> findChildLinks(@NotNull final String sourceCode, final String linkCode) {
+
+    final List<Link> eeResults;
+    eeResults = getEntityManager().createQuery(
+        "SELECT ee.link FROM EntityEntity ee where  ee.pk.source.code=:sourceCode and ee.pk.attribute.code=:linkAttributeCode ")
+        .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+        .getResultList();
+
+    return eeResults;
+  }
 
   public EntityEntity findEntityEntity(final String sourceCode, final String targetCode,
       final String linkCode) throws NoResultException {
