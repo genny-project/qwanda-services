@@ -655,7 +655,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
   }
 
-  // @Test
+  @Test
   public void mergeUtilTest() {
 
     // String template = "Template.ftl";
@@ -673,17 +673,20 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
     String mergedString = MergeUtil.merge(teststr, templateEntityMap);
     System.out.println("merged string in template ::" + mergedString);
+    
+    String testStr1 = "Welcome {{OWNER.PRI_FIRSTNAME}} {{OWNER.PRI_LASTNAME}} ! Your load of type {{LOAD.PRI_LOAD_TYPE}} has been picked from {{LOAD.PRI_FULL_PICKUP_ADDRESS}} by {{DRIVER.PRI_FIRSTNAME}}. It will be delivered at {{LOAD.PRI_FULL_DROPOFF_ADDRESS}}";
 
-
-    /*
-     * BaseEntity projectBaseEnt1 = service.findBaseEntityByCode("PRJ_CHANNEL40"); BaseEntity
-     * userBaseEnt1 = service.findBaseEntityByCode("PER_USER1"); BaseEntity dashboardBaseEnt1 =
-     * service.findBaseEntityByCode("GRP_USERS");
-     * 
-     * Map<String, BaseEntity> templateEntityMap1 = new HashMap<>();
-     * templateEntityMap1.put("PROJECT", projectBaseEnt1); templateEntityMap1.put("USER",
-     * userBaseEnt1); templateEntityMap1.put("JOB", dashboardBaseEnt1);
-     */
+    Map<String, BaseEntity> templateEntityMap1 = new HashMap<>();
+    BaseEntity loadEnt = service.findBaseEntityByCode("LOD_LOAD5");
+    BaseEntity ownerEnt = service.findBaseEntityByCode("PER_USER2");
+    BaseEntity driverEnt = service.findBaseEntityByCode("PER_USER1");
+    templateEntityMap1.put("LOAD", loadEnt);
+    templateEntityMap1.put("OWNER", ownerEnt);
+    templateEntityMap1.put("DRIVER", driverEnt);
+    
+    String mergedString1 = MergeUtil.merge(testStr1, templateEntityMap1);
+    System.out.println("merged string in template ::" + mergedString1);
+    
   }
 
   @Test
@@ -775,4 +778,6 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     System.out.println("ooo b j e c t "+service.findBaseEntityByCode("PER_1"));
     getEm().getTransaction().commit();
   }
+  
+
 }
