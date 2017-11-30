@@ -1,17 +1,28 @@
 package life.genny.services;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
+
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
@@ -51,13 +62,154 @@ public class BatchLoading {
   // protected EntityManager em;
 
 
-  // File credentialPath = new File(System.getProperty("user.home"), ".credentials/genny");
 
-  private final String secret = System.getenv("GOOGLE_CLIENT_SECRET");
-  private final String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");// "1HAppJufvePWSiSyvPkxNfZp6NHdB8PANeH1IJopdEsE";
-  File credentialPath = new File(System.getProperty("user.home"),
-      ".credentials/sheets.googleapis.com-java-quickstart");
+  
+  File getGoogleCredentials()
+  {
+	  File credentialsFile = null;
+	  
+	  // Check if a user home stored credential exists.
+	  // This credential may allow the user to access credentials for other private google docs.
+	  
+	  // Otherwise the standard public one is used.
+	  
+	  InputStream initialStream = this.getClass().getResourceAsStream("/credentials/genny");
+	  
+      Path path = Paths.get(System.getProperty("user.home")+"/.genny/credentials/genny");
+      //if directory exists?
+      if (!Files.exists(path)) {
+          try {
+              Files.createDirectories(path);
+          } catch (IOException e) {
+              //fail to create directory
+              e.printStackTrace();
+          }
+      }
+	  
+	  credentialsFile = new File(System.getProperty("user.home")+"/.genny/credentials/genny/StoredCredential");
+	    
+	    try {
+			java.nio.file.Files.copy(
+			  initialStream, 
+			  credentialsFile.toPath(), 
+			  StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    finally {
+	    IOUtils.closeQuietly(initialStream);
+	    }
+	  return path.toFile();
+  }
+  
+  String getGoogleSecret()
+  {
+	  File secretFile = null;
+	  
+	  // Check if a user home stored credential exists.
+	  // This credential may allow the user to access credentials for other private google docs.
+	  
+	  // Otherwise the standard public one is used.
+	  
+	  InputStream initialStream = this.getClass().getResourceAsStream("/gennySecret");
+	  
+      Path path = Paths.get(System.getProperty("user.home")+"/.genny/secret");
+      //if directory exists?
+      if (!Files.exists(path)) {
+          try {
+              Files.createDirectories(path);
+          } catch (IOException e) {
+              //fail to create directory
+              e.printStackTrace();
+          }
+      }
+	  
+	  secretFile = new File(System.getProperty("user.home")+"/.genny/secret/gennySecret");
+	    
+      if (!Files.exists(secretFile.toPath())) {
 
+	    try {
+			java.nio.file.Files.copy(
+			  initialStream, 
+			  secretFile.toPath(), 
+			  StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    finally {
+	    IOUtils.closeQuietly(initialStream);
+	    }
+      }
+	    
+	    // read file into String
+      String ret = readLineByLineJava8(secretFile.getAbsolutePath());
+      
+	  return ret;
+  }
+  
+  String getGoogleHostId()
+  {
+	  File hostIdFile = null;
+	  
+	  // Check if a user home stored credential exists.
+	  // This credential may allow the user to access credentials for other private google docs.
+	  
+	  // Otherwise the standard public one is used.
+	  
+	  InputStream initialStream = this.getClass().getResourceAsStream("/gennyHostId");
+	  
+      Path path = Paths.get(System.getProperty("user.home")+"/.genny/secret");
+      //if directory exists?
+      if (!Files.exists(path)) {
+          try {
+              Files.createDirectories(path);
+          } catch (IOException e) {
+              //fail to create directory
+              e.printStackTrace();
+          }
+      }
+	  
+	  hostIdFile = new File(System.getProperty("user.home")+"/.genny/secret/gennyHostId");
+	    
+      if (!Files.exists(hostIdFile.toPath())) {
+
+	    try {
+			java.nio.file.Files.copy(
+			  initialStream, 
+			  hostIdFile.toPath(), 
+			  StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    finally {
+	    IOUtils.closeQuietly(initialStream);
+	    }
+      }
+	    
+	    // read file into String
+      String ret = readLineByLineJava8(hostIdFile.getAbsolutePath());
+      ret = ret.trim();
+	  return ret;
+  }
+  
+  private static String readLineByLineJava8(String filePath)
+  {
+      StringBuilder contentBuilder = new StringBuilder();
+
+      try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8))
+      {
+          stream.forEach(s -> contentBuilder.append(s).append("\n"));
+      }
+      catch (IOException e)
+      {
+          e.printStackTrace();
+      }
+
+      return contentBuilder.toString();
+  }
   /**
    * Upsert Validation to database
    * 
@@ -328,7 +480,9 @@ public class BatchLoading {
    * @return
    */
   public List<Map<String, Object>> getProjects() {
-    GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
+	 File credentialPath = getGoogleCredentials();
+	 String secret = getGoogleSecret();
+    GennySheets sheets = new GennySheets(secret, getGoogleHostId(), credentialPath);
     List<Map> projectsConfig = sheets.projectsImport(credentialPath);
     return projectsConfig.stream().map(data -> {
       String sheetID = (String) data.get("sheetID");
@@ -351,8 +505,9 @@ public class BatchLoading {
    */
   public Map<String, Object> project(final String projectType) {
     final Map<String, Object> genny = new HashMap<String, Object>();
+	 File credentialPath = getGoogleCredentials();
 
-    GennySheets sheets = new GennySheets(secret, projectType, credentialPath);
+    GennySheets sheets = new GennySheets(getGoogleSecret(), projectType, credentialPath);
 
     Integer numOfTries = 3;
 
