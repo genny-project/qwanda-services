@@ -5,26 +5,12 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import org.apache.logging.log4j.Logger;
-import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
-import org.junit.Test;
-import org.keycloak.admin.client.resource.UserResource;
-import org.keycloak.representations.idm.UserRepresentation;
-import org.mortbay.log.Log;
-import javax.persistence.Query;
-import javax.ws.rs.core.MultivaluedMap;
+
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,12 +21,38 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+
+import javax.persistence.Query;
+import javax.ws.rs.core.MultivaluedMap;
+
+import org.apache.logging.log4j.Logger;
+import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
+import org.junit.Test;
+import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.UserRepresentation;
+import org.mortbay.log.Log;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
+import life.genny.qwanda.Ask;
 import life.genny.qwanda.Link;
+import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.AttributeDate;
+import life.genny.qwanda.attribute.AttributeText;
+import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
+import life.genny.qwanda.entity.Person;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwandautils.KeycloakService;
@@ -777,6 +789,130 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     System.out.println("ooo b j e c t "+service.upsert(object));
     System.out.println("ooo b j e c t "+service.findBaseEntityByCode("PER_1"));
     getEm().getTransaction().commit();
+  }
+  
+  
+  @Test
+  public void recursiveAsks() {
+
+	  
+	      try {
+			AttributeText attributeFirstname2 =
+				        new AttributeText(AttributeText.getDefaultCodePrefix() + "FIRSTNAME_TEST2", "Firstname");
+			  AttributeText  attributeLastname2 =
+				        new AttributeText(AttributeText.getDefaultCodePrefix() + "LASTNAME_TEST2", "Surname");
+			  AttributeDate  attributeBirthdate2 =
+				        new AttributeDate(AttributeText.getDefaultCodePrefix() + "BIRTHDAY2", "Date of Birth");
+			  AttributeText  attributeMiddlename2 =
+			        new AttributeText(AttributeText.getDefaultCodePrefix() + "MIDDLENAME_TEST2", "Middle Name");
+			  
+			  AttributeText attributeStreetAddress12 =
+				        new AttributeText(AttributeText.getDefaultCodePrefix() + "STREET_ADDRESS1_TEST2", "Street Address 1");
+			  AttributeText attributeStreetAddress22 =
+				        new AttributeText(AttributeText.getDefaultCodePrefix() + "STREET_ADDRESS2_TEST2", "Street Address 2");
+			  AttributeText attributeCity2 =
+				        new AttributeText(AttributeText.getDefaultCodePrefix() + "CITY_TEST2", "City");
+			  AttributeText attributeState2 =
+				        new AttributeText(AttributeText.getDefaultCodePrefix() + "STATE_TEST2", "State");
+			  AttributeText attributePostcode2 =
+				        new AttributeText(AttributeText.getDefaultCodePrefix() + "POSTCODE_TEST2", "Postcode");
+			  AttributeText attributeCountry2 =
+				        new AttributeText(AttributeText.getDefaultCodePrefix() + "COUNTRY_TEST2", "Country");
+			  
+
+				   Person person2 = new Person("Clark Kent");
+
+				    person2.addAttribute(attributeFirstname2, 1.0);
+				    person2.addAttribute(attributeLastname2, 0.8);
+				    person2.addAttribute(attributeBirthdate2, 0.6, LocalDate.of(1989, 1, 7));
+				    person2.addAttribute(attributeMiddlename2, 0.9);
+				    
+				    person2.addAttribute(attributeStreetAddress12, 1.0);
+				    person2.addAttribute(attributeStreetAddress22, 1.0);
+				    person2.addAttribute(attributeCity2, 1.0);
+				    person2.addAttribute(attributeState2, 1.0);
+				    person2.addAttribute(attributePostcode2, 1.0);
+				    person2.addAttribute(attributeCountry2, 1.0);
+				    
+				    getEm().getTransaction().begin();
+			  for (final EntityAttribute ea : person2.getBaseEntityAttributes()) {
+			    service.insert(ea.getAttribute());
+			  }
+			  service.upsert(person2);
+			  getEm().getTransaction().commit();
+			  
+			  System.out.println(person2);
+
+			      
+			  Question questionFirstname2 = new Question(Question.getDefaultCodePrefix() + "FIRSTNAME2", "Firstname:",
+			      attributeFirstname2);
+			  Question questionMiddlename2 = new Question(Question.getDefaultCodePrefix() + "MIDDLENAME2", "Middlename:",
+			          attributeMiddlename2);
+			  Question questionLastname2 = new Question(Question.getDefaultCodePrefix() + "LASTNAME2", "Lastname:",
+			      attributeLastname2);
+			  Question questionBirthdate2 = new Question(Question.getDefaultCodePrefix() + "BIRTHDATE2",
+			      "Birthdate:", attributeBirthdate2);
+			  
+			  Question questionStreetAddress12 = new Question(Question.getDefaultCodePrefix() + "STREET_ADDRESS_12", "Street Address 1:",
+			          attributeStreetAddress12);
+			  Question questionStreetAddress22 = new Question(Question.getDefaultCodePrefix() + "STREET_ADDRESS_22", "Street Address 2:",
+			          attributeStreetAddress22);
+			  Question questionCity2 = new Question(Question.getDefaultCodePrefix() + "CITY2", "City:",
+			          attributeCity2);
+			  Question questionState2 = new Question(Question.getDefaultCodePrefix() + "STATE2", "State:",
+			          attributeState2);
+			  Question questionPostcode2 = new Question(Question.getDefaultCodePrefix() + "POSTCODE2", "Postcode:",
+			          attributePostcode2);
+			  Question questionCountry2 = new Question(Question.getDefaultCodePrefix() + "COUNTRY2", "Country:",
+			          attributeCountry2);
+			  
+			  getEm().getTransaction().begin();
+			  service.upsert(questionFirstname2);
+			  service.upsert(questionMiddlename2);
+			  service.upsert(questionLastname2);
+			  service.upsert(questionBirthdate2);
+			  service.upsert(questionStreetAddress12);
+			  service.upsert(questionStreetAddress22);
+			  service.upsert(questionCity2);
+			  service.upsert(questionState2);	
+			  service.upsert(questionPostcode2);
+			  service.upsert(questionCountry2);
+			  
+ 
+			 Question questionName = new Question(Question.getDefaultCodePrefix() + "NAME", "Name:");
+			 questionName.addChildQuestion(questionFirstname2.getCode(), 10.0, true);
+			 questionName.addChildQuestion(questionMiddlename2.getCode(), 20.0, false);
+			 questionName.addChildQuestion(questionLastname2.getCode(), 30.0, true);
+			 service.upsert(questionName);
+			 
+			 
+			 Question questionAddress = new Question(Question.getDefaultCodePrefix() + "ADDRESS", "Address:");
+			 questionAddress.addChildQuestion(questionStreetAddress12.getCode(), 10.0, true);
+			 questionAddress.addChildQuestion(questionStreetAddress22.getCode(), 20.0, false);
+			 questionAddress.addChildQuestion(questionCity2.getCode(), 30.0, true);
+			 questionAddress.addChildQuestion(questionState2.getCode(), 40.0, true);
+			 questionAddress.addChildQuestion(questionPostcode2.getCode(), 50.0, true);
+			 questionAddress.addChildQuestion(questionCountry2.getCode(), 60.0, true);
+
+			 service.upsert(questionAddress);
+			 
+			 getEm().getTransaction().commit();
+			 
+			 System.out.println("Question Name:"+questionName);
+			 System.out.println("Question Address:"+questionAddress);
+			 
+			 // Now find recursive Asks
+			 
+			 List<Ask> asks = service.findAsksWithQuestions();
+			 
+			 
+		} catch (BadDataException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	     
+
+
   }
   
 
