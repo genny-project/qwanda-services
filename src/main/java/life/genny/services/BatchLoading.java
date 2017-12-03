@@ -26,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
+import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.datatype.DataType;
@@ -397,10 +398,12 @@ public class BatchLoading {
       try {
         sbe = service.findQuestionByCode(parentCode);
         tbe = service.findQuestionByCode(targetCode);
-        sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+        QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+       
+        sbe = service.upsert(sbe);
         
-        service.upsert(sbe);
       } catch (final NoResultException e) {
+    	  System.out.println("No Result! in QuestionQuestions Loading");
       } catch (final BadDataException e) {
         e.printStackTrace();
       }

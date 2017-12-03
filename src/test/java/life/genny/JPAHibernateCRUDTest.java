@@ -44,6 +44,7 @@ import com.google.gson.JsonSerializationContext;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
+import life.genny.qwanda.CoreEntity;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
@@ -782,7 +783,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   }
   
   @Test
-  public <T> void testGen() {
+  public <T extends CoreEntity> void testGen() {
     System.out.println("\n\n\n\n******222*******\n\n\n\n\n\n");
     getEm().getTransaction().begin();
     T object = (T) new BaseEntity("PER_1","codi");

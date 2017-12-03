@@ -42,6 +42,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
+import life.genny.qwanda.CodedEntity;
+import life.genny.qwanda.CoreEntity;
 import life.genny.qwanda.GPS;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
@@ -599,13 +601,34 @@ public class BaseEntityService2 {
 	 * Upserts
 	 */
 
-	public <T> T upsert(T object) {
-		getEntityManager().persist(object);
-		System.out.println(object);
-		return object;
+	public <T extends CoreEntity> T upsert(T object) {
+
+		try {
+			getEntityManager().persist(object);
+			System.out.println("UPSERTING:"+object);
+			return object;
+		} catch (Exception e) {
+			object = getEntityManager().merge(object);
+			return object;
+		}
 	}
 
+	public QuestionQuestion upsert(QuestionQuestion qq) {
+		try {
+			QuestionQuestion val = findQuestionQuestionByCode(qq.getPk().getSource().getCode(),qq.getPk().getTargetCode());
+			BeanNotNullFields copyFields = new BeanNotNullFields();
+			copyFields.copyProperties(val, qq);
+			val = getEntityManager().merge(val);
+			// BeanUtils.copyProperties(validation, val);
+			return val;
+		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+			getEntityManager().persist(qq);
+			QuestionQuestion id = qq;
+			return id;
+		}
+	}
 
+	
 	public Validation upsert(Validation validation) {
 		try {
 			String code = validation.getCode();
@@ -1153,6 +1176,20 @@ public class BaseEntityService2 {
 		return results;
 	}
 
+	public QuestionQuestion findQuestionQuestionByCode(final String sourceCode, final String targetCode) throws NoResultException {
+		QuestionQuestion result = null;
+		try {
+			result  = (QuestionQuestion) getEntityManager()
+					.createQuery("SELECT qq FROM QuestionQuestion qq where qq.sourceCode=:sourceCode and qq.targetCode=:targetCode")
+					.setParameter("sourceCode", sourceCode)
+					.setParameter("targetCode", targetCode).getSingleResult();
+		} catch (Exception e) {
+			throw new NoResultException("Cannot find QQ "+sourceCode+":"+targetCode);
+		}
+		return result;
+	}
+
+	
 	public List<Ask> findAsksByQuestionCode(final String questionCode, String sourceCode, final String targetCode) {
 		Question question = findQuestionByCode(questionCode);
 		BaseEntity source = findBaseEntityByCode(sourceCode);
