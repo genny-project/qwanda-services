@@ -605,6 +605,7 @@ public class BaseEntityService2 {
 		return object;
 	}
 
+
 	public Validation upsert(Validation validation) {
 		try {
 			String code = validation.getCode();
@@ -754,7 +755,7 @@ public class BaseEntityService2 {
 	}
 
 	public Question findQuestionByCode(@NotNull final String code) throws NoResultException {
-		System.out.println("FindQuestionByCode:"+code);
+	//	System.out.println("FindQuestionByCode:"+code);
 		final Question result = (Question) getEntityManager().createQuery("SELECT a FROM Question a where a.code=:code")
 				.setParameter("code", code.toUpperCase()).getSingleResult();
 
@@ -1182,7 +1183,7 @@ public class BaseEntityService2 {
 			} else {
 				// create one
 				ask = new Ask(rootQuestion, source.getCode(), target.getCode());
-				insert(ask); // save
+				ask = upsert(ask); // save
 			}
 			asks.add(ask);
 		}

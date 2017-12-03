@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -24,6 +23,7 @@ import javax.validation.ValidatorFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
+
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
@@ -34,6 +34,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySheets;
+import life.genny.services.BaseEntityService2;
 
 /**
  * @author helios
@@ -374,6 +375,38 @@ public class BatchLoading {
       }
     });
   }
+  
+  /**
+   * Upsert QuestionQuestion
+   * 
+   * @param project
+   */
+  public void questionQuestions(Map<String, Object> project) {
+
+    ((HashMap<String, HashMap>) project.get("questionQuestions")).entrySet().stream().forEach(data -> {
+      Map<String, Object> queQues = data.getValue();
+      String parentCode = ((String) queQues.get("parentCode"));
+      String targetCode = ((String) queQues.get("targetCode"));
+      String weightStr = ((String) queQues.get("weight"));
+      String mandatoryStr = ((String) queQues.get("mandatory"));
+      final Double weight = Double.valueOf(weightStr);
+      Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
+      Question sbe = null;
+      Question tbe = null;
+
+      try {
+        sbe = service.findQuestionByCode(parentCode);
+        tbe = service.findQuestionByCode(targetCode);
+        sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+        
+        service.upsert(sbe);
+      } catch (final NoResultException e) {
+      } catch (final BadDataException e) {
+        e.printStackTrace();
+      }
+    });
+  }
+
 
   /**
    * Upsert LinkAttribute to database
@@ -470,6 +503,7 @@ public class BatchLoading {
    * Call functions named after the classes
    */
   public void persistProject() {
+	  System.out.println("Persisting Project in BatchLoading");
     Map<String, Object> lastProject = getProject();
     validations(lastProject);
     Map<String, DataType> dataTypes = dataType(lastProject);
@@ -478,7 +512,11 @@ public class BatchLoading {
     baseEntityAttributes(lastProject);
     attributeLinks(lastProject);
     entityEntitys(lastProject);
+    System.out.println("+++++++++ About to load Questions +++++++++++++");
     questions(lastProject);
+    System.out.println("+++++++++ About to load QuestionQuestions +++++++++++++");
+    questionQuestions(lastProject);
+    System.out.println("+++++++++ Finished loading QuestionQuestions +++++++++++++");
     asks(lastProject);
   }
 
@@ -529,6 +567,7 @@ public class BatchLoading {
         Map<String, Map> attrLink = sheets.newGetAttrLink();
         Map<String, Map> bes2Bes = sheets.newGetEntEnt();
         Map<String, Map> gQuestions = sheets.newGetQtn();
+        Map<String, Map> que2Que = sheets.newGetQueQue();
         Map<String, Map> asks = sheets.newGetAsk();
 
         genny.put("validations", validations);
@@ -539,6 +578,7 @@ public class BatchLoading {
         genny.put("attributeLink", attrLink);
         genny.put("basebase", bes2Bes);
         genny.put("questions", gQuestions);
+        genny.put("questionQuestions",que2Que);
         genny.put("ask", asks);
         break;
       } catch (Exception e) {

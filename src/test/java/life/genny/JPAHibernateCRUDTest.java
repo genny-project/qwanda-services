@@ -915,5 +915,20 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
   }
   
+@Test
+public void questionGroupTest()
+{
+   
 
+	Question addressGroupQuestion = service.findQuestionByCode("QUE_ADDRESS_GRP");
+	
+	System.out.println("Question Address group = "+addressGroupQuestion);
+	getEm().getTransaction().begin();
+	List<Ask> asks = service.createAsksByQuestionCode(addressGroupQuestion.getCode(), "PER_USER1","PER_USER1");
+	getEm().getTransaction().commit();
+	
+	System.out.println("Asks:"+asks);
+	
+	
+}
 }
