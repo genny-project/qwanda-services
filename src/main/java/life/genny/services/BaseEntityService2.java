@@ -754,7 +754,7 @@ public class BaseEntityService2 {
 	}
 
 	public Question findQuestionByCode(@NotNull final String code) throws NoResultException {
-
+		System.out.println("FindQuestionByCode:"+code);
 		final Question result = (Question) getEntityManager().createQuery("SELECT a FROM Question a where a.code=:code")
 				.setParameter("code", code.toUpperCase()).getSingleResult();
 
@@ -1139,19 +1139,25 @@ public class BaseEntityService2 {
 	}
 
 	public List<Ask> findAsksByAttributeCode(final String attributeCode, String sourceCode, final String targetCode) {
-		final List<Ask> results = getEntityManager()
-				.createQuery("SELECT ask FROM Ask ask where ask.attributeCode=:attributeCode")
-				.setParameter("attributeCode", attributeCode).setParameter("sourceCode", sourceCode)
-				.setParameter("targetCode", targetCode).getResultList();
+		List<Ask> results = null;
+		try {
+			results  = getEntityManager()
+					.createQuery("SELECT ask FROM Ask ask where ask.attributeCode=:attributeCode and ask.sourceCode=:sourceCode and ask.targetCode=:targetCode")
+					.setParameter("attributeCode", attributeCode).setParameter("sourceCode", sourceCode)
+					.setParameter("targetCode", targetCode).getResultList();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return results;
 	}
 
 	public List<Ask> findAsksByQuestionCode(final String questionCode, String sourceCode, final String targetCode) {
-		final List<Ask> results = getEntityManager()
-				.createQuery("SELECT ask FROM Ask ask where ask.questionCode=:questionCode")
-				.setParameter("questionCode", questionCode).setParameter("sourceCode", sourceCode)
-				.setParameter("targetCode", targetCode).getResultList();
-		return results;
+		Question question = findQuestionByCode(questionCode);
+		BaseEntity source = findBaseEntityByCode(sourceCode);
+		BaseEntity target = findBaseEntityByCode(targetCode);
+		return findAsks(question,source,target);
+	
 	}
 
 	public List<Ask> findAsks(final Question rootQuestion, final BaseEntity source, final BaseEntity target) {
@@ -1176,6 +1182,7 @@ public class BaseEntityService2 {
 			} else {
 				// create one
 				ask = new Ask(rootQuestion, source.getCode(), target.getCode());
+				insert(ask); // save
 			}
 			asks.add(ask);
 		}

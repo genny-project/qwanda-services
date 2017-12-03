@@ -14,3 +14,4 @@ src/main/resources/git.properties
 src/.DS_Store
 src/main/.DS_Store
 .classpath
+.project
