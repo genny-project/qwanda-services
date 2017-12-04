@@ -383,7 +383,7 @@ public class BatchLoading {
    * @param project
    */
   public void questionQuestions(Map<String, Object> project) {
-
+    
     ((HashMap<String, HashMap>) project.get("questionQuestions")).entrySet().stream().forEach(data -> {
       Map<String, Object> queQues = data.getValue();
       String parentCode = ((String) queQues.get("parentCode"));
@@ -400,7 +400,7 @@ public class BatchLoading {
         tbe = service.findQuestionByCode(targetCode);
         QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
        
-        sbe = service.upsert(sbe);
+        qq = service.upsert(qq);
         
       } catch (final NoResultException e) {
     	  System.out.println("No Result! in QuestionQuestions Loading");
