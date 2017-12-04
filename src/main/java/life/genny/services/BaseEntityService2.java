@@ -1162,7 +1162,6 @@ public class BaseEntityService2 {
             .setParameter("baseEntityCode", code).getResultList();
 
     return results;
-
   }
 
   public List<Ask> findAsksByQuestion(final Question question, final BaseEntity source,

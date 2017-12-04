@@ -15,15 +15,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-
 import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
-
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
@@ -48,8 +45,6 @@ public class BatchLoading {
   protected static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-
-
   // @Inject
   private BaseEntityService2 service;
 
@@ -63,163 +58,22 @@ public class BatchLoading {
   // protected EntityManagerFactory emf;
   // protected EntityManager em;
 
+  private final String secret = System.getenv("GOOGLE_CLIENT_SECRET");
+  private final String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
+  File credentialPath =
+      new File(System.getProperty("user.home"), ".genny/sheets.googleapis.com-java-quickstart");
+  GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
 
-
-  
-  File getGoogleCredentials()
-  {
-	  File credentialsFile = null;
-	  
-	  // Check if a user home stored credential exists.
-	  // This credential may allow the user to access credentials for other private google docs.
-	  
-	  // Otherwise the standard public one is used.
-	  
-	  InputStream initialStream = this.getClass().getResourceAsStream("/credentials/genny");
-	  
-      Path path = Paths.get(System.getProperty("user.home")+"/.genny/credentials/genny");
-      //if directory exists?
-      if (!Files.exists(path)) {
-          try {
-              Files.createDirectories(path);
-          } catch (IOException e) {
-              //fail to create directory
-              e.printStackTrace();
-          }
-      }
-	  
-	  credentialsFile = new File(System.getProperty("user.home")+"/.genny/credentials/genny/StoredCredential");
-	    
-	    try {
-			java.nio.file.Files.copy(
-			  initialStream, 
-			  credentialsFile.toPath(), 
-			  StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    finally {
-	    IOUtils.closeQuietly(initialStream);
-	    }
-	  return path.toFile();
-  }
-  
-  String getGoogleSecret()
-  {
-	  File secretFile = null;
-	  
-	  // Check if a user home stored credential exists.
-	  // This credential may allow the user to access credentials for other private google docs.
-	  
-	  // Otherwise the standard public one is used.
-	  
-	  InputStream initialStream = this.getClass().getResourceAsStream("/gennySecret");
-	  
-      Path path = Paths.get(System.getProperty("user.home")+"/.genny/secret");
-      //if directory exists?
-      if (!Files.exists(path)) {
-          try {
-              Files.createDirectories(path);
-          } catch (IOException e) {
-              //fail to create directory
-              e.printStackTrace();
-          }
-      }
-	  
-	  secretFile = new File(System.getProperty("user.home")+"/.genny/secret/gennySecret");
-	    
-      if (!Files.exists(secretFile.toPath())) {
-
-	    try {
-			java.nio.file.Files.copy(
-			  initialStream, 
-			  secretFile.toPath(), 
-			  StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    finally {
-	    IOUtils.closeQuietly(initialStream);
-	    }
-      }
-	    
-	    // read file into String
-      String ret = readLineByLineJava8(secretFile.getAbsolutePath());
-      
-	  return ret;
-  }
-  
-  String getGoogleHostId()
-  {
-	  File hostIdFile = null;
-	  
-	  // Check if a user home stored credential exists.
-	  // This credential may allow the user to access credentials for other private google docs.
-	  
-	  // Otherwise the standard public one is used.
-	  
-	  InputStream initialStream = this.getClass().getResourceAsStream("/gennyHostId");
-	  
-      Path path = Paths.get(System.getProperty("user.home")+"/.genny/secret");
-      //if directory exists?
-      if (!Files.exists(path)) {
-          try {
-              Files.createDirectories(path);
-          } catch (IOException e) {
-              //fail to create directory
-              e.printStackTrace();
-          }
-      }
-	  
-	  hostIdFile = new File(System.getProperty("user.home")+"/.genny/secret/gennyHostId");
-	    
-      if (!Files.exists(hostIdFile.toPath())) {
-
-	    try {
-			java.nio.file.Files.copy(
-			  initialStream, 
-			  hostIdFile.toPath(), 
-			  StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    finally {
-	    IOUtils.closeQuietly(initialStream);
-	    }
-      }
-	    
-	    // read file into String
-      String ret = readLineByLineJava8(hostIdFile.getAbsolutePath());
-      ret = ret.trim();
-	  return ret;
-  }
-  
-  private static String readLineByLineJava8(String filePath)
-  {
-      StringBuilder contentBuilder = new StringBuilder();
-
-      try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8))
-      {
-          stream.forEach(s -> contentBuilder.append(s).append("\n"));
-      }
-      catch (IOException e)
-      {
-          e.printStackTrace();
-      }
-
-      return contentBuilder.toString();
-  }
   /**
    * Upsert Validation to database
    * 
    * @param project
    */
   public void validations(Map<String, Object> project) {
-     ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
-     Validator validator = factory.getValidator();
+    if (project.get("validations") == null)
+      return;
+    ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+    Validator validator = factory.getValidator();
     ((HashMap<String, HashMap>) project.get("validations")).entrySet().stream().forEach(data -> {
       Map<String, Object> validations = data.getValue();
       String regex = ((String) validations.get("regex")).replaceAll("^\"|\"$", "");;
@@ -243,23 +97,25 @@ public class BatchLoading {
    * @param dataTypeMap
    */
   public void attributes(Map<String, Object> project, Map<String, DataType> dataTypeMap) {
+    if (project.get("attributes") == null)
+      return;
     ((HashMap<String, HashMap>) project.get("attributes")).entrySet().stream().forEach(data -> {
       try {
-		Map<String, Object> attributes = data.getValue();
-		if (data.getKey().equals("FBK_USERNAME")) {
-			System.out.println("Validation cast to BaseEntity Exception caused by this one...");
-		}
-		  String code = ((String) attributes.get("code")).replaceAll("^\"|\"$", "");;
-		  String dataType = ((String) attributes.get("dataType")).replaceAll("^\"|\"$", "");;
-		  String name = ((String) attributes.get("name")).replaceAll("^\"|\"$", "");;
-		  DataType dataTypeRecord = dataTypeMap.get(dataType);
-		  ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
-		  Attribute attr = new Attribute(code, name, dataTypeRecord);
-		  service.upsert(attr);
-	} catch (Exception e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
+        Map<String, Object> attributes = data.getValue();
+        if (data.getKey().equals("FBK_USERNAME")) {
+          System.out.println("Validation cast to BaseEntity Exception caused by this one...");
+        }
+        String code = ((String) attributes.get("code")).replaceAll("^\"|\"$", "");;
+        String dataType = ((String) attributes.get("dataType")).replaceAll("^\"|\"$", "");;
+        String name = ((String) attributes.get("name")).replaceAll("^\"|\"$", "");;
+        DataType dataTypeRecord = dataTypeMap.get(dataType);
+        ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
+        Attribute attr = new Attribute(code, name, dataTypeRecord);
+        service.upsert(attr);
+      } catch (Exception e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     });
   }
 
@@ -270,6 +126,8 @@ public class BatchLoading {
    * @return
    */
   public Map<String, DataType> dataType(Map<String, Object> project) {
+    if (project.get("dataType") == null)
+      return null;
     final Map<String, DataType> dataTypeMap = new HashMap<String, DataType>();
     ((HashMap<String, HashMap>) project.get("dataType")).entrySet().stream().forEach(data -> {
       Map<String, Object> dataType = data.getValue();
@@ -299,6 +157,8 @@ public class BatchLoading {
    * @param project
    */
   public void baseEntitys(Map<String, Object> project) {
+    if (project.get("baseEntitys") == null)
+      return;
     ((HashMap<String, HashMap>) project.get("baseEntitys")).entrySet().stream().forEach(data -> {
       Map<String, Object> baseEntitys = data.getValue();
       String code = ((String) baseEntitys.get("code")).replaceAll("^\"|\"$", "");;
@@ -314,6 +174,8 @@ public class BatchLoading {
    * @param project
    */
   public void baseEntityAttributes(Map<String, Object> project) {
+    if (project.get("attibutesEntity") == null)
+      return;
     ((HashMap<String, HashMap>) project.get("attibutesEntity")).entrySet().stream()
         .forEach(data -> {
           Map<String, Object> baseEntityAttr = data.getValue();
@@ -331,9 +193,9 @@ public class BatchLoading {
             be = service.findBaseEntityByCode(baseEntityCode);
             Double weightField = null;
             try {
-            		weightField = Double.valueOf(weight);
+              weightField = Double.valueOf(weight);
             } catch (java.lang.NumberFormatException ee) {
-            	weightField = 0.0;
+              weightField = 0.0;
             }
             try {
               be.addAttribute(attribute, weightField, valueString);
@@ -342,8 +204,7 @@ public class BatchLoading {
             }
             service.update(be);
           } catch (final NoResultException e) {
-          
-        }
+          }
         });
   }
 
@@ -353,6 +214,8 @@ public class BatchLoading {
    * @param project
    */
   public void entityEntitys(Map<String, Object> project) {
+    if (project.get("basebase") == null)
+      return;
     ((HashMap<String, HashMap>) project.get("basebase")).entrySet().stream().forEach(data -> {
       Map<String, Object> entEnts = data.getValue();
       String linkCode = ((String) entEnts.get("linkCode"));
@@ -368,7 +231,7 @@ public class BatchLoading {
         sbe = service.findBaseEntityByCode(parentCode);
         tbe = service.findBaseEntityByCode(targetCode);
         sbe.addTarget(tbe, linkAttribute, weight, valueString);
-        
+
         service.update(sbe);
       } catch (final NoResultException e) {
       } catch (final BadDataException e) {
@@ -376,38 +239,40 @@ public class BatchLoading {
       }
     });
   }
-  
+
   /**
    * Upsert QuestionQuestion
    * 
    * @param project
    */
   public void questionQuestions(Map<String, Object> project) {
-    
-    ((HashMap<String, HashMap>) project.get("questionQuestions")).entrySet().stream().forEach(data -> {
-      Map<String, Object> queQues = data.getValue();
-      String parentCode = ((String) queQues.get("parentCode"));
-      String targetCode = ((String) queQues.get("targetCode"));
-      String weightStr = ((String) queQues.get("weight"));
-      String mandatoryStr = ((String) queQues.get("mandatory"));
-      final Double weight = Double.valueOf(weightStr);
-      Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
-      Question sbe = null;
-      Question tbe = null;
+    if (project.get("questionQuestions") == null)
+      return;
+    ((HashMap<String, HashMap>) project.get("questionQuestions")).entrySet().stream()
+        .forEach(data -> {
+          Map<String, Object> queQues = data.getValue();
+          String parentCode = ((String) queQues.get("parentCode"));
+          String targetCode = ((String) queQues.get("targetCode"));
+          String weightStr = ((String) queQues.get("weight"));
+          String mandatoryStr = ((String) queQues.get("mandatory"));
+          final Double weight = Double.valueOf(weightStr);
+          Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
+          Question sbe = null;
+          Question tbe = null;
 
-      try {
-        sbe = service.findQuestionByCode(parentCode);
-        tbe = service.findQuestionByCode(targetCode);
-        QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
-       
-        qq = service.upsert(qq);
-        
-      } catch (final NoResultException e) {
-    	  System.out.println("No Result! in QuestionQuestions Loading");
-      } catch (final BadDataException e) {
-        e.printStackTrace();
-      }
-    });
+          try {
+            sbe = service.findQuestionByCode(parentCode);
+            tbe = service.findQuestionByCode(targetCode);
+            QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+
+            qq = service.upsert(qq);
+
+          } catch (final NoResultException e) {
+            System.out.println("No Result! in QuestionQuestions Loading");
+          } catch (final BadDataException e) {
+            e.printStackTrace();
+          }
+        });
   }
 
 
@@ -486,16 +351,21 @@ public class BatchLoading {
    */
   public Map<String, Object> getProject() {
     Map<String, Object> lastProject = null;
-    if (getProjects().size() == 1) {
-      return getProjects().get(0);
+    List<Map<String, Object>> projects = getProjects();
+    if (projects.size() <= 1) {
+      System.out.println("is null");
+      return projects.get(0);
     } else {
-      for (int count = 0; count < getProjects().size(); count++) {
+      for (int count = 0; count < projects.size(); count++) {
         int subsequentIndex = count + 1;
+
+        if (subsequentIndex == projects.size())
+          break;
+
         if (lastProject == null) {
-          lastProject =
-              upsertProjectMapProps(getProjects().get(count), getProjects().get(subsequentIndex));
+          lastProject = upsertProjectMapProps(projects.get(count), projects.get(subsequentIndex));
         } else {
-          lastProject = upsertProjectMapProps(lastProject, getProjects().get(subsequentIndex));
+          lastProject = upsertProjectMapProps(lastProject, projects.get(subsequentIndex));
         }
       }
     }
@@ -506,7 +376,7 @@ public class BatchLoading {
    * Call functions named after the classes
    */
   public void persistProject() {
-	  System.out.println("Persisting Project in BatchLoading");
+    System.out.println("Persisting Project in BatchLoading");
     Map<String, Object> lastProject = getProject();
     validations(lastProject);
     Map<String, DataType> dataTypes = dataType(lastProject);
@@ -529,14 +399,17 @@ public class BatchLoading {
    * @return
    */
   public List<Map<String, Object>> getProjects() {
-	 File credentialPath = getGoogleCredentials();
-	 String secret = getGoogleSecret();
-    GennySheets sheets = new GennySheets(secret, getGoogleHostId(), credentialPath);
-    List<Map> projectsConfig = sheets.projectsImport(credentialPath);
+    List<Map> projectsConfig = sheets.projectsImport();
     return projectsConfig.stream().map(data -> {
       String sheetID = (String) data.get("sheetID");
+      String name = (String) data.get("name");
+      String module = (String) data.get("module");
       final List<Map<String, Object>> map = new ArrayList<Map<String, Object>>();
+      System.out.printf("%-80s%s%n", "Loading Project \033[31;1m" + name
+          + "\033[0m and module \033[31;1m" + module + "\033[0m please wait...", "\uD83D\uDE31\t");
       Map<String, Object> fields = project(sheetID);
+      System.out.printf("%-80s%s%n", "Project \033[31;1m" + name + "\033[0m and module \033[31;1m"
+          + module + "\033[0m uploaded ", "\uD83D\uDC4F  \uD83D\uDC4F  \uD83D\uDC4F");
       map.add(fields);
       return map;
     }).reduce((ac, acc) -> {
@@ -554,34 +427,29 @@ public class BatchLoading {
    */
   public Map<String, Object> project(final String projectType) {
     final Map<String, Object> genny = new HashMap<String, Object>();
-	 File credentialPath = getGoogleCredentials();
-
-    GennySheets sheets = new GennySheets(getGoogleSecret(), projectType, credentialPath);
-
+    sheets.setSheetId(projectType);
     Integer numOfTries = 3;
-
     while (numOfTries > 0) {
       try {
         Map<String, Map> validations = sheets.newGetVal();
-        Map<String, Map> dataTypes = sheets.newGetDType();
-        Map<String, Map> attrs = sheets.newGetAttr();
-        Map<String, Map> bes = sheets.newGetBase();
-        Map<String, Map> attr2Bes = sheets.newGetEntAttr();
-        Map<String, Map> attrLink = sheets.newGetAttrLink();
-        Map<String, Map> bes2Bes = sheets.newGetEntEnt();
-        Map<String, Map> gQuestions = sheets.newGetQtn();
-        Map<String, Map> que2Que = sheets.newGetQueQue();
-        Map<String, Map> asks = sheets.newGetAsk();
-
         genny.put("validations", validations);
+        Map<String, Map> dataTypes = sheets.newGetDType();
         genny.put("dataType", dataTypes);
+        Map<String, Map> attrs = sheets.newGetAttr();
         genny.put("attributes", attrs);
+        Map<String, Map> bes = sheets.newGetBase();
         genny.put("baseEntitys", bes);
+        Map<String, Map> attr2Bes = sheets.newGetEntAttr();
         genny.put("attibutesEntity", attr2Bes);
+        Map<String, Map> attrLink = sheets.newGetAttrLink();
         genny.put("attributeLink", attrLink);
+        Map<String, Map> bes2Bes = sheets.newGetEntEnt();
         genny.put("basebase", bes2Bes);
+        Map<String, Map> gQuestions = sheets.newGetQtn();
         genny.put("questions", gQuestions);
-        genny.put("questionQuestions",que2Que);
+        Map<String, Map> que2Que = sheets.newGetQueQue();
+        genny.put("questionQuestions", que2Que);
+        Map<String, Map> asks = sheets.newGetAsk();
         genny.put("ask", asks);
         break;
       } catch (Exception e) {
@@ -613,6 +481,20 @@ public class BatchLoading {
   @SuppressWarnings({"unchecked", "unused"})
   public Map<String, Object> upsertProjectMapProps(Map<String, Object> superProject,
       Map<String, Object> subProject) {
+    superProject.entrySet().stream().forEach(map -> {
+      System.out.println(map.getKey());
+      final Map<String, Object> objects = (Map<String, Object>) superProject.get(map.getKey());
+      if(superProject.get(map.getKey())==null) {
+        superProject.put(map.getKey(), subProject.get(map.getKey()));
+      }
+    });
+    subProject.entrySet().stream().forEach(map -> {
+      System.out.println(map.getKey());
+      final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());
+      if(subProject.get(map.getKey())==null) {
+        subProject.put(map.getKey(), superProject.get(map.getKey()));
+      }
+    });
     subProject.entrySet().stream().forEach(map -> {
       final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());
       objects.entrySet().stream().forEach(obj -> {
