@@ -1237,12 +1237,14 @@ public class BaseEntityService2 {
         ask = myAsks.get(0);
       } else {
         // create one
-        ask = new Ask(rootQuestion, source.getCode(), target.getCode());
+    	  Boolean mandatory = rootQuestion.getMandatory();
+        ask = new Ask(rootQuestion, source.getCode(), target.getCode(),mandatory);
         ask = upsert(ask); // save
       }
       asks.add(ask);
     }
 
+    
     return asks;
   }
 
