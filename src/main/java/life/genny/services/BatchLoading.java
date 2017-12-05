@@ -398,7 +398,7 @@ public class BatchLoading {
    * 
    * @return
    */
-  public List<Map<String, Object>> getProjects() {
+  public List<Map<String, Object>> getModules() {
     List<Map> projectsConfig = sheets.projectsImport();
     return projectsConfig.stream().map(data -> {
       String sheetID = (String) data.get("sheetID");
@@ -412,6 +412,19 @@ public class BatchLoading {
           + module + "\033[0m uploaded ", "\uD83D\uDC4F  \uD83D\uDC4F  \uD83D\uDC4F");
       map.add(fields);
       return map;
+    }).reduce((ac, acc) -> {
+      ac.addAll(acc);
+      return ac;
+    }).get();
+  }
+
+  public List<Map<String, Object>> getProjects() {
+    List<Map> projectsConfig = sheets.hostingImport();
+    return projectsConfig.stream().map(data -> {
+      String sheetID = (String) data.get("sheetID");
+      sheets.setSheetId(sheetID);
+      List<Map<String, Object>> listModuleProject = getModules();
+      return listModuleProject;
     }).reduce((ac, acc) -> {
       ac.addAll(acc);
       return ac;
@@ -484,14 +497,14 @@ public class BatchLoading {
     superProject.entrySet().stream().forEach(map -> {
       System.out.println(map.getKey());
       final Map<String, Object> objects = (Map<String, Object>) superProject.get(map.getKey());
-      if(superProject.get(map.getKey())==null) {
+      if (superProject.get(map.getKey()) == null) {
         superProject.put(map.getKey(), subProject.get(map.getKey()));
       }
     });
     subProject.entrySet().stream().forEach(map -> {
       System.out.println(map.getKey());
       final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());
-      if(subProject.get(map.getKey())==null) {
+      if (subProject.get(map.getKey()) == null) {
         subProject.put(map.getKey(), superProject.get(map.getKey()));
       }
     });
