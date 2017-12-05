@@ -1,4 +1,9 @@
 #!/bin/bash
+ 
+CREDENTIALS="$HOME/.genny/sheets.googleapis.com-java-quickstart"
+if [ ! -d "$CREDENTIALS" ]; then
+   mkdir -p $CREDENTIALS
+fi
 
 cp src/main/resources/credentials/genny $HOME/.genny/sheets.googleapis.com-java-quickstart/StoredCredential
 
