@@ -1214,7 +1214,12 @@ public class BaseEntityService2 {
   }
 
   public List<Ask> findAsks(final Question rootQuestion, final BaseEntity source,
-      final BaseEntity target) {
+	      final BaseEntity target) {
+	  return findAsks(rootQuestion, source, target,false);
+	  }
+  
+  public List<Ask> findAsks(final Question rootQuestion, final BaseEntity source,
+      final BaseEntity target,Boolean childQuestionIsMandatory) {
     List<Ask> asks = new ArrayList<Ask>();
 
     if (rootQuestion.getAttributeCode().equals(Question.QUESTION_GROUP_ATTRIBUTE_CODE)) {
@@ -1225,7 +1230,7 @@ public class BaseEntityService2 {
       for (QuestionQuestion qq : qqList) {
         String qCode = qq.getPk().getTargetCode();
         Question childQuestion = findQuestionByCode(qCode);
-        asks.addAll(findAsks(childQuestion, source, target));
+        asks.addAll(findAsks(childQuestion, source, target,qq.getMandatory()));
       }
     } else {
       // This is an actual leaf question, so we can create an ask ...
@@ -1234,9 +1239,10 @@ public class BaseEntityService2 {
       List<Ask> myAsks = findAsksByQuestion(rootQuestion, source, target);
       if (!((myAsks == null) || (myAsks.isEmpty()))) {
         ask = myAsks.get(0);
+        ask.setMandatory(rootQuestion.getMandatory() || childQuestionIsMandatory);
       } else {
         // create one
-    	  Boolean mandatory = rootQuestion.getMandatory();
+    	  Boolean mandatory = rootQuestion.getMandatory() || childQuestionIsMandatory;
         ask = new Ask(rootQuestion, source.getCode(), target.getCode(),mandatory);
         ask = upsert(ask); // save
       }
