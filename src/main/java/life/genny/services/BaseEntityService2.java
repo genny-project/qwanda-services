@@ -632,9 +632,13 @@ public class BaseEntityService2 {
 		try {
 			String code = validation.getCode();
 			Validation val = findValidationByCode(code);
+			if (val != null) {
 			BeanNotNullFields copyFields = new BeanNotNullFields();
 			copyFields.copyProperties(val, validation);
 			val = getEntityManager().merge(val);
+			} else {
+				throw new NoResultException();
+			}
 			// BeanUtils.copyProperties(validation, val);
 			return val;
 		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
@@ -799,9 +803,15 @@ public class BaseEntityService2 {
 	}
 
 	public Validation findValidationByCode(@NotNull final String code) throws NoResultException {
-		final Validation result = (Validation) getEntityManager()
-				.createQuery("SELECT a FROM Validation a where a.code=:code").setParameter("code", code)
-				.getSingleResult();
+		Validation result = null;
+		
+		try {
+			result = (Validation) getEntityManager()
+					.createQuery("SELECT a FROM Validation a where a.code=:code").setParameter("code", code)
+					.getSingleResult();
+		} catch (Exception e) {
+			log.error("Could not find Validation with code: "+code);
+		}
 		// System.out.println("8878978978978977987897987987987" + result);
 		return result;
 	}
@@ -1158,13 +1168,29 @@ public class BaseEntityService2 {
 		return results;
 	}
 
-	public List<Ask> findAsksByQuestion(final Question question, final BaseEntity source, final BaseEntity target) {
-		return findAsksByAttributeCode(question.getAttributeCode(), source.getCode(), target.getCode());
-	}
 
 	public List<Ask> findAsksByAttribute(final Attribute attribute, final BaseEntity source, final BaseEntity target) {
 		return findAsksByAttributeCode(attribute.getCode(), source.getCode(), target.getCode());
 	}
+
+	public List<Ask> findAsksByCode(final String attributeCode, String sourceCode, final String targetCode) {
+		List<Ask> results = null;
+		try {
+			results = getEntityManager().createQuery(
+					"SELECT ask FROM Ask ask where ask.attributeCode=:attributeCode and ask.sourceCode=:sourceCode and ask.targetCode=:targetCode")
+					.setParameter("attributeCode", attributeCode).setParameter("sourceCode", sourceCode)
+					.setParameter("targetCode", targetCode).getResultList();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return results;
+	}
+	
+	public List<Ask> findAsksByQuestion(final Question question, final BaseEntity source, final BaseEntity target) {
+		return findAsksByQuestionCode(question.getCode(), source.getCode(), target.getCode());
+	}
+
 
 	public List<Ask> findAsksByAttributeCode(final String attributeCode, String sourceCode, final String targetCode) {
 		List<Ask> results = null;
@@ -1194,12 +1220,17 @@ public class BaseEntityService2 {
 	}
 
 	public List<Ask> findAsksByQuestionCode(final String questionCode, String sourceCode, final String targetCode) {
-		Question question = findQuestionByCode(questionCode);
-		BaseEntity source = findBaseEntityByCode(sourceCode);
-		BaseEntity target = findBaseEntityByCode(targetCode);
-		return findAsks(question, source, target);
-
-	}
+		List<Ask> results = null;
+		try {
+			results = getEntityManager().createQuery(
+					"SELECT ask FROM Ask ask where ask.questionCode=:questionCode and ask.sourceCode=:sourceCode and ask.targetCode=:targetCode")
+					.setParameter("questionCode", questionCode).setParameter("sourceCode", sourceCode)
+					.setParameter("targetCode", targetCode).getResultList();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return results;	}
 
 	public List<Ask> findAsks(final Question rootQuestion, final BaseEntity source, final BaseEntity target) {
 		return findAsks(rootQuestion, source, target, false);
