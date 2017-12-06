@@ -1233,7 +1233,7 @@ public class BaseEntityService2 {
 	}
 
 	public List<Ask> findAsks2(final Question rootQuestion, final BaseEntity source, final BaseEntity target) {
-		return findAsks(rootQuestion, source, target, false);
+		return findAsks2(rootQuestion, source, target, false);
 	}
 
 	public List<Ask> findAsks2(final Question rootQuestion, final BaseEntity source, final BaseEntity target,
@@ -1257,10 +1257,11 @@ public class BaseEntityService2 {
 				for (QuestionQuestion qq : qqList) {
 					String qCode = qq.getPk().getTargetCode();
 					Question childQuestion = findQuestionByCode(qCode);
-					childAsks.addAll(findAsks(childQuestion, source, target, qq.getMandatory()));
+					childAsks.addAll(findAsks2(childQuestion, source, target, qq.getMandatory()));
 				}
 				ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory);
-				ask.setChildAsks((Ask[]) childAsks.toArray());
+				Ask[] asksArray = (Ask[]) childAsks.toArray(new Ask[0]);
+				ask.setChildAsks(asksArray);
 				ask = upsert(ask); // save
 			}
 
