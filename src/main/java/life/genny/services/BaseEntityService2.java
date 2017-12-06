@@ -778,10 +778,16 @@ public class BaseEntityService2 {
 
 	public Question findQuestionByCode(@NotNull final String code) throws NoResultException {
 		// System.out.println("FindQuestionByCode:"+code);
-		final Question result = (Question) getEntityManager().createQuery("SELECT a FROM Question a where a.code=:code")
-				.setParameter("code", code.toUpperCase()).getSingleResult();
+		List<Question> result=null;
+		try {
+			result = (List<Question>) getEntityManager().createQuery("SELECT a FROM Question a where a.code=:code")
+					.setParameter("code", code.toUpperCase()).getResultList();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-		return result;
+		return result.get(0);
 	}
 
 	public DataType findDataTypeByCode(@NotNull final String code) throws NoResultException {
