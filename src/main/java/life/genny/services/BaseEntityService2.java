@@ -790,7 +790,7 @@ public class BaseEntityService2 {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+		if (result.isEmpty()) return null;
 		return result.get(0);
 	}
 
