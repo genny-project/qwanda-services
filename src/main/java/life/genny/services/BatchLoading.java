@@ -325,7 +325,7 @@ public class BatchLoading {
       String qCode = (String) asks.get("question_code");
       String name = (String) asks.get("name");
       String expectedId = (String) asks.get("expectedId");
-      String weightStr = ((String) asks.get("weight"));
+      String weightStr = (String) asks.get("weight");
       String mandatoryStr = ((String) asks.get("mandatory"));
       final Double weight = Double.valueOf(weightStr);
       Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
