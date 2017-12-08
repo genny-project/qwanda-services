@@ -472,9 +472,29 @@ public class BaseEntityService2 {
 						}
 					}
 					if (sendAttributeChangeEvent) {
+						String oldValue = null;
+						if (old != null) {
+							oldValue = old.toString();
+						}
+						if (answerLink==null) {
+							System.out.println("answerLink is Null");
+						}
+						if (getCurrentToken()==null) {
+							System.out.println("getCurrentToken is Null");
+						}
+						if (answerLink.getValue()==null) {
+							System.out.println("answerLink.getValue() is Null");
+						}
+						if (answerLink.getTargetCode() == null) {
+							System.out.println("answerLink.getTargetCode() is Null");
+						}
+						if (answerLink.getSourceCode() == null) {
+							System.out.println("answerLink.getSourceCode() is Null");
+						}
+
 						QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(
 								answerLink.getSourceCode(), answerLink.getTargetCode(), answerLink.getAttributeCode(),
-								(old.toString()), answerLink.getValue(), getCurrentToken());
+								(oldValue), answerLink.getValue(), getCurrentToken());
 
 						sendQEventAttributeValueChangeMessage(msg);
 					}
