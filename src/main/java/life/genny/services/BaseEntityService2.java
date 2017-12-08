@@ -426,6 +426,9 @@ public class BaseEntityService2 {
 		Attribute attribute = null;
 		Ask ask = null;
 
+		if (answer.getValue()==null) {
+			return -1L;
+		}
 		try {
 
 			try {
