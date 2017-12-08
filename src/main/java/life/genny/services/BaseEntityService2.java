@@ -633,9 +633,9 @@ public class BaseEntityService2 {
 			String code = validation.getCode();
 			Validation val = findValidationByCode(code);
 			if (val != null) {
-			BeanNotNullFields copyFields = new BeanNotNullFields();
-			copyFields.copyProperties(val, validation);
-			val = getEntityManager().merge(val);
+				BeanNotNullFields copyFields = new BeanNotNullFields();
+				copyFields.copyProperties(val, validation);
+				val = getEntityManager().merge(val);
 			} else {
 				throw new NoResultException();
 			}
@@ -782,7 +782,7 @@ public class BaseEntityService2 {
 
 	public Question findQuestionByCode(@NotNull final String code) throws NoResultException {
 		// System.out.println("FindQuestionByCode:"+code);
-		List<Question> result=null;
+		List<Question> result = null;
 		try {
 			result = (List<Question>) getEntityManager().createQuery("SELECT a FROM Question a where a.code=:code")
 					.setParameter("code", code.toUpperCase()).getResultList();
@@ -790,7 +790,8 @@ public class BaseEntityService2 {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if (result.isEmpty()) return null;
+		if (result.isEmpty())
+			return null;
 		return result.get(0);
 	}
 
@@ -804,13 +805,12 @@ public class BaseEntityService2 {
 
 	public Validation findValidationByCode(@NotNull final String code) throws NoResultException {
 		Validation result = null;
-		
+
 		try {
-			result = (Validation) getEntityManager()
-					.createQuery("SELECT a FROM Validation a where a.code=:code").setParameter("code", code)
-					.getSingleResult();
+			result = (Validation) getEntityManager().createQuery("SELECT a FROM Validation a where a.code=:code")
+					.setParameter("code", code).getSingleResult();
 		} catch (Exception e) {
-			log.error("Could not find Validation with code: "+code);
+			log.error("Could not find Validation with code: " + code);
 		}
 		// System.out.println("8878978978978977987897987987987" + result);
 		return result;
@@ -1168,7 +1168,6 @@ public class BaseEntityService2 {
 		return results;
 	}
 
-
 	public List<Ask> findAsksByAttribute(final Attribute attribute, final BaseEntity source, final BaseEntity target) {
 		return findAsksByAttributeCode(attribute.getCode(), source.getCode(), target.getCode());
 	}
@@ -1186,11 +1185,10 @@ public class BaseEntityService2 {
 		}
 		return results;
 	}
-	
+
 	public List<Ask> findAsksByQuestion(final Question question, final BaseEntity source, final BaseEntity target) {
 		return findAsksByQuestionCode(question.getCode(), source.getCode(), target.getCode());
 	}
-
 
 	public List<Ask> findAsksByAttributeCode(final String attributeCode, String sourceCode, final String targetCode) {
 		List<Ask> results = null;
@@ -1230,7 +1228,8 @@ public class BaseEntityService2 {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return results;	}
+		return results;
+	}
 
 	public List<Ask> findAsks(final Question rootQuestion, final BaseEntity source, final BaseEntity target) {
 		return findAsks(rootQuestion, source, target, false);
@@ -1276,40 +1275,34 @@ public class BaseEntityService2 {
 	public List<Ask> findAsks2(final Question rootQuestion, final BaseEntity source, final BaseEntity target,
 			Boolean childQuestionIsMandatory) {
 		List<Ask> asks = new ArrayList<Ask>();
+		Boolean mandatory = rootQuestion.getMandatory() || childQuestionIsMandatory;
 
 		Ask ask = null;
 		// check if this already exists?
 		List<Ask> myAsks = findAsksByQuestion(rootQuestion, source, target);
 		if (!((myAsks == null) || (myAsks.isEmpty()))) {
 			ask = myAsks.get(0);
-			ask.setMandatory(rootQuestion.getMandatory() || childQuestionIsMandatory);
+			ask.setMandatory(mandatory);
 		} else {
-			// create one
-			Boolean mandatory = rootQuestion.getMandatory() || childQuestionIsMandatory;
-			if (rootQuestion.getAttributeCode().equals(Question.QUESTION_GROUP_ATTRIBUTE_CODE)) {
-				// Recurse!
-				List<QuestionQuestion> qqList = new ArrayList<QuestionQuestion>(rootQuestion.getChildQuestions());
-				Collections.sort(qqList); // sort by priority
-				List<Ask> childAsks = new ArrayList<Ask>();
-				for (QuestionQuestion qq : qqList) {
-					String qCode = qq.getPk().getTargetCode();
-					Question childQuestion = findQuestionByCode(qCode);
-					childAsks.addAll(findAsks2(childQuestion, source, target, qq.getMandatory()));
-				}
-				ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory);
-				Ask[] asksArray = (Ask[]) childAsks.toArray(new Ask[0]);
-				ask.setChildAsks(asksArray);
-				ask = upsert(ask); // save
-			}
-
-			else {
-				// create one
-				mandatory = rootQuestion.getMandatory() || childQuestionIsMandatory;
-				ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory);
-				ask = upsert(ask); // save
-			}
-			
+			ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory);
+			ask = upsert(ask);
 		}
+		// create one
+		if (rootQuestion.getAttributeCode().equals(Question.QUESTION_GROUP_ATTRIBUTE_CODE)) {
+			// Recurse!
+			List<QuestionQuestion> qqList = new ArrayList<QuestionQuestion>(rootQuestion.getChildQuestions());
+			Collections.sort(qqList); // sort by priority
+			List<Ask> childAsks = new ArrayList<Ask>();
+			for (QuestionQuestion qq : qqList) {
+				String qCode = qq.getPk().getTargetCode();
+				Question childQuestion = findQuestionByCode(qCode);
+				childAsks.addAll(findAsks2(childQuestion, source, target, qq.getMandatory()));
+			}
+			Ask[] asksArray = (Ask[]) childAsks.toArray(new Ask[0]);
+			ask.setChildAsks(asksArray);
+			ask = upsert(ask); // save
+		}
+
 		asks.add(ask);
 		return asks;
 	}
