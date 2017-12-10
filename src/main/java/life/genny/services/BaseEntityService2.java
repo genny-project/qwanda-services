@@ -1690,6 +1690,25 @@ public class BaseEntityService2 {
 		return eeResults;
 	}
 
+	public Link findLink(final String sourceCode, final String targetCode, final String linkCode)
+			throws NoResultException {
+		Link ee = null;
+
+		try {
+			ee = (Link) getEntityManager().createQuery(
+					"SELECT ee.link FROM EntityEntity ee where ee.pk.targetCode=:targetCode and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+					.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+					.setParameter("targetCode", targetCode).getSingleResult();
+
+		} catch (Exception e) {
+			// log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode +
+			// " not found");
+			throw new NoResultException(
+					"Link " + sourceCode + ":" + targetCode + ":" + linkCode + " not found");
+		}
+		return ee;
+	}
+
 	public EntityEntity findEntityEntity(final String sourceCode, final String targetCode, final String linkCode)
 			throws NoResultException {
 		EntityEntity ee = null;
@@ -1709,6 +1728,8 @@ public class BaseEntityService2 {
 		return ee;
 	}
 
+
+	
 	public void removeEntityEntity(final EntityEntity ee) {
 		try {
 			// getEntityManager().getTransaction().begin();
@@ -1760,6 +1781,16 @@ public class BaseEntityService2 {
 		return ee;
 	}
 
+	public void removeLink(final Link link) {
+		EntityEntity ee = null;
+
+		try {
+			ee = findEntityEntity(link.getSourceCode(), link.getTargetCode(), link.getAttributeCode());
+			removeEntityEntity(ee);
+		} catch (Exception e) {
+			log.error("EntityEntity " + link + " not found");
+		}
+	}
 	public void removeLink(final String sourceCode, final String targetCode, final String linkCode) {
 		EntityEntity ee = null;
 
@@ -2114,13 +2145,15 @@ public class BaseEntityService2 {
 		try {
 			// getEntityManager().getTransaction().begin();
 
-			EntityEntity oldLink = findEntityEntity(originalSourceCode, targetCode, linkCode);
+		//	EntityEntity oldLink = findEntityEntity(originalSourceCode, targetCode, linkCode);
+			Link oldLink = findLink(originalSourceCode, targetCode, linkCode);
 			// add new link
-			EntityEntity eee = addLink(destinationSourceCode, targetCode, linkCode, oldLink.getValue(),
+			EntityEntity eee = addLink(destinationSourceCode, targetCode, linkCode, oldLink.getLinkValue(),
 					oldLink.getWeight());
 
 			// remove old one
-			removeEntityEntity(oldLink);
+		//	removeEntityEntity(oldLink);
+			removeLink(oldLink);
 			ee = eee.getLink();
 			// getEntityManager().getTransaction().commit();
 		} catch (Exception e) {
