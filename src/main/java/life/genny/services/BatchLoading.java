@@ -62,7 +62,9 @@ public class BatchLoading {
   private final String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
   File credentialPath =
       new File(System.getProperty("user.home"), ".genny/sheets.googleapis.com-java-quickstart");
-  GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
+  public GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
+
+  public Map<String, Object> savedProjectData;
 
   /**
    * Upsert Validation to database
@@ -383,6 +385,7 @@ public class BatchLoading {
   public void persistProject() {
     System.out.println("Persisting Project in BatchLoading");
     Map<String, Object> lastProject = getProject();
+    savedProjectData = lastProject;
     validations(lastProject);
     Map<String, DataType> dataTypes = dataType(lastProject);
     attributes(lastProject, dataTypes);
