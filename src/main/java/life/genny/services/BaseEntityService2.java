@@ -419,6 +419,9 @@ public class BaseEntityService2 {
 	}
 
 	public Long insert(Answer answer) {
+		if (answer.getAttributeCode().equalsIgnoreCase("PRI_GENDER")) {
+			System.out.println("GENDER CHANGE");
+		}
 		log.info("insert(Answer):" + answer.getSourceCode() + ":" + answer.getTargetCode() + ":"
 				+ answer.getAttributeCode() + ":" + StringUtils.abbreviateMiddle(answer.getValue(), "...", 30));
 		// always check if answer exists through check for unique code
