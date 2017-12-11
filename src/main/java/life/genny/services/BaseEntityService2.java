@@ -392,11 +392,12 @@ public class BaseEntityService2 {
 	public Long insert(BaseEntity entity) {
 
 		// get security
-		// if (securityService.isAuthorised()) {
+		//if (securityService.isAuthorised()) {
 		// String realm = securityService.getRealm();
 		// System.out.println("Realm = " + realm);
 		// entity.setRealm(realm); // always override
-		entity.setRealm("genny");
+		//}
+		//entity.setRealm("genny");
 		// always check if baseentity exists through check for unique code
 		try {
 			getEntityManager().persist(entity);
@@ -2145,11 +2146,13 @@ public class BaseEntityService2 {
 		try {
 			// getEntityManager().getTransaction().begin();
 
-		//	EntityEntity oldLink = findEntityEntity(originalSourceCode, targetCode, linkCode);
+		//EntityEntity oldLink = findEntityEntity(originalSourceCode, targetCode, linkCode);
 			Link oldLink = findLink(originalSourceCode, targetCode, linkCode);
 			// add new link
 			EntityEntity eee = addLink(destinationSourceCode, targetCode, linkCode, oldLink.getLinkValue(),
 					oldLink.getWeight());
+//			EntityEntity eee = addLink(destinationSourceCode, targetCode, linkCode, oldLink.getValue(),
+//					oldLink.getWeight());
 
 			// remove old one
 		//	removeEntityEntity(oldLink);
