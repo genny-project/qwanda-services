@@ -1751,9 +1751,10 @@ public class BaseEntityService2 {
 	public EntityEntity addLink(final String sourceCode, final String targetCode, final String linkCode, Object value,
 			Double weight) throws IllegalArgumentException, BadDataException {
 		EntityEntity ee = null;
+		Link link = null;
 
 		try {
-			ee = findEntityEntity(sourceCode, targetCode, linkCode);
+			link = findLink(sourceCode, targetCode, linkCode);
 
 		} catch (NoResultException e) {
 			BaseEntity beSource = null;
