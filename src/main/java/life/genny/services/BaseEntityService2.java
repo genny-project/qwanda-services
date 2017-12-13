@@ -55,6 +55,7 @@ import life.genny.qwanda.entity.Group;
 import life.genny.qwanda.entity.Person;
 import life.genny.qwanda.entity.Product;
 import life.genny.qwanda.exception.BadDataException;
+import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.validation.Validation;
@@ -2156,5 +2157,20 @@ public class BaseEntityService2 {
 
 	public BaseEntity getUser() {
 		return null;
+	}
+	
+	public Long insert(final QBaseMSGMessageTemplate template) {
+		try {
+			getEntityManager().persist(template);
+
+		} catch (final EntityExistsException e) {
+			e.printStackTrace();
+			
+			/*QBaseMSGMessageTemplate existing = findRuleById(template.getId());
+			existing = getEntityManager().merge(existing);
+			return existing.getId();*/
+
+		}
+		return template.getId();
 	}
 }
