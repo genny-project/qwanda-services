@@ -66,7 +66,9 @@ public class BatchLoading {
   private final String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
   File credentialPath =
       new File(System.getProperty("user.home"), ".genny/sheets.googleapis.com-java-quickstart");
-  GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
+  public GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
+
+  public Map<String, Object> savedProjectData;
 
   /**
    * Upsert Validation to database
@@ -367,14 +369,18 @@ public class BatchLoading {
     } else {
       for (int count = 0; count < projects.size(); count++) {
         int subsequentIndex = count + 1;
-
+        System.out.println("23434 =" + projects.size());
         if (subsequentIndex == projects.size())
           break;
 
         if (lastProject == null) {
+          System.out.println("234SDFSD34");
           lastProject = upsertProjectMapProps(projects.get(count), projects.get(subsequentIndex));
+          System.out.println("23434");
         } else {
+          System.out.println("23wDSFSDFDSFSDFs4");
           lastProject = upsertProjectMapProps(lastProject, projects.get(subsequentIndex));
+          System.out.println("23ws4");
         }
       }
     }
@@ -387,6 +393,8 @@ public class BatchLoading {
   public void persistProject() {
     System.out.println("Persisting Project in BatchLoading");
     Map<String, Object> lastProject = getProject();
+    savedProjectData = lastProject;
+    System.out.println("+++++++++ AbouDSDSDSDSDSDSDSDSDSDSSDSDSDt to load Questions +++++++++++++");
     validations(lastProject);
     Map<String, DataType> dataTypes = dataType(lastProject);
     attributes(lastProject, dataTypes);
@@ -502,41 +510,59 @@ public class BatchLoading {
    * @param subProject
    * @return
    */
+  static int count = 0;
+
   @SuppressWarnings({"unchecked", "unused"})
   public Map<String, Object> upsertProjectMapProps(Map<String, Object> superProject,
       Map<String, Object> subProject) {
+    // superProject.entrySet().stream().forEach(map -> {
+    // final Map<String, Object> objects = (Map<String, Object>) superProject.get(map.getKey());
+    // if (superProject.get(map.getKey()) == null) {
+    // System.out.println("\n\n\n"+map.getKey()+"\n\n\n");
+    // superProject.put(map.getKey(), subProject.get(map.getKey()));
+    // }
+    // });
+    // subProject.entrySet().stream().forEach(map -> {
+    // final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());
+    // if (subProject.get(map.getKey()) == null) {
+    // subProject.put(map.getKey(), superProject.get(map.getKey()));
+    // }
+    // });
+    System.out.println(count + "llll");
     superProject.entrySet().stream().forEach(map -> {
-      System.out.println(map.getKey());
-      final Map<String, Object> objects = (Map<String, Object>) superProject.get(map.getKey());
-      if (superProject.get(map.getKey()) == null) {
-        superProject.put(map.getKey(), subProject.get(map.getKey()));
-      }
-    });
-    subProject.entrySet().stream().forEach(map -> {
-      System.out.println(map.getKey());
-      final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());
-      if (subProject.get(map.getKey()) == null) {
+      if (subProject.get(map.getKey()) == null && superProject.get(map.getKey()) != null) {
         subProject.put(map.getKey(), superProject.get(map.getKey()));
       }
     });
     subProject.entrySet().stream().forEach(map -> {
+      if (superProject.get(map.getKey()) == null && subProject.get(map.getKey()) != null) {
+        superProject.put(map.getKey(), subProject.get(map.getKey()));
+      }
+    });
+    subProject.entrySet().stream().forEach(map -> {
       final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());
-      objects.entrySet().stream().forEach(obj -> {
-        if (((Map<String, Object>) superProject.get(map.getKey()))
-            .<HashMap<String, Object>>get(obj.getKey()) != null) {
-          Map<String, Object> mapp = ((Map<String, Object>) obj.getValue());
-          Map<String, Object> mapp2 = ((Map<String, HashMap>) superProject.get(map.getKey()))
-              .<HashMap<String, Object>>get(obj.getKey());
-          mapp.entrySet().stream().forEach(data -> {
-            if (data.getValue() != null) {
-              mapp2.put(data.getKey(), data.getValue());
-            }
-          });
-        } else {
-          ((Map<String, Object>) superProject.get(map.getKey()))
-              .<HashMap<String, Object>>put(obj.getKey(), obj.getValue());
-        }
-      });
+      if (objects != null)
+        objects.entrySet().stream().forEach(obj -> {
+          System.out.println("ohoh2!");
+          if (((Map<String, Object>) superProject.get(map.getKey()))
+              .<HashMap<String, Object>>get(obj.getKey()) != null) {
+            Map<String, Object> mapp = ((Map<String, Object>) obj.getValue());
+            Map<String, Object> mapp2 = ((Map<String, HashMap>) superProject.get(map.getKey()))
+                .<HashMap<String, Object>>get(obj.getKey());
+            mapp.entrySet().stream().forEach(data -> {
+              if (data.getValue() != null) {
+                System.out.println("here");
+                mapp2.put(data.getKey(), data.getValue());
+              }
+            });
+            System.out.println("kept going");
+          } else {
+            System.out.println("oh!");
+            ((Map<String, Object>) superProject.get(map.getKey()))
+                .<HashMap<String, Object>>put(obj.getKey(), obj.getValue());
+          }
+          System.out.println("kept going 2");
+        });
     });
     return superProject;
   }
