@@ -522,7 +522,6 @@ public class BatchLoading {
     // subProject.put(map.getKey(), superProject.get(map.getKey()));
     // }
     // });
-    System.out.println(count + "llll");
     superProject.entrySet().stream().forEach(map -> {
       if (subProject.get(map.getKey()) == null && superProject.get(map.getKey()) != null) {
         subProject.put(map.getKey(), superProject.get(map.getKey()));
@@ -537,7 +536,6 @@ public class BatchLoading {
       final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());
       if (objects != null)
         objects.entrySet().stream().forEach(obj -> {
-          System.out.println("ohoh2!");
           if (((Map<String, Object>) superProject.get(map.getKey()))
               .<HashMap<String, Object>>get(obj.getKey()) != null) {
             Map<String, Object> mapp = ((Map<String, Object>) obj.getValue());
@@ -545,17 +543,13 @@ public class BatchLoading {
                 .<HashMap<String, Object>>get(obj.getKey());
             mapp.entrySet().stream().forEach(data -> {
               if (data.getValue() != null) {
-                System.out.println("here");
                 mapp2.put(data.getKey(), data.getValue());
               }
             });
-            System.out.println("kept going");
           } else {
-            System.out.println("oh!");
             ((Map<String, Object>) superProject.get(map.getKey()))
                 .<HashMap<String, Object>>put(obj.getKey(), obj.getValue());
           }
-          System.out.println("kept going 2");
         });
     });
     return superProject;
