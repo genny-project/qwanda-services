@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +30,7 @@ import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.exception.BadDataException;
+import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySheets;
@@ -47,6 +49,8 @@ public class BatchLoading {
 
   // @Inject
   private BaseEntityService2 service;
+  
+  public static int id = 1;
 
   // private BaseEntityService service;
   public BatchLoading(BaseEntityService2 service) {
@@ -404,6 +408,8 @@ public class BatchLoading {
     questionQuestions(lastProject);
     System.out.println("+++++++++ Finished loading QuestionQuestions +++++++++++++");
     asks(lastProject);
+    System.out.println("+++++++++ About to load Message Templates +++++++++++++");
+    messageTemplates(lastProject);
   }
 
   /**
@@ -554,5 +560,27 @@ public class BatchLoading {
     });
     return superProject;
   }
+  
+  public void messageTemplates(Map<String, Object> project) {
+	   (sheets.getMessageTemplates()).entrySet().stream().forEach(data -> {
+	      Map<String, Object> template = data.getValue();
+	      String code = (String) template.get("code");
+	      String description = (String) template.get("description");
+	      String subject = (String) template.get("subject");
+	      String emailTemplateDocId = (String) template.get("email");
+	      String smsTemplate = (String) template.get("sms");
+	      
+	      final QBaseMSGMessageTemplate templateObj = new QBaseMSGMessageTemplate();
+	      templateObj.setCode(code);
+	      templateObj.setCreated(LocalDateTime.now());
+	      templateObj.setDescription(description);
+	      templateObj.setEmail_templateId(emailTemplateDocId);
+	      templateObj.setSms_template(smsTemplate);
+	      templateObj.setSubject(subject);
+	      
+	      Long id = service.insert(templateObj);
+	      System.out.println("id::"+id);
+	    });
+	  }
 
 }
