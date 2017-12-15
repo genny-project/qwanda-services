@@ -55,6 +55,7 @@ import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.entity.Person;
 import life.genny.qwanda.exception.BadDataException;
+import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwandautils.KeycloakService;
 import life.genny.qwandautils.MergeUtil;
@@ -932,4 +933,12 @@ public void questionGroupTest()
 	
 	
 }
+
+	@Test
+	public void messageTemplateTest() {
+
+		QBaseMSGMessageTemplate template = service.findTemplateByCode("MSG_CH40_MOVE_GRP_IN_TRANSIT");
+		System.out.println("template description ::"+template.getDescription());
+
+	}
 }
