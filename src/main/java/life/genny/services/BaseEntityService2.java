@@ -1,6 +1,7 @@
 package life.genny.services;
 
 import static java.lang.System.out;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
+
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -26,18 +28,20 @@ import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.exception.ConstraintViolationException;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.KeycloakSecurityContext;
 import org.mortbay.log.Log;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
-import life.genny.qwanda.CodedEntity;
 import life.genny.qwanda.CoreEntity;
 import life.genny.qwanda.GPS;
 import life.genny.qwanda.Link;
@@ -2228,5 +2232,19 @@ public class BaseEntityService2 {
 
 		}
 		return template.getId();
+	}
+	
+	public QBaseMSGMessageTemplate findTemplateByCode(@NotNull final String templateCode)
+			throws NoResultException {
+
+		QBaseMSGMessageTemplate result = null;
+		
+			result = (QBaseMSGMessageTemplate) getEntityManager()
+					.createQuery("SELECT temp FROM QBaseMSGMessageTemplate temp where temp.code=:templateCode")
+					.setParameter("templateCode", templateCode.toUpperCase()).getSingleResult();
+
+		
+		return result;
+
 	}
 }
