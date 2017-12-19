@@ -187,8 +187,10 @@ public class BatchLoading {
           Map<String, Object> baseEntityAttr = data.getValue();
           String attributeCode =
               ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");;
-          String valueString =
-              ((String) baseEntityAttr.get("valueString")).replaceAll("^\"|\"$", "");;
+          String valueString = ((String) baseEntityAttr.get("valueString"));
+           if (valueString != null) { 
+            valueString =  valueString.replaceAll("^\"|\"$", "");;
+           }
           String baseEntityCode =
               ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");;
           String weight = (String) baseEntityAttr.get("weight");
