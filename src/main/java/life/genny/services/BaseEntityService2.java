@@ -78,6 +78,8 @@ public class BaseEntityService2 {
 	protected static final Logger log = org.apache.logging.log4j.LogManager
 			.getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
+	private static final String DEFAULT_REALM = "genny";
+
 	EntityManager em;
 
 	protected EntityManager getEntityManager() {
@@ -781,14 +783,20 @@ public class BaseEntityService2 {
 			throws NoResultException {
 
 		BaseEntity result = null;
+		final String userRealmStr = getRealm();
+		
 		if (includeEntityAttributes) {
 			result = (BaseEntity) getEntityManager().createQuery(
-					"SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode")
-					.setParameter("baseEntityCode", baseEntityCode.toUpperCase()).getSingleResult();
+					"SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr")
+					.setParameter("baseEntityCode", baseEntityCode.toUpperCase())
+					.setParameter("realmStr", userRealmStr)
+					.getSingleResult();
 		} else {
 			result = (BaseEntity) getEntityManager()
-					.createQuery("SELECT be FROM BaseEntity be where be.code=:baseEntityCode")
-					.setParameter("baseEntityCode", baseEntityCode.toUpperCase()).getSingleResult();
+					.createQuery("SELECT be FROM BaseEntity be where be.code=:baseEntityCode  and be.realm=:realmStr")
+					.setParameter("baseEntityCode", baseEntityCode.toUpperCase())
+					.setParameter("realmStr", userRealmStr)
+					.getSingleResult();
 
 		}
 
@@ -815,9 +823,12 @@ public class BaseEntityService2 {
 	public Question findQuestionByCode(@NotNull final String code) throws NoResultException {
 		// System.out.println("FindQuestionByCode:"+code);
 		List<Question> result = null;
+		final String userRealmStr = getRealm();
 		try {
-			result = (List<Question>) getEntityManager().createQuery("SELECT a FROM Question a where a.code=:code")
+			result = (List<Question>) getEntityManager().createQuery("SELECT a FROM Question a where a.code=:code and a.realm=:realmStr")
+					.setParameter("realmStr", userRealmStr)
 					.setParameter("code", code.toUpperCase()).getResultList();
+				
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -859,8 +870,10 @@ public class BaseEntityService2 {
 
 	public Attribute findAttributeByCode(@NotNull final String code) throws NoResultException {
 
+		final String userRealmStr = getRealm();
 		final Attribute result = (Attribute) getEntityManager()
-				.createQuery("SELECT a FROM Attribute a where a.code=:code").setParameter("code", code.toUpperCase())
+				.createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr").setParameter("code", code.toUpperCase())
+				.setParameter("realmStr", userRealmStr)
 				.getSingleResult();
 
 		return result;
@@ -890,10 +903,13 @@ public class BaseEntityService2 {
 	}
 
 	public BaseEntity findUserByAttributeValue(@NotNull final String attributeCode, final Integer value) {
+		final String userRealmStr = getRealm();
 
 		final List<EntityAttribute> results = getEntityManager().createQuery(
-				"SELECT ea FROM EntityAttribute ea where ea.pk.attribute.code=:attributeCode and ea.valueInteger=:valueInteger")
-				.setParameter("attributeCode", attributeCode).setParameter("valueInteger", value).setMaxResults(1)
+				"SELECT ea FROM EntityAttribute ea where ea.pk.attribute.code=:attributeCode and ea.valueInteger=:valueInteger and ea.source.realm=:realmStr")
+				.setParameter("attributeCode", attributeCode).setParameter("valueInteger", value)
+				.setParameter("realmStr", userRealmStr)
+				.setMaxResults(1)
 				.getResultList();
 		if ((results == null) || (results.size() == 0))
 			return null;
@@ -904,10 +920,12 @@ public class BaseEntityService2 {
 	}
 
 	public BaseEntity findUserByAttributeValue(@NotNull final String attributeCode, final String value) {
+		final String userRealmStr = getRealm();
 
 		final List<EntityAttribute> results = getEntityManager().createQuery(
-				"SELECT ea FROM EntityAttribute ea where ea.pk.attribute.code=:attributeCode and ea.valueString=:value")
+				"SELECT ea FROM EntityAttribute ea where ea.pk.attribute.code=:attributeCode and ea.valueString=:value and ea.source.realm=:realmStr")
 				.setParameter("attributeCode", attributeCode).setParameter("value", value).setMaxResults(1)
+				.setParameter("realmStr", userRealmStr)
 				.getResultList();
 		if ((results == null) || (results.size() == 0))
 			return null;
@@ -922,6 +940,8 @@ public class BaseEntityService2 {
 
 		final List<BaseEntity> eeResults;
 		new HashMap<String, BaseEntity>();
+		final String userRealmStr = getRealm();
+
 		System.out.println("findChildrenByAttributeLink");
 		if (includeAttributes) {
 			System.out.println("findChildrenByAttributeLink - includesAttributes");
@@ -931,8 +951,10 @@ public class BaseEntityService2 {
 			if (pairCount.equals(0)) {
 				System.out.println("findChildrenByAttributeLink - PairCount==0");
 				eeResults = getEntityManager().createQuery(
-						"SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+						"SELECT distinct be FROM BaseEntity be,EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode  and ee.pk.source.realm=:realmStr")
 						.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+						.setParameter("realmStr", userRealmStr)
+
 						.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
 			} else {
@@ -951,7 +973,7 @@ public class BaseEntityService2 {
 
 				String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
 						+ "  JOIN be.baseEntityAttributes bee where " + eaStringsQ
-						+ "  ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
+						+ "  ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and  ee.pk.source.realm=:realmStr and ee.pk.source.code=:sourceCode and ";
 				int attributeCodeIndex = 0;
 				int valueIndex = 0;
 				final List<String> attributeCodeList = new ArrayList<String>();
@@ -1000,6 +1022,7 @@ public class BaseEntityService2 {
 					index++;
 				}
 				query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
+				query.setParameter("realmStr", userRealmStr);
 
 				query.setFirstResult(pageStart).setMaxResults(pageSize);
 				eeResults = query.getResultList();
@@ -1013,8 +1036,9 @@ public class BaseEntityService2 {
 			if (pairCount.equals(0)) {
 
 				eeResults = getEntityManager().createQuery(
-						"SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+						"SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode   and ee.pk.source.realm=:realmStr")
 						.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+						.setParameter("realmStr", userRealmStr)
 						.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
 			} else {
@@ -1033,7 +1057,7 @@ public class BaseEntityService2 {
 
 				String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings + "  where "
 						+ eaStringsQ
-						+ " ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
+						+ " ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.realm=:realmStr and ee.pk.source.code=:sourceCode and ";
 				int attributeCodeIndex = 0;
 				int valueIndex = 0;
 				final List<String> attributeCodeList = new ArrayList<String>();
@@ -1084,6 +1108,7 @@ public class BaseEntityService2 {
 					index++;
 				}
 				query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
+				query.setParameter("realmStr", userRealmStr);
 
 				query.setFirstResult(pageStart).setMaxResults(pageSize);
 				eeResults = query.getResultList();
@@ -1101,6 +1126,7 @@ public class BaseEntityService2 {
 
 	public Long findChildrenByAttributeLinkCount(@NotNull final String sourceCode, final String linkCode,
 			final MultivaluedMap<String, String> params) {
+		final String userRealmStr = getRealm();
 
 		Long total = 0L;
 		final Integer pairCount = params.size();
@@ -1119,7 +1145,7 @@ public class BaseEntityService2 {
 
 		String queryStr = "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee" + eaStrings + "  where "
 				+ eaStringsQ
-				+ "  ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode  ";
+				+ "  ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode  and ee.pk.source.realm=:realmStr and ee.pk.source.code=:sourceCode  ";
 		int attributeCodeIndex = 0;
 		int valueIndex = 0;
 		final List<String> attributeCodeList = new ArrayList<String>();
@@ -1164,6 +1190,7 @@ public class BaseEntityService2 {
 			index++;
 		}
 		query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
+		query.setParameter("realmStr", userRealmStr);
 
 		try {
 			total = (Long) query.getSingleResult();
@@ -1251,9 +1278,11 @@ public class BaseEntityService2 {
 
 	public List<Ask> findAsksByQuestionCode(final String questionCode, String sourceCode, final String targetCode) {
 		List<Ask> results = null;
+		final String userRealmStr = getRealm();
+
 		try {
 			results = getEntityManager().createQuery(
-					"SELECT ask FROM Ask ask where ask.questionCode=:questionCode and ask.sourceCode=:sourceCode and ask.targetCode=:targetCode")
+					"SELECT ask FROM Ask ask where ask.questionCode=:questionCode and ask.sourceCode=:sourceCode and ask.targetCode=:targetCode ")
 					.setParameter("questionCode", questionCode).setParameter("sourceCode", sourceCode)
 					.setParameter("targetCode", targetCode).getResultList();
 		} catch (Exception e) {
@@ -1320,7 +1349,7 @@ public class BaseEntityService2 {
 			ask = upsert(ask);
 		}
 		// create one
-		if (rootQuestion.getAttributeCode().equals(Question.QUESTION_GROUP_ATTRIBUTE_CODE)) {
+		if (rootQuestion.getAttributeCode().startsWith(Question.QUESTION_GROUP_ATTRIBUTE_CODE)) {
 			// Recurse!
 			List<QuestionQuestion> qqList = new ArrayList<QuestionQuestion>(rootQuestion.getChildQuestions());
 			Collections.sort(qqList); // sort by priority
@@ -2246,5 +2275,10 @@ public class BaseEntityService2 {
 		
 		return result;
 
+	}
+	
+	protected String getRealm()
+	{
+		return DEFAULT_REALM;
 	}
 }
