@@ -485,6 +485,8 @@ public class BatchLoading {
         genny.put("questionQuestions", que2Que);
         Map<String, Map> asks = sheets.newGetAsk();
         genny.put("ask", asks);
+        Map<String, Map> messages = sheets.getMessageTemplates();
+        genny.put("messages", messages);
         break;
       } catch (Exception e) {
         log.error("Failed to download Google Docs Configuration ... , will retry , trys left="
@@ -564,7 +566,9 @@ public class BatchLoading {
   }
   
   public void messageTemplates(Map<String, Object> project) {
-	   (sheets.getMessageTemplates()).entrySet().stream().forEach(data -> {
+    if (project.get("messages") == null)
+      return;
+    ((HashMap<String, HashMap>) project.get("messages")).entrySet().stream().forEach(data -> {
 	      Map<String, Object> template = data.getValue();
 	      String code = (String) template.get("code");
 	      String description = (String) template.get("description");

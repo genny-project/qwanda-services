@@ -669,7 +669,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
   }
 
-  @Test
+//  @Test
   public void mergeUtilTest() {
 
     // String template = "Template.ftl";
