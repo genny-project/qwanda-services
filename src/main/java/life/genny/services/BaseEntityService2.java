@@ -502,10 +502,16 @@ public class BaseEntityService2 {
 						if (answerLink.getSourceCode() == null) {
 							System.out.println("answerLink.getSourceCode() is Null");
 						}
-
+// Hack: avoid stack overflow
+						Answer pojo = new Answer(answer.getSourceCode(),answer.getTargetCode(),answer.getAttributeCode(),answer.getValue());
+						pojo.setWeight(answer.getWeight());
+						pojo.setInferred(answer.getInferred());
+						pojo.setExpired(answer.getExpired());
+						pojo.setRefused(answer.getRefused());
+						
 						QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(
-								answerLink.getSourceCode(), answerLink.getTargetCode(), answerLink.getAttributeCode(),
-								(oldValue), answerLink.getValue(), getCurrentToken());
+								pojo,
+								(oldValue), getCurrentToken());
 
 						sendQEventAttributeValueChangeMessage(msg);
 					}
