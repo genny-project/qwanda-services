@@ -504,8 +504,8 @@ public class BaseEntityService2 {
 						}
 
 						QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(
-								answerLink.getSourceCode(), answerLink.getTargetCode(), answerLink.getAttributeCode(),
-								(oldValue), answerLink.getValue(), getCurrentToken());
+								answer,
+								(oldValue), getCurrentToken());
 
 						sendQEventAttributeValueChangeMessage(msg);
 					}
