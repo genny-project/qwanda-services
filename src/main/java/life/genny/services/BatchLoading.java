@@ -68,7 +68,7 @@ public class BatchLoading {
       new File(System.getProperty("user.home"), ".genny/sheets.googleapis.com-java-quickstart");
   public GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
 
-  public Map<String, Object> savedProjectData;
+  public static Map<String, Object> savedProjectData;
 
   /**
    * Upsert Validation to database
