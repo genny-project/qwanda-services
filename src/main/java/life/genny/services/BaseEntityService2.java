@@ -1362,11 +1362,13 @@ public class BaseEntityService2 {
 			List<Ask> childAsks = new ArrayList<Ask>();
 			for (QuestionQuestion qq : qqList) {
 				String qCode = qq.getPk().getTargetCode();
+				log.info(rootQuestion.getCode()+" -> Child Question -> "+qCode);
 				Question childQuestion = findQuestionByCode(qCode);
 				childAsks.addAll(findAsks2(childQuestion, source, target, qq.getMandatory()));
 			}
 			Ask[] asksArray = (Ask[]) childAsks.toArray(new Ask[0]);
 			ask.setChildAsks(asksArray);
+		//	ask.setChildAsks(childAsks);
 			ask = upsert(ask); // save
 		}
 

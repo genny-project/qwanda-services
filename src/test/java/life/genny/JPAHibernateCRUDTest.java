@@ -45,6 +45,7 @@ import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.CoreEntity;
+import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
@@ -56,6 +57,7 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.entity.Person;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
+import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwandautils.KeycloakService;
 import life.genny.qwandautils.MergeUtil;
@@ -940,5 +942,56 @@ public void questionGroupTest()
 		QBaseMSGMessageTemplate template = service.findTemplateByCode("MSG_CH40_MOVE_GRP_IN_TRANSIT");
 		System.out.println("template description ::"+template.getDescription());
 
+	}
+	
+	
+	@Test
+	public void findAsks2Test()
+	{
+		System.out.println("FIND ASKS 2 TEST ");
+		Question rootQuestion = service.findQuestionByCode("QUE_NEW_USER_PROFILE_GRP");
+		 BaseEntity source = service.findBaseEntityByCode("PER_USER1");
+		getEm().getTransaction().begin();
+		List<Ask> asks = service.findAsks2(rootQuestion, source,  source,
+				false) ;
+		getEm().getTransaction().commit();
+		
+		System.out.println("Asks:"+asks);
+		System.out.println("Number of asks=" + asks.size());
+		System.out.println("Number of asks=" + asks);
+		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
+		System.out.println("askMsgs=" + askMsgs);
+
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		Gson gson = null;
+
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
+		System.out.println("Performing JSON conversion ...");
+		int i=0;
+		for (Ask ask : askMsgs.getItems()) {
+			for (Ask ask2 : ask.getChildAsks()) {
+			System.out.println(ask2);
+//			for (Ask ask3 : ask2.getChildAsks()) 
+			try {
+				if (i>-1) {
+				String j = gson.toJson(ask2);
+				System.out.println("Json="+j);
+				}
+				i++;
+			} catch (Exception e) {
+				System.out.println(ask2.getQuestionCode()+" crapped itri ");
+			}
+			}
+		}
+//		String json2 = gson.toJson(askMsgs.getItems()[0].getChildAsks()[1].getChildAsks());
+//		String json3 = gson.toJson(askMsgs.getItems()[1].getChildAsks()[1].getChildAsks());
+//		askMsgs.getItems()[0].getChildAsks()[3] = null;
+//		askMsgs.getItems()[0].getChildAsks()[2] = null;
+//		askMsgs.getItems()[0].getChildAsks()[1] = null;
+		String json = gson.toJson(askMsgs);
+		System.out.println("json:"+json);
+		
+		
 	}
 }
