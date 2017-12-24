@@ -426,6 +426,7 @@ public class BatchLoading {
     asks(lastProject);
     System.out.println("+++++++++ About to load Message Templates +++++++++++++");
     messageTemplates(lastProject);
+    System.out.println("########## LOADED ALL GOOGLE DOC DATA #############");
   }
 
   /**
@@ -599,7 +600,7 @@ public class BatchLoading {
 	      templateObj.setSubject(subject);
 	      
 	      Long id = service.insert(templateObj);
-	      System.out.println("id::"+id);
+	      System.out.println("id::"+id+" Code:"+code+" :"+subject);
 	    });
 	  }
 
