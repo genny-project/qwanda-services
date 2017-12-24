@@ -85,8 +85,22 @@ public class BatchLoading {
       String regex = ((String) validations.get("regex")).replaceAll("^\"|\"$", "");;
       String code = ((String) validations.get("code")).replaceAll("^\"|\"$", "");;
       String name = ((String) validations.get("name")).replaceAll("^\"|\"$", "");;
-      Validation val = new Validation(code, name, regex);
-      System.out.print("code " + code + ",name:" + name + ",val:" + val);
+      String recursiveStr = ((String) validations.get("recursive"));
+      String multiAllowedStr = ((String) validations.get("multi_allowed"));
+      String groupCodesStr = ((String) validations.get("group_codes"));
+      Boolean recursive=getBooleanFromString(recursiveStr);
+      Boolean multiAllowed = getBooleanFromString(multiAllowedStr);
+      
+      Validation val = null;
+      
+      if (code.startsWith(Validation.getDefaultCodePrefix()+"SELECT_")) {
+
+    	  	val = new Validation(code, name, groupCodesStr,recursive,multiAllowed);
+      } else {
+    	  	val = new Validation(code, name, regex);
+    	  
+      }
+  	System.out.print("code " + code + ",name:" + name + ",val:" + val+", grp="+(groupCodesStr!=null?groupCodesStr:"X"));
 
       Set<ConstraintViolation<Validation>> constraints = validator.validate(val);
       for (ConstraintViolation<Validation> constraint : constraints) {
@@ -589,4 +603,19 @@ public class BatchLoading {
 	    });
 	  }
 
+  
+  private Boolean getBooleanFromString(final String booleanString)
+  {
+	  if ( booleanString == null) {
+		  return false;
+	  }
+	  
+  	  	if (("TRUE".equalsIgnoreCase(booleanString.toUpperCase()))||("YES".equalsIgnoreCase(booleanString.toUpperCase())) ||("T".equalsIgnoreCase(booleanString.toUpperCase())) ||("Y".equalsIgnoreCase(booleanString.toUpperCase()))||("1".equalsIgnoreCase(booleanString))) {
+  	  		return true;
+  	  	}
+  	  	return false;
+
+  }
+  
+  
 }

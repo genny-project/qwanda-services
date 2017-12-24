@@ -50,6 +50,7 @@ import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeDate;
+import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.entity.BaseEntity;
@@ -991,6 +992,16 @@ public void questionGroupTest()
 //		askMsgs.getItems()[0].getChildAsks()[1] = null;
 		String json = gson.toJson(askMsgs);
 		System.out.println("json:"+json);
+		
+		
+	}
+	
+	@Test
+	public void AttributeLinkQuestionTest()
+	{
+		// Create an ask that permits the user to select an Australian State
+	//	Attribute attributeLink = new AttributeLink("LNK_SELECTION","States","GRP_AUSTRALIAN_STATES");
+		
 		
 		
 	}
