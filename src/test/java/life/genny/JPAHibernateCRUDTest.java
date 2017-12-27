@@ -997,11 +997,51 @@ public void questionGroupTest()
 	}
 	
 	@Test
-	public void AttributeLinkQuestionTest()
+	public void findAsks2SelectionTest()
 	{
-		// Create an ask that permits the user to select an Australian State
-	//	Attribute attributeLink = new AttributeLink("LNK_SELECTION","States","GRP_AUSTRALIAN_STATES");
+		System.out.println("FIND ASKS 2 TEST MEMBERHUB SELECTION");
+		Question rootQuestion = service.findQuestionByCode("QUE_MEMBERHUB_GRP");
+		 BaseEntity source = service.findBaseEntityByCode("PER_USER1");
+		getEm().getTransaction().begin();
+		List<Ask> asks = service.findAsks2(rootQuestion, source,  source,
+				false) ;
+		getEm().getTransaction().commit();
 		
+		System.out.println("Asks:"+asks);
+		System.out.println("Number of asks=" + asks.size());
+		System.out.println("Number of asks=" + asks);
+		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
+		System.out.println("askMsgs=" + askMsgs);
+
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		Gson gson = null;
+
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
+		System.out.println("Performing JSON conversion ...");
+		int i=0;
+		for (Ask ask : askMsgs.getItems()) {
+			for (Ask ask2 : ask.getChildAsks()) {
+			System.out.println(ask2);
+//			for (Ask ask3 : ask2.getChildAsks()) 
+			try {
+				if (i>-1) {
+				String j = gson.toJson(ask2);
+				System.out.println("Json="+j);
+				}
+				i++;
+			} catch (Exception e) {
+				System.out.println(ask2.getQuestionCode()+" crapped itri ");
+			}
+			}
+		}
+//		String json2 = gson.toJson(askMsgs.getItems()[0].getChildAsks()[1].getChildAsks());
+//		String json3 = gson.toJson(askMsgs.getItems()[1].getChildAsks()[1].getChildAsks());
+//		askMsgs.getItems()[0].getChildAsks()[3] = null;
+//		askMsgs.getItems()[0].getChildAsks()[2] = null;
+//		askMsgs.getItems()[0].getChildAsks()[1] = null;
+		String json = gson.toJson(askMsgs);
+		System.out.println("json:"+json);
 		
 		
 	}
