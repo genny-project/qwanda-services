@@ -617,6 +617,17 @@ public class BaseEntityService2 {
 		return ask.getId();
 	}
 
+	public Long update(Validation val) {
+	    // always check if ask exists through check for unique code
+	    try {
+	      val = getEntityManager().merge(val);
+	    } catch (final IllegalArgumentException e) {
+	      // so persist otherwise
+	      getEntityManager().persist(val);
+	    }
+	    return val.getId();
+	  }
+	
 	public AnswerLink update(AnswerLink answerLink) {
 		// always check if answerLink exists through check for unique code
 		try {
