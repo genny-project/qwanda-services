@@ -925,7 +925,7 @@ public class BaseEntityService2 {
     if ((results == null) || (results.size() == 0))
       return null;
 
-    final BaseEntity ret = results.get(0).getBaseEntity();
+    final BaseEntity ret = results.get(0).getPk().getBaseEntity();
 
     return ret;
   }
@@ -941,7 +941,7 @@ public class BaseEntityService2 {
     if ((results == null) || (results.size() == 0))
       return null;
 
-    final BaseEntity ret = results.get(0).getBaseEntity();
+    final BaseEntity ret = results.get(0).getPk().getBaseEntity();
     return ret;
   }
 
@@ -1530,12 +1530,39 @@ public class BaseEntityService2 {
   public List<EntityAttribute> findAttributesByBaseEntityCode(final String code)
       throws NoResultException {
 
-    final List<EntityAttribute> results = getEntityManager()
-        .createQuery(
-            "SELECT ea FROM EntityAttribute ea where ea.baseEntityCode=:baseEntityCode")
-        .setParameter("baseEntityCode", code).getResultList();
-
-    return results;
+//    final List<EntityAttribute> results = getEntityManager()
+//        .createQuery(
+//            "SELECT ea FROM EntityAttribute ea where ea.baseEntityCode=:baseEntityCode")
+//        .setParameter("baseEntityCode", code).getResultList();
+//
+//    return results;
+	  // THIS IS REALLY BAD AND I AM SORRY....  COULD NOT QUICKLY SOLVE HIBERNATE RECURSION
+//	  BaseEntity source = this.findBaseEntityByCode(code);
+  final List<EntityAttribute> ret = new ArrayList<EntityAttribute>();
+  BaseEntity be = this.findBaseEntityByCode(code);
+  List<Object[]> results = getEntityManager()
+      .createQuery(
+          "SELECT ea.pk.attribute,ea.privacyFlag,ea.weight,ea.inferred,ea.valueString,ea.valueBoolean,ea.valueDate, ea.valueDateTime,ea.valueDouble, ea.valueInteger,ea.valueLong FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
+      .setParameter("baseEntityCode", code).getResultList();
+//VERY UGLY (ACC)
+  for (Object[] objectArray : results) {
+  		Attribute attribute = (Attribute)objectArray[0];
+  		Double weight = (Double)objectArray[2];
+  		Boolean privacyFlag = (Boolean)objectArray[1];
+  		Boolean inferred = (Boolean)objectArray[3];
+  		Object value = null;
+  		
+  		for (int i=4;i<11;i++) {
+  			if (objectArray[i] == null) continue;
+  			value = objectArray[i];
+  			break;
+  		}
+   	EntityAttribute ea = new EntityAttribute(be,attribute,weight,value);
+   	ea.setInferred(inferred);
+   	ea.setPrivacyFlag(privacyFlag);
+  		ret.add(ea);
+  }
+  return ret;
   }
 
   public List<BaseEntity> findBaseEntitysByAttributeValues(
