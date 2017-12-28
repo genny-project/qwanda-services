@@ -1532,7 +1532,7 @@ public class BaseEntityService2 {
 
     final List<EntityAttribute> results = getEntityManager()
         .createQuery(
-            "SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode")
+            "SELECT ea FROM EntityAttribute ea where ea.baseEntityCode=:baseEntityCode")
         .setParameter("baseEntityCode", code).getResultList();
 
     return results;
