@@ -24,6 +24,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 import org.apache.commons.lang3.StringUtils;
@@ -418,6 +419,7 @@ public class BaseEntityService2 {
     return entity.getId();
   }
 
+@Transactional
   public Long insert(Answer answer) {
     if (answer.getAttributeCode().equalsIgnoreCase("PRI_GENDER")) {
       System.out.println("GENDER CHANGE");
@@ -463,7 +465,7 @@ public class BaseEntityService2 {
           Optional<EntityAttribute> optExisting =
               beTarget.findEntityAttribute(answer.getAttributeCode());
           Object old = optExisting.isPresent() ? optExisting.get().getValue() : null;
-          answerLink = beTarget.addAnswer(beSource, answer, 1.0); // TODo replace with soucr
+          answerLink = beTarget.addAnswer(beSource, answer, answer.getWeight()); // TODo replace with soucr
           update(beTarget);
           boolean sendAttributeChangeEvent = false;
           if (!optExisting.isPresent()) {
@@ -535,6 +537,7 @@ public class BaseEntityService2 {
     return answer.getId();
   }
 
+@Transactional
   public Long insert(final Attribute attribute) {
     // always check if baseentity exists through check for unique code
     try {
