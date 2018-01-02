@@ -457,6 +457,13 @@ public class BaseEntityService2 {
         answer.setAttribute(attribute);
 
         getEntityManager().persist(answer);
+        
+        // Check if answer represents a link only
+        if (attribute.getDataType().getClassName().startsWith("DTT_LINK_")) {
+        	   // add a link
+        	addLink(answer.getValue(), answer.getTargetCode(),
+        			attribute.getDataType().getTypeName(), "ANSWER" , answer.getWeight());
+        } else {
 
         // update answerlink
 
@@ -516,6 +523,7 @@ public class BaseEntityService2 {
         } catch (final Exception e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
+        }
         }
 
       } catch (final EntityExistsException e) {
