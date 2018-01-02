@@ -154,6 +154,7 @@ public class BatchLoading {
       String validations = ((String) dataType.get("validations"));
       String code = ((String) dataType.get("code")).replaceAll("^\"|\"$", "");;
       String name = ((String) dataType.get("name")).replaceAll("^\"|\"$", "");;
+      String inputmask = ((String) dataType.get("inputmask"));
       final ValidationList validationList = new ValidationList();
       validationList.setValidationList(new ArrayList<Validation>());
       if (validations != null) {
@@ -164,7 +165,7 @@ public class BatchLoading {
         }
       }
       if (!dataTypeMap.containsKey(code)) {
-        final DataType dataTypeRecord = new DataType(name, validationList,name);
+        final DataType dataTypeRecord = new DataType(name, validationList,name,inputmask);
         dataTypeMap.put(code, dataTypeRecord);
       }
     });
