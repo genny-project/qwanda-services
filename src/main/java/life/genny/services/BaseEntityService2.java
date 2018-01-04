@@ -1892,7 +1892,7 @@ public class BaseEntityService2 {
         throw new IllegalArgumentException("linkCode" + linkCode + " not found");
       }
 
-      ee = beSource.addTarget(beTarget, linkAttribute, weight);
+      ee = beSource.addTarget(beTarget, linkAttribute, weight,value);
       beSource = getEntityManager().merge(beSource);
 
     }
