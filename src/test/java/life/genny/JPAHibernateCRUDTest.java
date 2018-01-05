@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -120,19 +121,19 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
   }
 
-  // @Test
+  @Test
   public void fetchAttribute() {
     final Attribute at = service.findAttributeByCode("PRI_FIRSTNAME");
     log.info(at);
   }
 
-  // @Test
+  @Test
   public void fetchBE() {
     final BaseEntity be = service.findBaseEntityByCode("PER_USER1");
     log.info(be);
   }
 
-  // @Test
+  @Test
   public void countBE() {
     final Long count =
         (Long) em.createQuery("SELECT count(be) FROM BaseEntity be where  be.code=:sourceCode")
@@ -169,7 +170,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
 
 
-  // @Test
+  //@Test
   public void sqlBEandAttributesTest() {
 
     final String sql =
@@ -186,6 +187,35 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
     assertThat(eeResults.size(), is(3));
     assertThat(eeResults.get(0).getBaseEntityAttributes().size(), greaterThan(5));
+  }
+  
+  @Test
+  public void testRemoveAttributeValue()
+  {
+	  List<EntityAttribute> eas = service.findAttributesByBaseEntityCode("PER_USER1");
+	  boolean ok = false;
+	  for (EntityAttribute ea : eas) {
+		  if (ea.getAttributeCode().equalsIgnoreCase("PRI_TEST")) {
+			  ok = true;
+			  break;
+		  }
+	  }
+	  assertTrue(ok);
+	  
+	  getEm().getTransaction().begin();
+	  service.removeEntityAttribute("PER_USER1","PRI_TEST");
+	    getEm().getTransaction().commit();
+	  
+	  eas = service.findAttributesByBaseEntityCode("PER_USER1");
+	  ok = false;
+	  for (EntityAttribute ea : eas) {
+		  if (ea.getAttributeCode().equalsIgnoreCase("PRI_TEST")) {
+			  ok = true;
+			  break;
+		  }
+	  }
+	  assertTrue(!ok);	  
+	  
   }
 
   // @Test

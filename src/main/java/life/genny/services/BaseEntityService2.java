@@ -1845,21 +1845,49 @@ public class BaseEntityService2 {
   }
 
 
-
+  @Transactional
   public void removeEntityEntity(final EntityEntity ee) {
     try {
-      // getEntityManager().getTransaction().begin();
       BaseEntity source = findBaseEntityByCode(ee.getLink().getSourceCode());
       source.getLinks().remove(ee);
       getEntityManager().merge(source);
       getEntityManager().remove(ee);
 
-      // getEntityManager().getTransaction().commit();
     } catch (Exception e) {
       // rollback
     }
   }
+  
+  public void removeEntityAttribute(final String baseEntityCode, final String attributeCode)
+  {
+	  BaseEntity be = this.findBaseEntityByCode(baseEntityCode);
+	  List<EntityAttribute> results = getEntityManager()
+	      .createQuery(
+	          "SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode and ea.attributeCode=:attributeCode")
+	      .setParameter("baseEntityCode", baseEntityCode)
+	      .setParameter("attributeCode", attributeCode)
+	      .getResultList();
+	  
+	  for (EntityAttribute ea: results) {
+		  removeEntityAttribute(ea);
+	  }
 
+  }
+  
+  @Transactional
+  public void removeEntityAttribute(final EntityAttribute ea) {
+    try {
+      BaseEntity source = findBaseEntityByCode(ea.getBaseEntityCode());
+      source.getBaseEntityAttributes().remove(ea);
+      getEntityManager().merge(source);
+      getEntityManager().remove(ea);
+
+    } catch (Exception e) {
+      // rollback
+    }
+  } 
+
+  @Transactional
   public EntityEntity addLink(final String sourceCode, final String targetCode,
       final String linkCode, Object value, Double weight)
       throws IllegalArgumentException, BadDataException {
@@ -1910,6 +1938,7 @@ public class BaseEntityService2 {
     }
   }
 
+  
   public void removeLink(final String sourceCode, final String targetCode, final String linkCode) {
     EntityEntity ee = null;
 
