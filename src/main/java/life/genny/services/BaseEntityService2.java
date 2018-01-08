@@ -854,11 +854,13 @@ public class BaseEntityService2 {
           .setParameter("realmStr", userRealmStr).setParameter("code", code.toUpperCase())
           .getResultList();
 
+      
+      
     } catch (Exception e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    if (result.isEmpty())
+    if ((result == null) && (result.isEmpty()))
       return null;
     return result.get(0);
   }
@@ -1392,9 +1394,16 @@ public class BaseEntityService2 {
       List<Ask> childAsks = new ArrayList<Ask>();
       for (QuestionQuestion qq : qqList) {
         String qCode = qq.getPk().getTargetCode();
-        log.info(rootQuestion.getCode() + " -> Child Question -> " + qCode);
+        log.info(qq.getPk().getSourceCode()+ " -> Child Question -> " + qCode);
         Question childQuestion = findQuestionByCode(qCode);
-        childAsks.addAll(findAsks2(childQuestion, source, target, qq.getMandatory()));
+        List<Ask> askChildren = null;
+        try {
+			askChildren = findAsks2(childQuestion, source, target, qq.getMandatory());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        childAsks.addAll(askChildren);
       }
       Ask[] asksArray = (Ask[]) childAsks.toArray(new Ask[0]);
       ask.setChildAsks(asksArray);

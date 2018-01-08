@@ -25,6 +25,7 @@ import java.util.TimeZone;
 
 import javax.persistence.Query;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
 import org.apache.logging.log4j.Logger;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
@@ -1074,5 +1075,31 @@ public void questionGroupTest()
 		System.out.println("json:"+json);
 		
 		
+	}
+	
+	@Test
+	public void asks2Test()
+	{
+		// http://10.0.0.197:8280/qwanda/baseentitys/PER_USER1/asks2/QUE_NEW_USER_PROFILE_GRP/PER_USER1
+		// http://localhost:8280/qwanda/baseentitys/PER_USER1/asks2/QUE_OFFER_DETAILS_GRP/OFR_OFFER1
+		List<Ask> asks = service.createAsksByQuestionCode2("QUE_NEW_USER_PROFILE_GRP", "PER_USER1", "PER_USER1");
+		System.out.println("Number of asks=" + asks.size());
+		System.out.println("Number of asks=" + asks);
+		QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		Gson gson = null;
+
+		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
+		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
+		String json = gson.toJson(askMsgs);
+		System.out.println("askMsgs=" + json);
+
+		asks = service.createAsksByQuestionCode2("QUE_NEW_USER_PROFILE_GRP", "PER_USER1", "OFR_OFFER1");
+		System.out.println("Number of asks=" + asks.size());
+		System.out.println("Number of asks=" + asks);
+		askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
+
+		json = gson.toJson(askMsgs);
+		System.out.println("askMsgs 2=" + json);
 	}
 }
