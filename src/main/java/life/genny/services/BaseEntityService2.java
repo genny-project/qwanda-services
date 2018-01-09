@@ -1804,16 +1804,51 @@ public class BaseEntityService2 {
     return eeResults;
   }
 
+  public List<Link> findParentLinks(@NotNull final String targetCode, final String linkCode) {
+
+	    final List<Link> eeResults;
+	    eeResults = getEntityManager().createQuery(
+	        "SELECT ee.link FROM EntityEntity ee where  ee.pk.targetCode=:targetCode and ee.pk.attribute.code=:linkAttributeCode ")
+	        .setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode)
+	        .getResultList();
+
+	    return eeResults;
+	  }
+  
+  public List<Link> findParentLinks(@NotNull final String targetCode, final String linkCode, final String value) {
+
+	    final List<Link> eeResults;
+	    eeResults = getEntityManager().createQuery(
+	        "SELECT ee.link FROM EntityEntity ee where  ee.link.targetCode=:targetCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode ")
+	        .setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode)
+	        .setParameter("linkValue", value)
+	        .getResultList();
+
+	    return eeResults;
+	  }
+  
+  public List<Link> findChildLinks(@NotNull final String sourceCode, final String linkCode, final String value) {
+
+	    final List<Link> eeResults;
+	    eeResults = getEntityManager().createQuery(
+	        "SELECT ee.link FROM EntityEntity ee where  ee.link.sourceCode=:targetCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode ")
+	        .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+	        .setParameter("linkValue", value)
+	        .getResultList();
+
+	    return eeResults;
+	  }
+
   public List<Link> findChildLinks(@NotNull final String sourceCode, final String linkCode) {
 
-    final List<Link> eeResults;
-    eeResults = getEntityManager().createQuery(
-        "SELECT ee.link FROM EntityEntity ee where  ee.pk.source.code=:sourceCode and ee.pk.attribute.code=:linkAttributeCode ")
-        .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
-        .getResultList();
+	    final List<Link> eeResults;
+	    eeResults = getEntityManager().createQuery(
+	        "SELECT ee.link FROM EntityEntity ee where  ee.pk.source.code=:sourceCode and ee.pk.attribute.code=:linkAttributeCode ")
+	        .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+	        .getResultList();
 
-    return eeResults;
-  }
+	    return eeResults;
+	  }
 
   public Link findLink(final String sourceCode, final String targetCode, final String linkCode)
       throws NoResultException {
