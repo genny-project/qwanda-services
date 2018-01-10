@@ -997,7 +997,7 @@ public class BaseEntityService2 {
 
         String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
             + "  JOIN be.baseEntityAttributes bee where " + eaStringsQ
-            + "  ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and  ee.pk.source.realm=:realmStr and ee.pk.source.code=:sourceCode and ";
+            + "  ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode and  be.realm=:realmStr and ee.link.sourceCode=:sourceCode and ";
         int attributeCodeIndex = 0;
         int valueIndex = 0;
         final List<String> attributeCodeList = new ArrayList<String>();
@@ -1062,7 +1062,7 @@ public class BaseEntityService2 {
       if (pairCount.equals(0)) {
 
         eeResults = getEntityManager().createQuery(
-            "SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode   and ee.pk.source.realm=:realmStr")
+            "SELECT distinct be FROM BaseEntity be,EntityEntity ee  where ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode   and be.realm=:realmStr")
             .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
             .setParameter("realmStr", userRealmStr).setFirstResult(pageStart)
             .setMaxResults(pageSize).getResultList();
@@ -1083,7 +1083,7 @@ public class BaseEntityService2 {
 
         String queryStr = "SELECT distinct be FROM BaseEntity be,EntityEntity ee" + eaStrings
             + "  where " + eaStringsQ
-            + " ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.realm=:realmStr and ee.pk.source.code=:sourceCode and ";
+            + " ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode and be.realm=:realmStr and ee.link.sourceCode=:sourceCode and ";
         int attributeCodeIndex = 0;
         int valueIndex = 0;
         final List<String> attributeCodeList = new ArrayList<String>();
@@ -1172,7 +1172,7 @@ public class BaseEntityService2 {
 
     String queryStr = "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee" + eaStrings
         + "  where " + eaStringsQ
-        + "  ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode  and ee.pk.source.realm=:realmStr and ee.pk.source.code=:sourceCode  ";
+        + "  ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode  and be.realm=:realmStr and ee.link.sourceCode=:sourceCode  ";
     int attributeCodeIndex = 0;
     int valueIndex = 0;
     final List<String> attributeCodeList = new ArrayList<String>();
