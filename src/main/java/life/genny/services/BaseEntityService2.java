@@ -1902,6 +1902,7 @@ public class BaseEntityService2 {
     }
   }
   
+  
   public void removeEntityAttribute(final String baseEntityCode, final String attributeCode)
   {
 	  BaseEntity be = this.findBaseEntityByCode(baseEntityCode);
