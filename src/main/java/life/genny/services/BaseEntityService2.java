@@ -513,11 +513,13 @@ public class BaseEntityService2 {
             pojo.setInferred(answer.getInferred());
             pojo.setExpired(answer.getExpired());
             pojo.setRefused(answer.getRefused());
+            pojo.setAskId(answer.getAskId());
 
             QEventAttributeValueChangeMessage msg =
                 new QEventAttributeValueChangeMessage(pojo, (oldValue), getCurrentToken());
 
             sendQEventAttributeValueChangeMessage(msg);
+            System.out.println("Sent Event Change Msg "+pojo);
           }
 
         } catch (final Exception e) {
@@ -541,7 +543,7 @@ public class BaseEntityService2 {
     } catch (Exception transactionException) {
       log.error("Transaction Exception in saving Answer" + answer);
     }
-
+    System.out.println("Saved Answer!");
     return answer.getId();
   }
 
