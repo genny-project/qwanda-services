@@ -898,10 +898,16 @@ public class BaseEntityService2 {
   public Attribute findAttributeByCode(@NotNull final String code) throws NoResultException {
 
     final String userRealmStr = getRealm();
-    final Attribute result = (Attribute) getEntityManager()
-        .createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr")
-        .setParameter("code", code.toUpperCase()).setParameter("realmStr", userRealmStr)
-        .getSingleResult();
+   Attribute result =null;
+   
+   try {
+	result = (Attribute) getEntityManager()
+	        .createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr")
+	        .setParameter("code", code.toUpperCase()).setParameter("realmStr", userRealmStr)
+	        .getSingleResult();
+} catch (javax.persistence.NoResultException e) {
+	log.error("Could not find Attribute: "+code);
+}
 
     return result;
   }
