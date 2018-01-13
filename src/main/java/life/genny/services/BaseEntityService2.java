@@ -900,14 +900,14 @@ public class BaseEntityService2 {
     final String userRealmStr = getRealm();
    Attribute result =null;
    
-   try {
+//   try {
 	result = (Attribute) getEntityManager()
 	        .createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr")
 	        .setParameter("code", code.toUpperCase()).setParameter("realmStr", userRealmStr)
 	        .getSingleResult();
-} catch (javax.persistence.NoResultException e) {
-	log.error("Could not find Attribute: "+code);
-}
+//} catch (javax.persistence.NoResultException e) {
+//	log.error("Could not find Attribute: "+code);
+//}
 
     return result;
   }
