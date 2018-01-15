@@ -1883,7 +1883,7 @@ public class BaseEntityService2 {
 
     try {
       ee = (EntityEntity) getEntityManager().createQuery(
-          "SELECT ee FROM EntityEntity ee where ee.pk.targetCode=:targetCode and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+          "SELECT ee FROM EntityEntity ee where ee.link.targetCode=:targetCode and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
           .setParameter("targetCode", targetCode).getSingleResult();
 
@@ -1945,10 +1945,9 @@ public class BaseEntityService2 {
       final String linkCode, Object value, Double weight)
       throws IllegalArgumentException, BadDataException {
     EntityEntity ee = null;
-    Link link = null;
 
     try {
-      link = findLink(sourceCode, targetCode, linkCode);
+      ee = findEntityEntity(sourceCode, targetCode, linkCode);
 
     } catch (NoResultException e) {
       BaseEntity beSource = null;
@@ -2003,6 +2002,24 @@ public class BaseEntityService2 {
     }
   }
 
+  @Transactional
+  public EntityEntity updateLink(final Link link)
+      throws IllegalArgumentException, BadDataException {
+    EntityEntity ee = null;
+  
+    ee =  findEntityEntity(link.getSourceCode(), link.getTargetCode(),
+    	      link.getAttributeCode());
+    
+    ee.setValue(link.getLinkValue());
+    ee.setWeight(link.getWeight());
+    ee.getLink().setChildColor(link.getChildColor());
+    ee.getLink().setParentColor(link.getParentColor());
+    ee.getLink().setRule(link.getRule());
+    
+    ee = getEntityManager().merge(ee);
+    return ee;
+  }
+  
   public void importBaseEntitys(final InputStream in, final String filename) {
     // import csv
     String line = "";
