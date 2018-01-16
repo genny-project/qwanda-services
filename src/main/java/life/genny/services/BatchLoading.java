@@ -461,7 +461,21 @@ public class BatchLoading {
   }
 
   public List<Map<String, Object>> getProjects() {
-    List<Map> projectsConfig = sheets.hostingImport();
+    List<Map> projectsConfig = null;
+    Integer countDown = 10;
+    while (countDown > 0) {
+    try {
+		projectsConfig = sheets.hostingImport();
+	} catch (Exception ee) { // java.util.NoSuchElementException e | java.net.SocketTimeoutException ee
+		log.error("Load from Google Doc failed, trying again in 3 sec");
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e1) {
+			
+		}
+		countDown--;
+	}
+    }
     return projectsConfig.stream().map(data -> {
       String sheetID = (String) data.get("sheetID");
       sheets.setSheetId(sheetID);
