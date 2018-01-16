@@ -49,7 +49,7 @@ public class BatchLoading {
 
   // @Inject
   private BaseEntityService2 service;
-  
+
   public static int id = 1;
 
   // private BaseEntityService service;
@@ -88,19 +88,20 @@ public class BatchLoading {
       String recursiveStr = ((String) validations.get("recursive"));
       String multiAllowedStr = ((String) validations.get("multi_allowed"));
       String groupCodesStr = ((String) validations.get("group_codes"));
-      Boolean recursive=getBooleanFromString(recursiveStr);
+      Boolean recursive = getBooleanFromString(recursiveStr);
       Boolean multiAllowed = getBooleanFromString(multiAllowedStr);
-      
-      Validation val = null;
-      
-      if (code.startsWith(Validation.getDefaultCodePrefix()+"SELECT_")) {
 
-    	  	val = new Validation(code, name, groupCodesStr,recursive,multiAllowed);
+      Validation val = null;
+
+      if (code.startsWith(Validation.getDefaultCodePrefix() + "SELECT_")) {
+
+        val = new Validation(code, name, groupCodesStr, recursive, multiAllowed);
       } else {
-    	  	val = new Validation(code, name, regex);
-    	  
+        val = new Validation(code, name, regex);
+
       }
-  	System.out.print("code " + code + ",name:" + name + ",val:" + val+", grp="+(groupCodesStr!=null?groupCodesStr:"X"));
+      System.out.print("code " + code + ",name:" + name + ",val:" + val + ", grp="
+          + (groupCodesStr != null ? groupCodesStr : "X"));
 
       Set<ConstraintViolation<Validation>> constraints = validator.validate(val);
       for (ConstraintViolation<Validation> constraint : constraints) {
@@ -165,7 +166,7 @@ public class BatchLoading {
         }
       }
       if (!dataTypeMap.containsKey(code)) {
-        final DataType dataTypeRecord = new DataType(name, validationList,name,inputmask);
+        final DataType dataTypeRecord = new DataType(name, validationList, name, inputmask);
         dataTypeMap.put(code, dataTypeRecord);
       }
     });
@@ -203,9 +204,9 @@ public class BatchLoading {
           String attributeCode =
               ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");;
           String valueString = ((String) baseEntityAttr.get("valueString"));
-           if (valueString != null) { 
-            valueString =  valueString.replaceAll("^\"|\"$", "");;
-           }
+          if (valueString != null) {
+            valueString = valueString.replaceAll("^\"|\"$", "");;
+          }
           String baseEntityCode =
               ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");;
           String weight = (String) baseEntityAttr.get("weight");
@@ -253,8 +254,9 @@ public class BatchLoading {
       try {
         sbe = service.findBaseEntityByCode(parentCode);
         tbe = service.findBaseEntityByCode(targetCode);
-        if ("BEG_0000001".equals(parentCode) && "LOD_LOAD1".equals(targetCode) && "LNK_BEG".equals(linkCode)) {
-        		System.out.println("Debugging point");
+        if ("BEG_0000001".equals(parentCode) && "LOD_LOAD1".equals(targetCode)
+            && "LNK_BEG".equals(linkCode)) {
+          System.out.println("Debugging point");
         }
         sbe.addTarget(tbe, linkAttribute, weight, valueString);
 
@@ -262,9 +264,9 @@ public class BatchLoading {
       } catch (final NoResultException e) {
       } catch (final BadDataException e) {
         e.printStackTrace();
-      }  catch (final NullPointerException e) {
-          e.printStackTrace();
-        }
+      } catch (final NullPointerException e) {
+        e.printStackTrace();
+      }
     });
   }
 
@@ -464,17 +466,19 @@ public class BatchLoading {
     List<Map> projectsConfig = null;
     Integer countDown = 10;
     while (countDown > 0) {
-    try {
-		projectsConfig = sheets.hostingImport();
-	} catch (Exception ee) { // java.util.NoSuchElementException e | java.net.SocketTimeoutException ee
-		log.error("Load from Google Doc failed, trying again in 3 sec");
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e1) {
-			
-		}
-		countDown--;
-	}
+      try {
+        projectsConfig = sheets.hostingImport();
+        break;
+      } catch (Exception ee) { // java.util.NoSuchElementException e |
+                               // java.net.SocketTimeoutException ee
+        log.error("Load from Google Doc failed, trying again in 3 sec");
+        try {
+          Thread.sleep(3000);
+        } catch (InterruptedException e1) {
+
+        }
+        countDown--;
+      }
     }
     return projectsConfig.stream().map(data -> {
       String sheetID = (String) data.get("sheetID");
@@ -599,44 +603,47 @@ public class BatchLoading {
     });
     return superProject;
   }
-  
+
   public void messageTemplates(Map<String, Object> project) {
     if (project.get("messages") == null)
       return;
     ((HashMap<String, HashMap>) project.get("messages")).entrySet().stream().forEach(data -> {
-	      Map<String, Object> template = data.getValue();
-	      String code = (String) template.get("code");
-	      String description = (String) template.get("description");
-	      String subject = (String) template.get("subject");
-	      String emailTemplateDocId = (String) template.get("email");
-	      String smsTemplate = (String) template.get("sms");
-	      
-	      final QBaseMSGMessageTemplate templateObj = new QBaseMSGMessageTemplate();
-	      templateObj.setCode(code);
-	      templateObj.setCreated(LocalDateTime.now());
-	      templateObj.setDescription(description);
-	      templateObj.setEmail_templateId(emailTemplateDocId);
-	      templateObj.setSms_template(smsTemplate);
-	      templateObj.setSubject(subject);
-	      
-	      Long id = service.insert(templateObj);
-	      System.out.println("id::"+id+" Code:"+code+" :"+subject);
-	    });
-	  }
+      Map<String, Object> template = data.getValue();
+      String code = (String) template.get("code");
+      String description = (String) template.get("description");
+      String subject = (String) template.get("subject");
+      String emailTemplateDocId = (String) template.get("email");
+      String smsTemplate = (String) template.get("sms");
 
-  
-  private Boolean getBooleanFromString(final String booleanString)
-  {
-	  if ( booleanString == null) {
-		  return false;
-	  }
-	  
-  	  	if (("TRUE".equalsIgnoreCase(booleanString.toUpperCase()))||("YES".equalsIgnoreCase(booleanString.toUpperCase())) ||("T".equalsIgnoreCase(booleanString.toUpperCase())) ||("Y".equalsIgnoreCase(booleanString.toUpperCase()))||("1".equalsIgnoreCase(booleanString))) {
-  	  		return true;
-  	  	}
-  	  	return false;
+      final QBaseMSGMessageTemplate templateObj = new QBaseMSGMessageTemplate();
+      templateObj.setCode(code);
+      templateObj.setCreated(LocalDateTime.now());
+      templateObj.setDescription(description);
+      templateObj.setEmail_templateId(emailTemplateDocId);
+      templateObj.setSms_template(smsTemplate);
+      templateObj.setSubject(subject);
+
+      Long id = service.insert(templateObj);
+      System.out.println("id::" + id + " Code:" + code + " :" + subject);
+    });
+  }
+
+
+  private Boolean getBooleanFromString(final String booleanString) {
+    if (booleanString == null) {
+      return false;
+    }
+
+    if (("TRUE".equalsIgnoreCase(booleanString.toUpperCase()))
+        || ("YES".equalsIgnoreCase(booleanString.toUpperCase()))
+        || ("T".equalsIgnoreCase(booleanString.toUpperCase()))
+        || ("Y".equalsIgnoreCase(booleanString.toUpperCase()))
+        || ("1".equalsIgnoreCase(booleanString))) {
+      return true;
+    }
+    return false;
 
   }
-  
-  
+
+
 }
