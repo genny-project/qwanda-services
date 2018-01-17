@@ -1864,7 +1864,7 @@ public class BaseEntityService2 {
 
     try {
       ee = (Link) getEntityManager().createQuery(
-          "SELECT ee.link FROM EntityEntity ee where ee.pk.targetCode=:targetCode and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode")
+          "SELECT ee.link FROM EntityEntity ee where ee.link.targetCode=:targetCode and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode")
           .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
           .setParameter("targetCode", targetCode).getSingleResult();
 
@@ -1947,8 +1947,11 @@ public class BaseEntityService2 {
     EntityEntity ee = null;
 
     try {
-      ee = findEntityEntity(sourceCode, targetCode, linkCode);
-
+      Link link = findLink(sourceCode, targetCode, linkCode);
+      BaseEntity source = findBaseEntityByCode(link.getSourceCode());
+      BaseEntity target = findBaseEntityByCode(link.getTargetCode());
+      Attribute attribute = findAttributeByCode(link.getAttributeCode());
+      ee = new EntityEntity(source,target,attribute, weight,value);
     } catch (NoResultException e) {
       BaseEntity beSource = null;
       BaseEntity beTarget = null;
