@@ -1815,7 +1815,7 @@ public class BaseEntityService2 {
   public Long findLinksCount(@NotNull final String targetCode, final String linkCode) {
 
 	  Query query = getEntityManager().createQuery(
-	        "SELECT ee.link FROM EntityEntity ee where  ee.pk.targetCode=:targetCode and ee.pk.attribute.code=:linkAttributeCode ")
+	        "SELECT count(ee.link) FROM EntityEntity ee where  ee.pk.targetCode=:targetCode and ee.pk.attribute.code=:linkAttributeCode ")
 	        .setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode);
 
 	    Long count = (Long)query.getSingleResult();
@@ -1833,6 +1833,17 @@ public class BaseEntityService2 {
 	    return eeResults;
 	  }
   
+  public Long findParentLinksCount(@NotNull final String targetCode, final String linkCode) {
+
+	    Long eeResults;
+	    eeResults = (Long)getEntityManager().createQuery(
+	        "SELECT count(ee.link) FROM EntityEntity ee where  ee.pk.targetCode=:targetCode and ee.pk.attribute.code=:linkAttributeCode ")
+	        .setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode)
+	        .getSingleResult();
+
+	    return eeResults;
+	  }
+  
   public List<Link> findParentLinks(@NotNull final String targetCode, final String linkCode, final String value) {
 
 	    final List<Link> eeResults;
@@ -1841,6 +1852,18 @@ public class BaseEntityService2 {
 	        .setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode)
 	        .setParameter("linkValue", value)
 	        .getResultList();
+
+	    return eeResults;
+	  }
+  
+  public Long findParentLinksCount(@NotNull final String targetCode, final String linkCode, final String value) {
+
+	    final Long eeResults;
+	    eeResults = (Long)getEntityManager().createQuery(
+	        "SELECT count(ee.link) FROM EntityEntity ee where  ee.link.targetCode=:targetCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode ")
+	        .setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode)
+	        .setParameter("linkValue", value)
+	        .getSingleResult();
 
 	    return eeResults;
 	  }
@@ -1856,6 +1879,18 @@ public class BaseEntityService2 {
 
 	    return eeResults;
 	  }
+  
+  public Long findChildLinksCount(@NotNull final String sourceCode, final String linkCode, final String value) {
+
+	    final Long eeResults;
+	    eeResults = (Long)getEntityManager().createQuery(
+	        "SELECT count(ee.link) FROM EntityEntity ee where  ee.link.sourceCode=:targetCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode ")
+	        .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+	        .setParameter("linkValue", value)
+	        .getSingleResult();
+
+	    return eeResults;
+	  }
 
   public List<Link> findChildLinks(@NotNull final String sourceCode, final String linkCode) {
 
@@ -1864,6 +1899,17 @@ public class BaseEntityService2 {
 	        "SELECT ee.link FROM EntityEntity ee where  ee.pk.source.code=:sourceCode and ee.pk.attribute.code=:linkAttributeCode ")
 	        .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
 	        .getResultList();
+
+	    return eeResults;
+	  }
+  
+  public Long findChildLinksCount(@NotNull final String sourceCode, final String linkCode) {
+
+	    final Long eeResults;
+	    eeResults = (Long)getEntityManager().createQuery(
+	        "SELECT count(ee.link) FROM EntityEntity ee where  ee.pk.source.code=:sourceCode and ee.pk.attribute.code=:linkAttributeCode ")
+	        .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+	        .getSingleResult();
 
 	    return eeResults;
 	  }

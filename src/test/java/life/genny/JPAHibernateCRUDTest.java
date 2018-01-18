@@ -60,10 +60,12 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.entity.Person;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
+import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwandautils.KeycloakService;
 import life.genny.qwandautils.MergeUtil;
+import life.genny.qwandautils.QwandaUtils;
 
 public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
@@ -190,9 +192,14 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     assertThat(eeResults.get(0).getBaseEntityAttributes().size(), greaterThan(5));
   }
   
-  @Test
+  //@Test
   public void testRemoveAttributeValue()
   {
+	  getEm().getTransaction().begin();
+
+		Answer answer = new Answer("PER_USER1","PER_USER","PRI_TEST","TEST_USERNAME");
+		service.insert(answer);
+
 	  List<EntityAttribute> eas = service.findAttributesByBaseEntityCode("PER_USER1");
 	  boolean ok = false;
 	  for (EntityAttribute ea : eas) {
@@ -203,7 +210,6 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 	  }
 	  assertTrue(ok);
 	  
-	  getEm().getTransaction().begin();
 	  service.removeEntityAttribute("PER_USER1","PRI_TEST");
 	    getEm().getTransaction().commit();
 	  
@@ -955,11 +961,11 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 public void questionGroupTest()
 {
    
-
+	getEm().getTransaction().begin();
 	Question addressGroupQuestion = service.findQuestionByCode("QUE_ADDRESS_GRP");
 	
 	System.out.println("Question Address group = "+addressGroupQuestion);
-	getEm().getTransaction().begin();
+	
 	List<Ask> asks = service.createAsksByQuestionCode2(addressGroupQuestion.getCode(), "PER_USER1","PER_USER1");
 	getEm().getTransaction().commit();
 	
