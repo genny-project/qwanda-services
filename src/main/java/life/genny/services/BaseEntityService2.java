@@ -1905,21 +1905,33 @@ public class BaseEntityService2 {
   
   public EntityEntity findEntityEntity(final String sourceCode, final String targetCode,
       final String linkCode) throws NoResultException {
-    EntityEntity ee = null;
-
-    try {
-      ee = (EntityEntity) getEntityManager().createQuery(
-          "SELECT ee FROM EntityEntity ee where ee.link.targetCode=:targetCode and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode")
-          .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
-          .setParameter("targetCode", targetCode).getSingleResult();
-
-    } catch (Exception e) {
-      // log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode +
-      // " not found");
-      throw new NoResultException(
-          "EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode + " not found");
+    
+    // find the BaseEntity
+    BaseEntity source = this.findBaseEntityByCode(sourceCode);
+    
+    // now loop through this baseentity to find the actual ee (avoid the direct look up loop)
+    for (EntityEntity ee :source.getLinks()) {
+    		if ((ee.getLink().getAttributeCode().equals(linkCode)) && (ee.getLink().getTargetCode().equals(targetCode))){
+    			return ee;
+    		}
     }
-    return ee;
+    
+    throw new NoResultException(
+            "EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode + " not found");
+
+//    try {
+//      ee = (EntityEntity) getEntityManager().createQuery(
+//          "SELECT ee FROM EntityEntity ee where ee.link.targetCode=:targetCode and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode")
+//          .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+//          .setParameter("targetCode", targetCode).getSingleResult();
+//
+//    } catch (Exception e) {
+//      // log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode +
+//      // " not found");
+//      throw new NoResultException(
+//          "EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode + " not found");
+//    }
+    
   }
 
 
