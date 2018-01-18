@@ -1876,7 +1876,33 @@ public class BaseEntityService2 {
     }
     return ee;
   }
+@Transactional
+  public Integer updateEntityEntity(final Link link) throws NoResultException {
+	    Integer result = 0;
 
+	    try {
+	      result=  getEntityManager().createQuery(
+	          "update EntityEntity  set linkValue =:linkValue, parentColor=:parentColor, childColor=:childColor, rule=:rule, weight=:weight, link.weight=:weight, link.parentColor=:parentColor, link.childColor=:childColor, link.rule=:rule, link.linkValue=:linkValue  where link.targetCode=:targetCode and link.attributeCode=:linkAttributeCode and link.sourceCode=:sourceCode")
+	          .setParameter("sourceCode", link.getSourceCode()).setParameter("linkAttributeCode", link.getAttributeCode())
+	          .setParameter("targetCode", link.getTargetCode())
+	          .setParameter("linkValue", link.getLinkValue())
+	          .setParameter("parentColor", link.getParentColor())
+	          .setParameter("childColor", link.getChildColor())	
+	          .setParameter("rule", link.getRule())
+	          .setParameter("weight", link.getWeight())
+	          .executeUpdate();
+
+
+
+	    } catch (Exception e) {
+	      // log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode +
+	      // " not found");
+	      throw new NoResultException(
+	          "EntityEntity " + link + " not found");
+	    }
+	    return result;
+	  }
+  
   public EntityEntity findEntityEntity(final String sourceCode, final String targetCode,
       final String linkCode) throws NoResultException {
     EntityEntity ee = null;

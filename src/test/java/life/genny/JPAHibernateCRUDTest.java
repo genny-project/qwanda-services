@@ -740,7 +740,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   @Test
   public void addLinkTest() {
     getEm().getTransaction().begin();
-
+    
     final Gson gson = new GsonBuilder()
         .registerTypeAdapter(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
           @Override
