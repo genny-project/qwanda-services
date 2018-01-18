@@ -1811,6 +1811,16 @@ public class BaseEntityService2 {
 
     return eeResults;
   }
+  
+  public Long findLinksCount(@NotNull final String targetCode, final String linkCode) {
+
+	  Query query = getEntityManager().createQuery(
+	        "SELECT ee.link FROM EntityEntity ee where  ee.pk.targetCode=:targetCode and ee.pk.attribute.code=:linkAttributeCode ")
+	        .setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode);
+
+	    Long count = (Long)query.getSingleResult();
+		return count;
+	  }
 
   public List<Link> findParentLinks(@NotNull final String targetCode, final String linkCode) {
 

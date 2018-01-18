@@ -207,28 +207,35 @@ public class BatchLoading {
           if (valueString != null) {
             valueString = valueString.replaceAll("^\"|\"$", "");;
           }
-          String baseEntityCode =
-              ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");;
-          String weight = (String) baseEntityAttr.get("weight");
-          Attribute attribute = null;
-          BaseEntity be = null;
+          String baseEntityCode = null;
+          
           try {
-            attribute = service.findAttributeByCode(attributeCode);
-            be = service.findBaseEntityByCode(baseEntityCode);
-            Double weightField = null;
-            try {
-              weightField = Double.valueOf(weight);
-            } catch (java.lang.NumberFormatException ee) {
-              weightField = 0.0;
-            }
-            try {
-              be.addAttribute(attribute, weightField, valueString);
-            } catch (final BadDataException e) {
-              e.printStackTrace();
-            }
-            service.update(be);
-          } catch (final NoResultException e) {
-          }
+			baseEntityCode = 
+			      ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");;
+		          String weight = (String) baseEntityAttr.get("weight");
+		          Attribute attribute = null;
+		          BaseEntity be = null;
+		          try {
+		            attribute = service.findAttributeByCode(attributeCode);
+		            be = service.findBaseEntityByCode(baseEntityCode);
+		            Double weightField = null;
+		            try {
+		              weightField = Double.valueOf(weight);
+		            } catch (java.lang.NumberFormatException ee) {
+		              weightField = 0.0;
+		            }
+		            try {
+		              be.addAttribute(attribute, weightField, valueString);
+		            } catch (final BadDataException e) {
+		              e.printStackTrace();
+		            }
+		            service.update(be);
+		          } catch (final NoResultException e) {
+		          }
+		} catch (Exception e1) {
+			log.error("Error in getting baseEntityAttr ");
+		}
+
         });
   }
 
