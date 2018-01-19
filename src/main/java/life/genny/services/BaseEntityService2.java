@@ -216,6 +216,7 @@ public class BaseEntityService2 {
    * Inserts
    */
 
+  @Transactional
   public Long insert(final Ask ask) {
     // Fetch the associated BaseEntitys and Question
 
@@ -257,6 +258,7 @@ public class BaseEntityService2 {
     return ask.getId();
   }
 
+  @Transactional
   public Long insert(final GPS entity) {
     try {
       getEntityManager().persist(entity);
@@ -271,6 +273,7 @@ public class BaseEntityService2 {
     return entity.getId();
   }
 
+  @Transactional
   public Long insert(final Question question) {
     // always check if question exists through check for unique code
     try {
@@ -292,6 +295,7 @@ public class BaseEntityService2 {
     return question.getId();
   }
 
+  @Transactional
   public Long insert(final Rule rule) {
     // always check if rule exists through check for unique code
     try {
@@ -307,6 +311,7 @@ public class BaseEntityService2 {
     return rule.getId();
   }
 
+  @Transactional
   public Long insert(final Validation validation) {
     // always check if rule exists through check for unique code
     try {
@@ -390,6 +395,7 @@ public class BaseEntityService2 {
     return answerLink;
   }
 
+  @Transactional
   public Long insert(BaseEntity entity) {
 
     // get security
@@ -571,6 +577,7 @@ public class BaseEntityService2 {
     return attribute.getId();
   }
 
+@Transactional
   public EntityEntity insertEntityEntity(final EntityEntity ee) {
 
     try {
