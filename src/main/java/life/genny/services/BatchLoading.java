@@ -123,10 +123,7 @@ public class BatchLoading {
     ((HashMap<String, HashMap>) project.get("attributes")).entrySet().stream().forEach(data -> {
       try {
         Map<String, Object> attributes = data.getValue();
-        if (data.getKey().equals("FBK_USERNAME")) {
-          System.out.println("Validation cast to BaseEntity Exception caused by this one...");
-        }
-        String code = ((String) attributes.get("code")).replaceAll("^\"|\"$", "");;
+         String code = ((String) attributes.get("code")).replaceAll("^\"|\"$", "");;
         String dataType = ((String) attributes.get("dataType")).replaceAll("^\"|\"$", "");;
         String name = ((String) attributes.get("name")).replaceAll("^\"|\"$", "");;
         DataType dataTypeRecord = dataTypeMap.get(dataType);
@@ -233,7 +230,11 @@ public class BatchLoading {
 		          } catch (final NoResultException e) {
 		          }
 		} catch (Exception e1) {
-			log.error("Error in getting baseEntityAttr ");
+			String beCode = "BAD BE CODE";
+			if (baseEntityAttr != null) {
+				beCode = (String) baseEntityAttr.get("baseEntityCode");
+			}
+			log.error("Error in getting baseEntityAttr  for AttributeCode "+attributeCode+ " and beCode="+beCode);
 		}
 
         });
