@@ -320,8 +320,7 @@ public class BatchLoading {
 
 				qq = service.upsert(qq);
 			} catch (NullPointerException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				log.error("Cannot find QuestionQuestion "+tbe);
 			}
 
           } catch (final NoResultException e) {
