@@ -311,9 +311,14 @@ public class BatchLoading {
           try {
             sbe = service.findQuestionByCode(parentCode);
             tbe = service.findQuestionByCode(targetCode);
-            QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+            try {
+				QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
 
-            qq = service.upsert(qq);
+				qq = service.upsert(qq);
+			} catch (NullPointerException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
           } catch (final NoResultException e) {
             System.out.println("No Result! in QuestionQuestions Loading");
