@@ -203,8 +203,12 @@ public class BatchLoading {
     ((HashMap<String, HashMap>) project.get("attibutesEntity")).entrySet().stream()
         .forEach(data -> {
           Map<String, Object> baseEntityAttr = data.getValue();
-          String attributeCode =
-              ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");;
+          String attributeCode = null;
+             try {
+				attributeCode =  ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");;
+			} catch (Exception e2) {
+				log.error("AttributeCode not found ["+baseEntityAttr+"]");
+			}
           String valueString = ((String) baseEntityAttr.get("valueString"));
           if (valueString != null) {
             valueString = valueString.replaceAll("^\"|\"$", "");;
