@@ -27,6 +27,7 @@ import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeLink;
+import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.exception.BadDataException;
@@ -128,7 +129,11 @@ public class BatchLoading {
         String name = ((String) attributes.get("name")).replaceAll("^\"|\"$", "");;
         DataType dataTypeRecord = dataTypeMap.get(dataType);
         ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
+        String privacyStr = ((String) attributes.get("privacy"));
+        Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+
         Attribute attr = new Attribute(code, name, dataTypeRecord);
+        attr.setDefaultPrivacyFlag(privacy);
         service.upsert(attr);
       } catch (Exception e) {
         // TODO Auto-generated catch block
@@ -210,6 +215,8 @@ public class BatchLoading {
 			baseEntityCode = 
 			      ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");;
 		          String weight = (String) baseEntityAttr.get("weight");
+		          String privacyStr = (String) baseEntityAttr.get("privacy");
+		          Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 		          Attribute attribute = null;
 		          BaseEntity be = null;
 		          try {
@@ -222,7 +229,10 @@ public class BatchLoading {
 		              weightField = 0.0;
 		            }
 		            try {
-		              be.addAttribute(attribute, weightField, valueString);
+		              EntityAttribute ea = be.addAttribute(attribute, weightField, valueString);
+		              if (privacy || attribute.getDefaultPrivacyFlag()) {
+		            	  	ea.setPrivacyFlag(true);
+		              }
 		            } catch (final BadDataException e) {
 		              e.printStackTrace();
 		            }
