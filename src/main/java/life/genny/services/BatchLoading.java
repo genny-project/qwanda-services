@@ -350,6 +350,7 @@ public class BatchLoading {
       String code = (String) questions.get("code");
       String name = (String) questions.get("name");
       String attrCode = (String) questions.get("attribute_code");
+      String html = (String) questions.get("html");
       Attribute attr;
       attr = service.findAttributeByCode(attrCode);
       final Question q = new Question(code, name, attr);

@@ -999,19 +999,12 @@ public class BaseEntityService2 {
 				
 				query = getEntityManager().createQuery("SELECT distinct be FROM BaseEntity be,"
 						+ stakeholderFilter1
-						+ "EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode  and ee.pk.source.realm=:realmStr"
+						+ "EntityEntity ee JOIN be.baseEntityAttributes bee where ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode  and ee.pk.source.realm=:realmStr"
 						+ stakeholderFilter2).setParameter("sourceCode", sourceCode)
 						.setParameter("linkAttributeCode", linkCode).setParameter("realmStr", userRealmStr);
 				if (stakeholderCode != null) {
 					query.setParameter("stakeholderCode", stakeholderCode);
-				} else {
-					query = getEntityManager().createQuery("SELECT distinct be FROM BaseEntity be,"
-							+ stakeholderFilter1
-							+ "EntityEntity ee JOIN be.baseEntityAttributes bee where ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode  and ee.pk.source.realm=:realmStr"
-							+ stakeholderFilter2).setParameter("sourceCode", sourceCode)
-							.setParameter("linkAttributeCode", linkCode).setParameter("realmStr", userRealmStr);
-				
-				}
+				} 
 				eeResults = query.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
 			} else {
