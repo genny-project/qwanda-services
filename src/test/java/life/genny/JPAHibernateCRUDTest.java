@@ -1108,4 +1108,26 @@ public void questionGroupTest()
 		json = gson.toJson(askMsgs);
 		System.out.println("askMsgs 2=" + json);
 	}
+	
+	@Test
+	public void stakeholderQuery()
+	{
+		Integer pageStart = 0;
+		Integer pageSize = 10; // default
+		Integer level = 1;
+
+		MultivaluedMap<String, String> params = new MultivaluedMapImpl<String, String>();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		qparams.putAll(params);
+
+
+		final List<BaseEntity> targets = service.findChildrenByAttributeLink("GRP_NEW_ITEMS", "LNK_CORE", true, pageStart,
+				pageSize, level, qparams, "PER_USER1");
+
+		for (final BaseEntity be : targets) {
+			log.info("\n" + be.getCode() + " + attributes");
+			be.getBaseEntityAttributes().stream().forEach(p -> System.out.println(p.getAttributeCode()));
+		}
+
+	}
 }
