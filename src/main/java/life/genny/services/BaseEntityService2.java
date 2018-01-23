@@ -1996,10 +1996,16 @@ public class BaseEntityService2 {
 	@Transactional
 	public void removeEntityEntity(final EntityEntity ee) {
 		try {
+			Link oldLink = ee.getLink();
 			BaseEntity source = findBaseEntityByCode(ee.getLink().getSourceCode());
 			source.getLinks().remove(ee);
 			getEntityManager().merge(source);
 			getEntityManager().remove(ee);
+			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(null,
+					oldLink, getCurrentToken());
+
+			sendQEventLinkChangeMessage(msg);
+			System.out.println("Sent Event Link Change Msg " + msg);
 
 		} catch (Exception e) {
 			// rollback
@@ -2008,6 +2014,7 @@ public class BaseEntityService2 {
 
 	public void removeEntityAttribute(final String baseEntityCode, final String attributeCode) {
 		BaseEntity be = this.findBaseEntityByCode(baseEntityCode);
+		
 		List<EntityAttribute> results = getEntityManager().createQuery(
 				"SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode and ea.attributeCode=:attributeCode")
 				.setParameter("baseEntityCode", baseEntityCode).setParameter("attributeCode", attributeCode)
@@ -2016,7 +2023,6 @@ public class BaseEntityService2 {
 		for (EntityAttribute ea : results) {
 			removeEntityAttribute(ea);
 		}
-
 	}
 
 	@Transactional
@@ -2068,6 +2074,11 @@ public class BaseEntityService2 {
 
 			ee = beSource.addTarget(beTarget, linkAttribute, weight, value);
 			beSource = getEntityManager().merge(beSource);
+			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee.getLink(),
+				null, getCurrentToken());
+
+			sendQEventLinkChangeMessage(msg);
+			System.out.println("Sent Event Link Change Msg " + msg);
 
 		}
 		return ee;
@@ -2090,6 +2101,7 @@ public class BaseEntityService2 {
 		try {
 			ee = findEntityEntity(sourceCode, targetCode, linkCode);
 			removeEntityEntity(ee);
+			
 		} catch (Exception e) {
 			log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode + " not found");
 		}
@@ -2468,6 +2480,12 @@ public class BaseEntityService2 {
 			// removeEntityEntity(oldLink);
 			removeLink(oldLink);
 			ee = eee.getLink();
+			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee,
+					oldLink, getCurrentToken());
+
+			sendQEventLinkChangeMessage(msg);
+			System.out.println("Sent Event Link Change Msg " + msg);
+
 			// getEntityManager().getTransaction().commit();
 		} catch (Exception e) {
 			throw new IllegalArgumentException("linkCode" + linkCode + " not found");
