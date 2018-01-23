@@ -57,6 +57,7 @@ import life.genny.qwanda.entity.Product;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
+import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.validation.Validation;
 
@@ -192,6 +193,11 @@ public class BaseEntityService2 {
 	// Override as required
 	public void sendQEventAttributeValueChangeMessage(final QEventAttributeValueChangeMessage event) {
 		log.info("Send Attribute Change:" + event);
+	}
+	
+	// Override as required
+	public void sendQEventLinkChangeMessage(final QEventLinkChangeMessage event){
+		log.info("Send Link Change:" + event);
 	}
 
 	protected String getCurrentToken() {
