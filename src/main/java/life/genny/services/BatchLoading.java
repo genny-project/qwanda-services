@@ -362,6 +362,7 @@ public class BatchLoading {
       Attribute attr;
       attr = service.findAttributeByCode(attrCode);
       final Question q = new Question(code, name, attr);
+      q.setHtml(html);
       service.insert(q);
     });
   }
