@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
@@ -195,6 +196,15 @@ public class BaseEntityService2 {
     log.info("Send Link Change:" + event);
   }
 
+  public void  sendQEventSystemMessage(final String systemCode) {
+	  log.info("Send System Code");
+  }
+  public void  sendQEventSystemMessage(final String systemCode,final String token) {
+	  log.info("Send System Code");
+  }
+  public void  sendQEventSystemMessage(final String systemCode, final Properties properties, final String token) {
+	  log.info("Send System Code");
+  }
   protected String getCurrentToken() {
     return "DUMMY_TOKEN";
   }
@@ -2542,7 +2552,8 @@ public class BaseEntityService2 {
 
       // getEntityManager().getTransaction().commit();
     } catch (Exception e) {
-      throw new IllegalArgumentException("linkCode" + linkCode + " not found");
+     // throw new IllegalArgumentException("linkCode" + linkCode + " not found");
+    	log.error("linkCode" + linkCode + " not found");
     }
     return ee;
   }
