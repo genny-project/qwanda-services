@@ -616,11 +616,12 @@ public class BaseEntityService2 {
    * updates
    */
 
+  @Transactional
   public Long update(BaseEntity entity) {
     // always check if baseentity exists through check for unique code
     try {
       entity = getEntityManager().merge(entity);
-    } catch (final IllegalArgumentException e) {
+    } catch (final Exception e) {
       // so persist otherwise
       getEntityManager().persist(entity);
     }
@@ -748,6 +749,7 @@ public class BaseEntityService2 {
     }
   }
 
+  @Transactional
   public BaseEntity upsert(BaseEntity be) {
     try {
       String code = be.getCode();
