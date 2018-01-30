@@ -28,6 +28,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import org.apache.logging.log4j.Logger;
+import org.javamoney.moneta.Money;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.junit.Test;
 import org.keycloak.admin.client.resource.UserResource;
@@ -49,6 +50,7 @@ import life.genny.qwanda.Ask;
 import life.genny.qwanda.CoreEntity;
 import life.genny.qwanda.DateTimeDeserializer;
 import life.genny.qwanda.Link;
+import life.genny.qwanda.MoneyDeserializer;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeDate;
@@ -76,7 +78,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   public void saveAnswerTest() {
 	 getEm().getTransaction().begin();
 
-    final Gson gson = new GsonBuilder()
+    final Gson gson = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer())
         .registerTypeAdapter(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
           @Override
           public LocalDateTime deserialize(final JsonElement json, final Type type,
@@ -747,7 +749,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   public void addLinkTest() {
     getEm().getTransaction().begin();
     
-    final Gson gson = new GsonBuilder()
+    final Gson gson = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer())
         .registerTypeAdapter(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
           @Override
           public LocalDateTime deserialize(final JsonElement json, final Type type,
@@ -1000,7 +1002,7 @@ public void questionGroupTest()
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
 		System.out.println("askMsgs=" + askMsgs);
 
-		GsonBuilder gsonBuilder = new GsonBuilder();
+		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
 		Gson gson = null;
 
 		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
