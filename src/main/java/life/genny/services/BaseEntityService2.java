@@ -44,6 +44,7 @@ import life.genny.qwanda.GPS;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
+import life.genny.qwanda.QuestionSourceTarget;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.attribute.AttributeText;
@@ -1484,6 +1485,67 @@ public class BaseEntityService2 {
     return asks;
   }
 
+  QuestionSourceTarget findQST(final String questionCode, final QuestionSourceTarget[] qstArray, final QuestionSourceTarget defaultQST)
+  {
+	  for (QuestionSourceTarget qst : qstArray) {
+		  if (qst.getQuestionCode().equalsIgnoreCase(questionCode)) {
+			  return qst;
+		  }
+	  }
+	  return defaultQST;
+  }
+  
+  public List<Ask> findAsksUsingQuestionSourceTarget( Question rootQuestion,  QuestionSourceTarget[] qstArray,  QuestionSourceTarget defaultQST) {
+	  // find the root QST from the qstArray
+	  QuestionSourceTarget qst = findQST(rootQuestion.getCode(),qstArray,defaultQST);
+	  
+	  
+	  return findAsksUsingQuestionSourceTarget(rootQuestion,qst, qstArray, false);
+  }
+
+  public List<Ask> findAsksUsingQuestionSourceTarget(final Question rootQuestion,final QuestionSourceTarget defaultQST, QuestionSourceTarget[] qstArray, Boolean childQuestionIsMandatory) {
+	    List<Ask> asks = new ArrayList<Ask>();
+	    Boolean mandatory = rootQuestion.getMandatory() || childQuestionIsMandatory;
+	    
+	    Ask ask = null;
+	    // check if this already exists?
+	    List<Ask> myAsks = findAsksByQuestion(rootQuestion, defaultQST.getSource(), defaultQST.getTarget());
+	    if (!((myAsks == null) || (myAsks.isEmpty()))) {
+	      ask = myAsks.get(0);
+	      ask.setMandatory(mandatory);
+	    } else {
+	      ask = new Ask(rootQuestion, defaultQST.getSourceCode(), defaultQST.getTargetCode(), mandatory);
+	      ask = upsert(ask);
+	    }
+	    // create one
+		if (rootQuestion.getAttributeCode().startsWith(Question.QUESTION_GROUP_ATTRIBUTE_CODE)) {
+			// Recurse!
+			List<QuestionQuestion> qqList = new ArrayList<QuestionQuestion>(rootQuestion.getChildQuestions());
+			Collections.sort(qqList); // sort by priority
+			List<Ask> childAsks = new ArrayList<Ask>();
+			for (QuestionQuestion qq : qqList) {
+				String qCode = qq.getPk().getTargetCode();
+				log.info(qq.getPk().getSourceCode() + " -> Child Question -> " + qCode);
+				Question childQuestion = findQuestionByCode(qCode);
+				// now set defaultQST
+				QuestionSourceTarget qst = findQST(qCode,qstArray,defaultQST);
+				List<Ask> askChildren = null;
+				try {
+					askChildren = findAsksUsingQuestionSourceTarget(childQuestion, qst,qstArray,
+							qq.getMandatory());
+				} catch (Exception e) {
+					}
+				childAsks.addAll(askChildren);
+			}
+			Ask[] asksArray = (Ask[]) childAsks.toArray(new Ask[0]);
+			ask.setChildAsks(asksArray);
+			ask = upsert(ask); // save
+		}
+
+	    asks.add(ask);
+	    return asks;
+	  }
+  
   public List<Ask> createAsksByQuestionCode(final String questionCode, final String sourceCode,
       final String targetCode) {
     Question rootQuestion = findQuestionByCode(questionCode);
