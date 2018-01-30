@@ -337,14 +337,39 @@ public class BatchLoading {
    * 
    * @param project
    */
-  public void attributeLinks(Map<String, Object> project) {
+  public void attributeLinks(Map<String, Object> project,  Map<String, DataType> dataTypeMap) {
     ((HashMap<String, HashMap>) project.get("attributeLink")).entrySet().stream().forEach(data -> {
       Map<String, Object> attributeLink = data.getValue();
+      
       String code = ((String) attributeLink.get("code")).replaceAll("^\"|\"$", "");;
-      String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");;
-      final AttributeLink linkAttribute = new AttributeLink(code, name);
-      service.upsert(linkAttribute);
-    });
+     String dataType = null;
+      AttributeLink linkAttribute = null;
+     
+     try {
+		dataType = ((String) attributeLink.get("dataType")).replaceAll("^\"|\"$", "");;
+		   String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");;
+		     DataType dataTypeRecord = dataTypeMap.get(dataType);
+		     ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
+		     String privacyStr = ((String) attributeLink.get("privacy"));
+		     Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+
+		     linkAttribute = new AttributeLink(code, name);
+		     linkAttribute.setDefaultPrivacyFlag(privacy);
+		     linkAttribute.setDataType(dataTypeRecord);
+		     service.upsert(linkAttribute);
+	} catch (Exception e) {
+		  String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");;
+		     String privacyStr = ((String) attributeLink.get("privacy"));
+		     Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+
+		      linkAttribute = new AttributeLink(code, name);
+		     linkAttribute.setDefaultPrivacyFlag(privacy);
+	}
+   
+     service.upsert(linkAttribute);
+
+      
+     });
   }
 
   /**
@@ -386,6 +411,9 @@ public class BatchLoading {
       String weightStr = (String) asks.get("weight");
       String mandatoryStr = ((String) asks.get("mandatory"));
       final Double weight = Double.valueOf(weightStr);
+      if ("QUE_USER_SELECT_ROLE".equals(targetCode)) {
+    	  System.out.println("dummy");
+      }
       Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
 
       Question question = service.findQuestionByCode(qCode);
@@ -452,7 +480,7 @@ public class BatchLoading {
     attributes(lastProject, dataTypes);
     baseEntitys(lastProject);
     baseEntityAttributes(lastProject);
-    attributeLinks(lastProject);
+    attributeLinks(lastProject, dataTypes);
     entityEntitys(lastProject);
     System.out.println("+++++++++ About to load Questions +++++++++++++");
     questions(lastProject);

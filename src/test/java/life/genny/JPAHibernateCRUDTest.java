@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -817,7 +818,10 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 		Integer linkCount = links.size();
 		assertEquals(linkCount==1,true);
 		assertEquals(links.get(0).getSourceCode().equals(testGroup2.getCode()),true); // check it moved
-	} catch (IllegalArgumentException | BadDataException e) {
+	} catch (IllegalArgumentException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} catch (BadDataException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
@@ -1132,4 +1136,17 @@ public void questionGroupTest()
 		}
 
 	}
+	
+	 @Test
+	   public void isMandatoryFieldsCompletedTest() {
+	 
+		  List<Ask> asks = service.createAsksByQuestionCode2("QUE_NEW_USER_PROFILE_GRP", "PER_USER1", "PER_USER1");
+		  Ask[] asksArray = (Ask[]) asks.toArray(new Ask[0]);
+		  BaseEntity user = service.findBaseEntityByCode("PER_USER1");
+		  BaseEntity company = service.findBaseEntityByCode("CPY_COMPANY1");
+	      List<BaseEntity> baseEntityList = Arrays.asList(user, company);
+	      QDataAskMessage askMsg = new QDataAskMessage(asksArray);
+		  Boolean result = QwandaUtils.isMandatoryFieldsCompleted(askMsg, baseEntityList);
+		 System.out.println("The Test Result for isMandatoryCompleted is  ::    "+result);
+	   }
 }
