@@ -1803,7 +1803,7 @@ public class BaseEntityService2 {
     } else {
       Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
-      eeResults = getEntityManager().createQuery("SELECT be FROM BaseEntity be ")
+      eeResults = getEntityManager().createQuery("SELECT be FROM BaseEntity be  ")
           .setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
     }
