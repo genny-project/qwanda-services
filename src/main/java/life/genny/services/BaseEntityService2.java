@@ -619,22 +619,30 @@ public class BaseEntityService2 {
 
   @Transactional
   public Long update(BaseEntity entity) {
-    // always check if baseentity exists through check for unique code
-    	   Long result = 0L;
+//    // always check if baseentity exists through check for unique code
+//    	   Long result = 0L;
+//
+//    	    try {
+//    	      result = (long) getEntityManager().createQuery(
+//    	          "update BaseEntity be set be.name =:name where be.code=:sourceCode")
+//    	          .setParameter("sourceCode", entity.getCode())
+//    	          .executeUpdate();
+//
+//    	    } catch (Exception e) {
+//    	      // log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode +
+//    	      // " not found");
+//   
+//    	    }
+//  
+//    return result;
+    try {
 
-    	    try {
-    	      result = (long) getEntityManager().createQuery(
-    	          "update BaseEntity be set be.name =:name where be.code=:sourceCode")
-    	          .setParameter("sourceCode", entity.getCode())
-    	          .executeUpdate();
-
-    	    } catch (Exception e) {
-    	      // log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode +
-    	      // " not found");
-   
-    	    }
-  
-    return result;
+        entity = getEntityManager().merge(entity);
+      } catch (final IllegalArgumentException e) {
+        // so persist otherwise
+        getEntityManager().persist(entity);
+      }
+      return entity.getId();
   }
 
   public Long update(Attribute attribute) {
