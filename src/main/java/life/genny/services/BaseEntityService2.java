@@ -856,10 +856,13 @@ public class BaseEntityService2 {
     final String userRealmStr = getRealm();
 
     if (includeEntityAttributes) {
+       String privacySQL =  inRole("admin")?"":" and ea.privacyFlag=false";
+
       result = (BaseEntity) getEntityManager().createQuery(
-          "SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr")
+          "SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr "+privacySQL)
           .setParameter("baseEntityCode", baseEntityCode.toUpperCase())
           .setParameter("realmStr", userRealmStr).getSingleResult();
+        
     } else {
       result = (BaseEntity) getEntityManager()
           .createQuery(
@@ -1725,10 +1728,13 @@ public class BaseEntityService2 {
         value = objectArray[i];
         break;
       }
+      if ((inRole("admin")&&(privacyFlag)) || (!privacyFlag)) {
+
       EntityAttribute ea = new EntityAttribute(be, attribute, weight, value);
       ea.setInferred(inferred);
       ea.setPrivacyFlag(privacyFlag);
       ret.add(ea);
+    }
     }
     return ret;
   }
@@ -2721,4 +2727,9 @@ public class BaseEntityService2 {
   protected String getRealm() {
     return DEFAULT_REALM;
   }
+  
+
+	public Boolean inRole(final String role) {
+		return true; // allow for qwanda-services
+	}
 }
