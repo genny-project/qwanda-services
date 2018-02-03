@@ -856,7 +856,7 @@ public class BaseEntityService2 {
     final String userRealmStr = getRealm();
 
     if (includeEntityAttributes) {
-       String privacySQL =  inRole("admin")?"":" and ea.privacyFlag=false";
+       String privacySQL = ( inRole("admin"))?"":" and ea.privacyFlag=false";
 
       result = (BaseEntity) getEntityManager().createQuery(
           "SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr "+privacySQL)
