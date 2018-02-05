@@ -63,6 +63,7 @@ import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.validation.Validation;
+import life.genny.qwandautils.JsonUtils;
 
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
@@ -429,6 +430,8 @@ public class BaseEntityService2 {
     // always check if baseentity exists through check for unique code
     try {
       getEntityManager().persist(entity);
+      String json = JsonUtils.toJson(entity);
+      writeToDDT(entity.getCode(),json);
     } catch (final ConstraintViolationException e) {
       // so update otherwise // TODO merge?
       getEntityManager().merge(entity);
@@ -642,6 +645,8 @@ public class BaseEntityService2 {
     try {
 
         entity = getEntityManager().merge(entity);
+        String json = JsonUtils.toJson(entity);
+        writeToDDT(entity.getCode(),json);
       } catch (final IllegalArgumentException e) {
         // so persist otherwise
         getEntityManager().persist(entity);
