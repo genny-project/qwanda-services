@@ -2031,7 +2031,7 @@ public class BaseEntityService2 {
 
     final List<Link> eeResults;
     eeResults = getEntityManager().createQuery(
-        "SELECT ee.link FROM EntityEntity ee where  ee.link.sourceCode=:targetCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode ")
+        "SELECT ee.link FROM EntityEntity ee where  ee.link.sourceCode=:sourceCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode ")
         .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
         .setParameter("linkValue", value).getResultList();
 
