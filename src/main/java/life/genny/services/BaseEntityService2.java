@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
@@ -78,6 +79,9 @@ public class BaseEntityService2 {
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
   private static final String DEFAULT_REALM = "genny";
+  
+  Map<String,String> ddtCacheMock = new ConcurrentHashMap<String,String>();
+
 
   EntityManager em;
 
@@ -2739,5 +2743,19 @@ public class BaseEntityService2 {
 
 	public Boolean inRole(final String role) {
 		return true; // allow for qwanda-services
+	}
+	
+
+	
+	public void writeToDDT(final String key, final String value)
+	{
+		ddtCacheMock.put(key, value);
+	}
+	
+
+	public String readFromDDT(final String key)
+	{
+		
+		return ddtCacheMock.get(key);
 	}
 }
