@@ -1681,6 +1681,14 @@ public class BaseEntityService2 {
     return results;
   }
 
+  public List<Attribute> findAttributes() throws NoResultException {
+
+	    final List<Attribute> results =
+	        getEntityManager().createQuery("SELECT a FROM Attribute a").getResultList();
+
+	    return results;
+	  }
+
   public List<Rule> findRules() throws NoResultException {
 
     final List<Rule> results =
