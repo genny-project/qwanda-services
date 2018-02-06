@@ -13,3 +13,4 @@ export GOOGLE_HOSTING_SHEET_ID="1OQ3IUdKTCCN-qgMahaNfc3KFOc_iN8l2BAVx7-KdA0A"
  
 
 mvn clean install 
+mvn eclipse:eclipse
