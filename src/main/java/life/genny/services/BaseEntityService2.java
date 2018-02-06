@@ -2,9 +2,13 @@ package life.genny.services;
 
 import static java.lang.System.out;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
@@ -552,14 +556,15 @@ public class BaseEntityService2 {
               Optional<EntityAttribute> optNewEA =
                       beTarget.findEntityAttribute(answer.getAttributeCode());
              
+              
  //             EntityAttribute safeOne = new EntityAttribute(beTarget, attribute, answer.getWeight(),optNewEA.get().getValue());
-              EntityAttribute safeOne = new EntityAttribute();
-              safeOne.setAttributeCode(attribute.getCode());
-              safeOne.setAttributeName(attribute.getName());
-              safeOne.setBaseEntityCode(beTarget.getCode());
-              safeOne.setInferred(optNewEA.get().getInferred());
-              safeOne.setInferred(optNewEA.get().getPrivacyFlag());
-              safeOne.setValue(optNewEA.get().getValue());
+              EntityAttribute safeOne = deepClone(optNewEA.get()); //new EntityAttribute();
+//              safeOne.setAttributeCode(attribute.getCode());
+//              safeOne.setAttributeName(attribute.getName());
+//              safeOne.setBaseEntityCode(beTarget.getCode());
+//              safeOne.setInferred(optNewEA.get().getInferred());
+//              safeOne.setInferred(optNewEA.get().getPrivacyFlag());
+//              safeOne.setValue(optNewEA.get().getValue());
              
               if (optNewEA.isPresent()) {
             	  	msg.setEa(safeOne);
@@ -617,6 +622,29 @@ public class BaseEntityService2 {
     return attribute.getId();
   }
 
+  public static <E> E deepClone(E e) {
+	    ByteArrayOutputStream bo = new ByteArrayOutputStream();
+	    ObjectOutputStream oo;
+	    try {
+	        oo = new ObjectOutputStream(bo);
+	        oo.writeObject(e);
+	    } catch (IOException ex) {
+	        ex.printStackTrace();
+	    }
+	    ByteArrayInputStream bi = new ByteArrayInputStream(bo.toByteArray());
+	    ObjectInputStream oi;
+	    try {
+	        oi = new ObjectInputStream(bi);
+	        return (E) (oi.readObject());
+	    } catch (IOException ex) {
+	        ex.printStackTrace();
+	        return null;
+	    } catch (ClassNotFoundException ex) {
+	        ex.printStackTrace();
+	        return null;
+	    }
+	}
+  
   @Transactional
   public EntityEntity insertEntityEntity(final EntityEntity ee) {
 
