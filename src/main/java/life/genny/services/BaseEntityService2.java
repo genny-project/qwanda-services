@@ -552,7 +552,15 @@ public class BaseEntityService2 {
               Optional<EntityAttribute> optNewEA =
                       beTarget.findEntityAttribute(answer.getAttributeCode());
              
-              EntityAttribute safeOne = new EntityAttribute(beTarget, attribute, answer.getWeight(),optNewEA.get().getValue());
+ //             EntityAttribute safeOne = new EntityAttribute(beTarget, attribute, answer.getWeight(),optNewEA.get().getValue());
+              EntityAttribute safeOne = new EntityAttribute();
+              safeOne.setAttributeCode(attribute.getCode());
+              safeOne.setAttributeName(attribute.getName());
+              safeOne.setBaseEntityCode(beTarget.getCode());
+              safeOne.setInferred(optNewEA.get().getInferred());
+              safeOne.setInferred(optNewEA.get().getPrivacyFlag());
+              safeOne.setValue(optNewEA.get().getValue());
+             
               if (optNewEA.isPresent()) {
             	  	msg.setEa(safeOne);
               }
