@@ -558,13 +558,15 @@ public class BaseEntityService2 {
              
               
  //             EntityAttribute safeOne = new EntityAttribute(beTarget, attribute, answer.getWeight(),optNewEA.get().getValue());
-              EntityAttribute safeOne = deepClone(optNewEA.get()); //new EntityAttribute();
-//              safeOne.setAttributeCode(attribute.getCode());
-//              safeOne.setAttributeName(attribute.getName());
-//              safeOne.setBaseEntityCode(beTarget.getCode());
-//              safeOne.setInferred(optNewEA.get().getInferred());
-//              safeOne.setInferred(optNewEA.get().getPrivacyFlag());
-//              safeOne.setValue(optNewEA.get().getValue());
+//              EntityAttribute safeOne = deepClone(optNewEA.get()); //new EntityAttribute();
+              EntityAttribute safeOne = new EntityAttribute();
+              safeOne.setAttributeCode(attribute.getCode());
+              safeOne.setAttributeName(attribute.getName());
+              safeOne.setBaseEntityCode(beTarget.getCode());
+              safeOne.setInferred(optNewEA.get().getInferred());
+              safeOne.setInferred(optNewEA.get().getPrivacyFlag());
+              
+              safeOne.setLoopValue(optNewEA.get().getLoopValue());
              
               if (optNewEA.isPresent()) {
             	  	msg.setEa(safeOne);
