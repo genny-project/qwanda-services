@@ -1259,7 +1259,7 @@ public class BaseEntityService2 {
 	    String stakeholderFilter2 = "";
 	    if (stakeholderCode != null) {
 	      stakeholderFilter1 = "EntityEntity ff JOIN be.baseEntityAttributes bff,";
-	      stakeholderFilter2 = " and ff.pk.targetCode=:stakeholderCode and ff.link.sourceCode=be.code and ff.link.linkValue="+linkValue+" ";
+	      stakeholderFilter2 = " and ff.pk.targetCode=:stakeholderCode and ff.link.sourceCode=be.code ";
 	    }
 
 	    final List<BaseEntity> eeResults;
@@ -1278,9 +1278,10 @@ public class BaseEntityService2 {
 
 	        query = getEntityManager().createQuery("SELECT distinct be FROM BaseEntity be,"
 	            + stakeholderFilter1
-	            + "EntityEntity ee JOIN be.baseEntityAttributes bee where ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode  and ee.pk.source.realm=:realmStr"
+	            + "EntityEntity ee JOIN be.baseEntityAttributes bee where ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode  and ee.pk.source.realm=:realmStr and ee.link.linkValue=:linkValue"
 	            + stakeholderFilter2).setParameter("sourceCode", sourceCode)
-	            .setParameter("linkAttributeCode", linkCode).setParameter("realmStr", userRealmStr);
+	            .setParameter("linkAttributeCode", linkCode).setParameter("realmStr", userRealmStr).setParameter("linkValue", linkValue);
+	        
 	        if (stakeholderCode != null) {
 	          query.setParameter("stakeholderCode", stakeholderCode);
 	        }
@@ -1303,7 +1304,7 @@ public class BaseEntityService2 {
 	        String queryStr = "SELECT distinct be FROM BaseEntity be," + stakeholderFilter1
 	            + "EntityEntity ee" + eaStrings + "  JOIN be.baseEntityAttributes bee where "
 	            + eaStringsQ + "  ee.link.targetCode=be.code" + stakeholderFilter2
-	            + " and ee.link.attributeCode=:linkAttributeCode and  be.realm=:realmStr and ee.link.sourceCode=:sourceCode and ";
+	            + " and ee.link.attributeCode=:linkAttributeCode and  be.realm=:realmStr and ee.link.linkValue=:linkValue and ee.link.sourceCode=:sourceCode and ";
 	        int attributeCodeIndex = 0;
 	        int valueIndex = 0;
 	        final List<String> attributeCodeList = new ArrayList<String>();
@@ -1358,7 +1359,7 @@ public class BaseEntityService2 {
 	        if (stakeholderCode != null) {
 	          query.setParameter("stakeholderCode", stakeholderCode);
 	        }
-
+	        query.setParameter("linkValue", linkValue);
 	        query.setFirstResult(pageStart).setMaxResults(pageSize);
 	        eeResults = query.getResultList();
 
@@ -1373,8 +1374,9 @@ public class BaseEntityService2 {
 	        Query query = getEntityManager().createQuery("SELECT distinct be FROM BaseEntity be,"
 	            + stakeholderFilter1 + "EntityEntity ee  where ee.link.targetCode=be.code "
 	            + stakeholderFilter2
-	            + " and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode   and be.realm=:realmStr")
+	            + " and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode   and be.realm=:realmStr  and ee.link.linkValue=:linkValue ")
 	            .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+	            .setParameter("linkValue", linkValue)
 	            .setParameter("realmStr", userRealmStr).setFirstResult(pageStart);
 	        if (stakeholderCode != null) {
 	          query.setParameter("stakeholderCode", stakeholderCode);
@@ -1399,7 +1401,7 @@ public class BaseEntityService2 {
 	        String queryStr = "SELECT distinct be FROM BaseEntity be," + stakeholderFilter1
 	            + " EntityEntity ee" + eaStrings + "  where " + eaStringsQ
 	            + " ee.link.targetCode=be.code " + stakeholderFilter2
-	            + " and ee.link.attributeCode=:linkAttributeCode and be.realm=:realmStr and ee.link.sourceCode=:sourceCode and ";
+	            + " and ee.link.attributeCode=:linkAttributeCode and be.realm=:realmStr  and ee.link.linkValue=:linkValue and ee.link.sourceCode=:sourceCode and ";
 	        int attributeCodeIndex = 0;
 	        int valueIndex = 0;
 	        final List<String> attributeCodeList = new ArrayList<String>();
@@ -1457,6 +1459,7 @@ public class BaseEntityService2 {
 	        if (stakeholderCode != null) {
 	          query.setParameter("stakeholderCode", stakeholderCode);
 	        }
+	        query.setParameter("linkValue", linkValue);
 	        eeResults = query.getResultList();
 	        System.out.println("findChildrenByAttributeLink NULL THE ATTRIBUTES");
 	        // for (BaseEntity be : eeResults) {
@@ -1570,7 +1573,7 @@ public class BaseEntityService2 {
 
 	    String queryStr = "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee" + eaStrings
 	        + "  where " + eaStringsQ
-	        + "  ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode  and be.realm=:realmStr and ee.link.sourceCode=:sourceCode  and ee.link.linkValue="+linkValue +" ";
+	        + "  ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode  and be.realm=:realmStr and ee.link.sourceCode=:sourceCode  and ee.link.linkValue=:linkValue ";
 	    int attributeCodeIndex = 0;
 	    int valueIndex = 0;
 	    final List<String> attributeCodeList = new ArrayList<String>();
@@ -1617,7 +1620,7 @@ public class BaseEntityService2 {
 	    }
 	    query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
 	    query.setParameter("realmStr", userRealmStr);
-
+	    query.setParameter("linkValue", linkValue);
 	    try {
 	      total = (Long) query.getSingleResult();
 	    } catch (Exception e) {
