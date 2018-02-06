@@ -551,8 +551,10 @@ public class BaseEntityService2 {
                   new QEventAttributeValueChangeMessage(pojo, (oldValue), getCurrentToken());
               Optional<EntityAttribute> optNewEA =
                       beTarget.findEntityAttribute(answer.getAttributeCode());
+             
+              EntityAttribute safeOne = new EntityAttribute(beTarget, attribute, answer.getWeight(),optNewEA.get().getValue());
               if (optNewEA.isPresent()) {
-            	  	msg.setEa(optNewEA.get());
+            	  	msg.setEa(safeOne);
               }
               sendQEventAttributeValueChangeMessage(msg);
               System.out.println("Sent Event Change Msg " + pojo);
