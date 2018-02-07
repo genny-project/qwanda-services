@@ -837,6 +837,8 @@ public class BaseEntityService2 {
       // System.out.println("***********" + val);
       val = getEntityManager().merge(val);
       // System.out.println("*******&&&&&&&&&&&&****");
+
+
       return be;
     } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
       Long id = insert(be);
