@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -568,8 +569,14 @@ public class BaseEntityService2 {
               
               safeOne.setLoopValue(optNewEA.get().getLoopValue());
              
+              BaseEntity safeBe = new BaseEntity(beTarget.getCode(),beTarget.getName());
+              Set<EntityAttribute> safeSet = new HashSet<EntityAttribute>();
+              safeSet.add(safeOne);
+              safeBe.setBaseEntityAttributes(safeSet);
+              
               if (optNewEA.isPresent()) {
             	  	msg.setEa(safeOne);
+            	  	msg.setBe(safeBe);
               }
               sendQEventAttributeValueChangeMessage(msg);
               System.out.println("Sent Event Change Msg " + pojo);
