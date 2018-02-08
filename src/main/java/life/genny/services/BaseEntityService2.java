@@ -439,7 +439,8 @@ public class BaseEntityService2 {
       writeToDDT(entity.getCode(),json);
     } catch (final ConstraintViolationException e) {
       // so update otherwise // TODO merge?
-      getEntityManager().merge(entity);
+     // getEntityManager().merge(entity);
+    	log.error("Entity Already exists - cannot insert"+entity.getCode());
       return entity.getId();
     } catch (final PersistenceException e) {
       // so update otherwise // TODO merge?
@@ -1091,7 +1092,7 @@ public class BaseEntityService2 {
     String stakeholderFilter2 = "";
     if (stakeholderCode != null) {
       stakeholderFilter1 = "EntityEntity ff JOIN be.baseEntityAttributes bff,";
-      stakeholderFilter2 = " and ff.pk.targetCode=:stakeholderCode and ff.link.sourceCode=be.code ";
+      stakeholderFilter2 = " and ff.link.targetCode=:stakeholderCode and ff.link.sourceCode=be.code ";
     }
 
     final List<BaseEntity> eeResults;
