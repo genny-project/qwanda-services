@@ -131,9 +131,16 @@ public class BatchLoading {
         ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
         String privacyStr = ((String) attributes.get("privacy"));
         Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
-
+        String descriptionStr = ((String) attributes.get("description"));
+        String helpStr = ((String) attributes.get("help"));
+        String placeholderStr = ((String) attributes.get("placeholder"));
+        String defaultValueStr = ((String) attributes.get("defaultValue"));
         Attribute attr = new Attribute(code, name, dataTypeRecord);
         attr.setDefaultPrivacyFlag(privacy);
+        attr.setDescription(descriptionStr);
+        attr.setHelp(helpStr);
+        attr.setPlaceholder(placeholderStr);
+        attr.setDefaultValue(defaultValueStr);
         service.upsert(attr);
       } catch (Exception e) {
         // TODO Auto-generated catch block
