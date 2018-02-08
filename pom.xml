@@ -67,6 +67,10 @@
 	</ciManagement>
 	<repositories>
 		<repository>
+			<id>life.genny</id>
+			<url>http://nexus.outcome-hub.com/nexus/content/repositories/life.genny</url>
+		</repository>
+		<repository>
 			<id>JBoss repository</id>
 			<url>http://repository.jboss.org/nexus/content/groups/public/</url>
 			<name>Repository for JBoss</name>
@@ -78,10 +82,6 @@
 		<repository>
 			<id>Sonatype repository</id>
 			<url>https://oss.sonatype.org/content/repositories/releases/</url>
-		</repository>
-		<repository>
-			<id>life.genny</id>
-			<url>http://nexus.outcome-hub.com/nexus/content/repositories/life.genny</url>
 		</repository>
 	</repositories>
 
