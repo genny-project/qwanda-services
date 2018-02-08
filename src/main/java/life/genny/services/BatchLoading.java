@@ -670,6 +670,7 @@ public class BatchLoading {
       String subject = (String) template.get("subject");
       String emailTemplateDocId = (String) template.get("email");
       String smsTemplate = (String) template.get("sms");
+      String toastTemplate = (String) template.get("toast");
 
       final QBaseMSGMessageTemplate templateObj = new QBaseMSGMessageTemplate();
       templateObj.setCode(code);
@@ -678,6 +679,7 @@ public class BatchLoading {
       templateObj.setEmail_templateId(emailTemplateDocId);
       templateObj.setSms_template(smsTemplate);
       templateObj.setSubject(subject);
+      templateObj.setToast_template(toastTemplate);
 
       Long id = service.insert(templateObj);
       System.out.println("id::" + id + " Code:" + code + " :" + subject);
