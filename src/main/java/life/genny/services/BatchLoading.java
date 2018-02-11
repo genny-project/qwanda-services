@@ -324,8 +324,12 @@ public class BatchLoading {
             tbe = service.findQuestionByCode(targetCode);
             try {
 				QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
-
-				qq = service.upsert(qq);
+				QuestionQuestion existing = service.findQuestionQuestionByCode(parentCode, targetCode);
+				if (existing == null) {
+					qq = service.upsert(qq);
+				} else {
+					
+				}
 			} catch (NullPointerException e) {
 				log.error("Cannot find QuestionQuestion "+tbe);
 			}
