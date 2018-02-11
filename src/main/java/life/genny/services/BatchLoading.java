@@ -395,7 +395,10 @@ public class BatchLoading {
       attr = service.findAttributeByCode(attrCode);
       final Question q = new Question(code, name, attr);
       q.setHtml(html);
-      service.insert(q);
+      Question existing = service.findQuestionByCode(code);
+      if (existing == null) {
+    	  	service.insert(q);
+      }
     });
   }
 
@@ -461,11 +464,11 @@ public class BatchLoading {
           break;
 
         if (lastProject == null) {
-          System.out.println("234SDFSD34");
+       //   System.out.println("234SDFSD34");
           lastProject = upsertProjectMapProps(projects.get(count), projects.get(subsequentIndex));
           System.out.println("23434");
         } else {
-          System.out.println("23wDSFSDFDSFSDFs4");
+      //    System.out.println("23wDSFSDFDSFSDFs4");
           lastProject = upsertProjectMapProps(lastProject, projects.get(subsequentIndex));
           System.out.println("23ws4");
         }
