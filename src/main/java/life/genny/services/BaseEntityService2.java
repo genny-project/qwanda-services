@@ -678,31 +678,33 @@ public class BaseEntityService2 {
 
   @Transactional
   public Long update(BaseEntity entity) {
-//    // always check if baseentity exists through check for unique code
-//    	   Long result = 0L;
-//
-//    	    try {
-//    	      result = (long) getEntityManager().createQuery(
-//    	          "update BaseEntity be set be.name =:name where be.code=:sourceCode")
-//    	          .setParameter("sourceCode", entity.getCode())
-//    	          .executeUpdate();
-//
-//    	    } catch (Exception e) {
-//    	      // log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode +
-//    	      // " not found");
-//   
-//    	    }
-//  
-//    return result;
-    try {
+    // always check if baseentity exists through check for unique code
+    	   Long result = 0L;
 
-        entity = getEntityManager().merge(entity);
-        String json = JsonUtils.toJson(entity);
-        writeToDDT(entity.getCode(),json);
-      } catch (final IllegalArgumentException e) {
-        // so persist otherwise
-        getEntityManager().persist(entity);
-      }
+    	    try {
+    	      result = (long) getEntityManager().createQuery(
+    	          "update BaseEntity be set be.name =:name where be.code=:sourceCode")
+    	          .setParameter("sourceCode", entity.getCode())
+    	          .setParameter("name", entity.getName())
+    	          .executeUpdate();
+    	        String json = JsonUtils.toJson(entity);
+    	        writeToDDT(entity.getCode(),json);
+
+    	    } catch (Exception e) {
+    	      // log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode +
+    	      // " not found");
+   
+    	    }
+  
+//    try {
+//
+//        entity = getEntityManager().merge(entity);
+//        String json = JsonUtils.toJson(entity);
+//        writeToDDT(entity.getCode(),json);
+//      } catch (final IllegalArgumentException e) {
+//        // so persist otherwise
+//        getEntityManager().persist(entity);
+//      }
       return entity.getId();
   }
 
