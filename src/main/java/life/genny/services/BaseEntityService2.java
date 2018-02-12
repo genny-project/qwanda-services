@@ -511,7 +511,11 @@ public class BaseEntityService2 {
             answerLink = beTarget.addAnswer(beSource, answer, answer.getWeight()); // TODo replace
                                                                                    // with
                                                                                    // soucr
-            update(beTarget);
+            //update(beTarget);
+           getEntityManager().merge(beTarget);
+          String json = JsonUtils.toJson(beTarget);
+          writeToDDT(beTarget.getCode(),json);
+          
             boolean sendAttributeChangeEvent = false;
             if (!optExisting.isPresent()) {
               sendAttributeChangeEvent = true;
