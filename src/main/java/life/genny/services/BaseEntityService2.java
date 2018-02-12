@@ -457,9 +457,7 @@ public class BaseEntityService2 {
 
   @Transactional
   public Long insert(Answer answer) {
-    if (answer.getAttributeCode().equalsIgnoreCase("PRI_GENDER")) {
-      System.out.println("GENDER CHANGE");
-    }
+
     log.info("insert(Answer):" + answer.getSourceCode() + ":" + answer.getTargetCode() + ":"
         + answer.getAttributeCode() + ":"
         + StringUtils.abbreviateMiddle(answer.getValue(), "...", 30));
@@ -512,6 +510,9 @@ public class BaseEntityService2 {
                                                                                    // with
                                                                                    // soucr
             //update(beTarget);
+            if (answer.getAttributeCode().equalsIgnoreCase("PRI_NAME")) {
+                beTarget.setName(answer.getValue());
+            }
            getEntityManager().merge(beTarget);
           String json = JsonUtils.toJson(beTarget);
           writeToDDT(beTarget.getCode(),json);
