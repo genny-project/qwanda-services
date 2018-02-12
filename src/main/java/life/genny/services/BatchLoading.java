@@ -21,6 +21,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
@@ -680,6 +681,7 @@ public class BatchLoading {
     ((HashMap<String, HashMap>) project.get("messages")).entrySet().stream().forEach(data -> {
       Map<String, Object> template = data.getValue();
       String code = (String) template.get("code");
+      String name = (String) template.get("name");
       String description = (String) template.get("description");
       String subject = (String) template.get("subject");
       String emailTemplateDocId = (String) template.get("email");
@@ -688,15 +690,19 @@ public class BatchLoading {
 
       final QBaseMSGMessageTemplate templateObj = new QBaseMSGMessageTemplate();
       templateObj.setCode(code);
+      templateObj.setName(name);
       templateObj.setCreated(LocalDateTime.now());
       templateObj.setDescription(description);
       templateObj.setEmail_templateId(emailTemplateDocId);
       templateObj.setSms_template(smsTemplate);
       templateObj.setSubject(subject);
       templateObj.setToast_template(toastTemplate);
-
+      if (StringUtils.isBlank(name)) {
+    	  	log.error("Empty Name");
+      } else {
       Long id = service.insert(templateObj);
       System.out.println("id::" + id + " Code:" + code + " :" + subject);
+      }
     });
   }
 

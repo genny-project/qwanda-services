@@ -983,7 +983,7 @@ public void questionGroupTest()
 	@Test
 	public void messageTemplateTest() {
 
-		QBaseMSGMessageTemplate template = service.findTemplateByCode("MSG_CH40_MOVE_GRP_IN_TRANSIT");
+		QBaseMSGMessageTemplate template = service.findTemplateByCode("TST_TEMPLATES");
 		System.out.println("template description ::"+template.getDescription());
 
 	}
