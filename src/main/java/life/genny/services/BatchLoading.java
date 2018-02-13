@@ -705,17 +705,25 @@ public class BatchLoading {
       if (StringUtils.isBlank(name)) {
     	  	log.error("Empty Name");
       } else {
-    	  		try {
-					QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
-					try {
-						service.update(templateObj);
-					} catch (Exception e) {
-						log.error("Cannot update QDataMSGMessage "+code);
-					}
-				} catch (Exception e) {
-					  Long id = service.insert(templateObj);
-		    		  System.out.println("id::" + id + " Code:" + code + " :" + subject);
-				}
+    	  try {
+			QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
+			  if (msg == null) {
+				  Long id = service.insert(templateObj);
+			  }
+		} catch (NoResultException e) {
+			log.error("Cannot add MessageTemplate");
+		}
+//    	  		try {
+//					QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
+//					try {
+//						service.update(templateObj);
+//					} catch (Exception e) {
+//						log.error("Cannot update QDataMSGMessage "+code);
+//					}
+//				} catch (Exception e) {
+//					  Long id = service.insert(templateObj);
+//		    		  System.out.println("id::" + id + " Code:" + code + " :" + subject);
+//				}
        }
     });
   }
