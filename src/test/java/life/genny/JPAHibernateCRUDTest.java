@@ -984,8 +984,8 @@ public void questionGroupTest()
 	@Test
 	public void messageTemplateTest() {
 
-		QBaseMSGMessageTemplate template = service.findTemplateByCode("TST_TEMPLATES");
-		System.out.println("template description ::"+template.getDescription());
+	//	QBaseMSGMessageTemplate template = service.findTemplateByCode("TST_TEMPLATES");
+	//	System.out.println("template description ::"+template.getDescription());
 
 	}
 	
