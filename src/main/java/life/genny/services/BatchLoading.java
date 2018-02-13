@@ -700,9 +700,14 @@ public class BatchLoading {
       if (StringUtils.isBlank(name)) {
     	  	log.error("Empty Name");
       } else {
-      Long id = service.insert(templateObj);
-      System.out.println("id::" + id + " Code:" + code + " :" + subject);
-      }
+    	  		try {
+					QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
+					service.update(templateObj);
+				} catch (NoResultException e) {
+					  Long id = service.insert(templateObj);
+		    		  System.out.println("id::" + id + " Code:" + code + " :" + subject);
+				}
+       }
     });
   }
 
