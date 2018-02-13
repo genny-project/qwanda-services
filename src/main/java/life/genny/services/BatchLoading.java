@@ -707,7 +707,11 @@ public class BatchLoading {
       } else {
     	  		try {
 					QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
-					service.update(templateObj);
+					try {
+						service.update(templateObj);
+					} catch (Exception e) {
+						log.error("Cannot update QDataMSGMessage "+code);
+					}
 				} catch (Exception e) {
 					  Long id = service.insert(templateObj);
 		    		  System.out.println("id::" + id + " Code:" + code + " :" + subject);
