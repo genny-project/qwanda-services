@@ -527,6 +527,10 @@ public class BaseEntityService2 {
                 if (old.hashCode() != (newOne.hashCode())) {
                   sendAttributeChangeEvent = true;
                 }
+              } else {
+            	  	if ((old!=null)&&(newOne==null)) {
+            	  		 sendAttributeChangeEvent = true;
+            	  	}
               }
             }
             if (sendAttributeChangeEvent) {
