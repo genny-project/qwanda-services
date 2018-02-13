@@ -66,6 +66,7 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
+import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakService;
 import life.genny.qwandautils.MergeUtil;
 import life.genny.qwandautils.QwandaUtils;
@@ -1098,21 +1099,16 @@ public void questionGroupTest()
 		System.out.println("Number of asks=" + asks.size());
 		System.out.println("Number of asks=" + asks);
 		QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
-		GsonBuilder gsonBuilder = new GsonBuilder();
-		Gson gson = null;
-
-		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
-		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
-		String json = gson.toJson(askMsgs);
+		String json = JsonUtils.toJson(askMsgs);
 		System.out.println("askMsgs=" + json);
 
-		asks = service.createAsksByQuestionCode2("QUE_NEW_USER_PROFILE_GRP", "PER_USER1", "OFR_OFFER1");
-		System.out.println("Number of asks=" + asks.size());
-		System.out.println("Number of asks=" + asks);
-		askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
-
-		json = gson.toJson(askMsgs);
-		System.out.println("askMsgs 2=" + json);
+//		asks = service.createAsksByQuestionCode2("QUE_NEW_USER_PROFILE_GRP", "PER_USER1", "OFR_OFFER1");
+//		System.out.println("Number of asks=" + asks.size());
+//		System.out.println("Number of asks=" + asks);
+//		askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
+//
+//		json = JsonUtils.toJson(askMsgs);
+//		System.out.println("askMsgs 2=" + json);
 	}
 	
 	@Test
