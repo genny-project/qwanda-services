@@ -706,12 +706,13 @@ public class BatchLoading {
     	  	log.error("Empty Name");
       } else {
     	  try {
-		//	QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
-		//	  if (msg == null) {
+			QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
+			  if (msg == null) {
 				  Long id = service.insert(templateObj);
-		//	  }
+			  }
 		} catch (Exception e) {
 			log.error("Cannot add MessageTemplate");
+	
 		}
 //    	  		try {
 //					QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
