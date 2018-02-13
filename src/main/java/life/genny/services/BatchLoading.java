@@ -248,7 +248,7 @@ public class BatchLoading {
 		            } catch (final BadDataException e) {
 		              e.printStackTrace();
 		            }
-		            service.update(be);
+		            service.updateWithAttributes(be);
 		          } catch (final NoResultException e) {
 		          }
 		} catch (Exception e1) {
@@ -290,7 +290,7 @@ public class BatchLoading {
         }
         sbe.addTarget(tbe, linkAttribute, weight, valueString);
 
-        service.update(sbe);
+        service.updateWithAttributes(sbe);
       } catch (final NoResultException e) {
       } catch (final BadDataException e) {
         e.printStackTrace();

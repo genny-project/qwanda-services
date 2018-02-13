@@ -713,6 +713,26 @@ public class BaseEntityService2 {
       return entity.getId();
   }
 
+  @Transactional
+  public Long updateWithAttributes(BaseEntity entity) {
+ 
+  
+    try {
+
+        entity = getEntityManager().merge(entity);
+        String json = JsonUtils.toJson(entity);
+        writeToDDT(entity.getCode(),json);
+      } catch (final IllegalArgumentException e) {
+        // so persist otherwise
+        getEntityManager().persist(entity);
+        String json = JsonUtils.toJson(entity);
+        writeToDDT(entity.getCode(),json);
+ 
+      }
+      return entity.getId();
+  }
+
+  
   public Long update(Attribute attribute) {
     // always check if attribute exists through check for unique code
     try {

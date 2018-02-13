@@ -1057,11 +1057,6 @@ public void questionGroupTest()
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
 		System.out.println("askMsgs=" + askMsgs);
 
-		GsonBuilder gsonBuilder = new GsonBuilder();
-		Gson gson = null;
-
-		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
-		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
 		System.out.println("Performing JSON conversion ...");
 		int i=0;
 		for (Ask ask : askMsgs.getItems()) {
@@ -1070,7 +1065,7 @@ public void questionGroupTest()
 //			for (Ask ask3 : ask2.getChildAsks()) 
 			try {
 				if (i>-1) {
-				String j = gson.toJson(ask2);
+				String j = JsonUtils.toJson(ask2);
 				System.out.println("Json="+j);
 				}
 				i++;
@@ -1084,7 +1079,7 @@ public void questionGroupTest()
 //		askMsgs.getItems()[0].getChildAsks()[3] = null;
 //		askMsgs.getItems()[0].getChildAsks()[2] = null;
 //		askMsgs.getItems()[0].getChildAsks()[1] = null;
-		String json = gson.toJson(askMsgs);
+		String json = JsonUtils.toJson(askMsgs);
 		System.out.println("json:"+json);
 		
 		
