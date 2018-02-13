@@ -3090,13 +3090,14 @@ public class BaseEntityService2 {
   public BaseEntity getUser() {
     return null;
   }
-
+@Transactional
   public Long update(final QBaseMSGMessageTemplate template) {
     QBaseMSGMessageTemplate temp = getEntityManager().merge(template);
     System.out.println("klnsnfklsdjfjsdfjklsfsdf "+ temp);
     return template.getId();
   }
 
+@Transactional
   public Long insert(final QBaseMSGMessageTemplate template) {
     try {
       getEntityManager().persist(template);
