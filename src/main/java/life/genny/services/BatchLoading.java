@@ -330,18 +330,23 @@ public class BatchLoading {
             tbe = service.findQuestionByCode(targetCode);
             try {
 				QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
-				QuestionQuestion existing = service.findQuestionQuestionByCode(parentCode, targetCode);
-				if (existing == null) {
+				QuestionQuestion existing;
+				try {
+					existing = service.findQuestionQuestionByCode(parentCode, targetCode);
+					if (existing == null) {
+						qq = service.upsert(qq);
+					} else {
+						
+					}
+				} catch (Exception e) {
 					qq = service.upsert(qq);
-				} else {
-					
 				}
+				
 			} catch (NullPointerException e) {
 				log.error("Cannot find QuestionQuestion "+tbe);
-			}
+		
 
-          } catch (final NoResultException e) {
-            System.out.println("No Result! in QuestionQuestions Loading");
+          }
           } catch (final BadDataException e) {
             e.printStackTrace();
           }
