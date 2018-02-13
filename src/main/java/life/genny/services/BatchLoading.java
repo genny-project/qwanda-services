@@ -703,7 +703,7 @@ public class BatchLoading {
     	  		try {
 					QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
 					service.update(templateObj);
-				} catch (NoResultException e) {
+				} catch (Exception e) {
 					  Long id = service.insert(templateObj);
 		    		  System.out.println("id::" + id + " Code:" + code + " :" + subject);
 				}
