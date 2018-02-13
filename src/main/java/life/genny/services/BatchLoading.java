@@ -330,7 +330,7 @@ public class BatchLoading {
             tbe = service.findQuestionByCode(targetCode);
             try {
 				QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
-				QuestionQuestion existing;
+				QuestionQuestion existing = null;
 				try {
 					existing = service.findQuestionQuestionByCode(parentCode, targetCode);
 					if (existing == null) {
@@ -339,7 +339,9 @@ public class BatchLoading {
 						
 					}
 				} catch (Exception e) {
-					qq = service.upsert(qq);
+					existing.setMandatory(qq.getMandatory());
+					existing.setWeight(qq.getWeight());
+					qq = service.upsert(existing);
 				}
 				
 			} catch (NullPointerException e) {
