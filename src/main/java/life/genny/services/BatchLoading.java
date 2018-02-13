@@ -710,7 +710,7 @@ public class BatchLoading {
 		//	  if (msg == null) {
 				  Long id = service.insert(templateObj);
 		//	  }
-		} catch (NoResultException e) {
+		} catch (Exception e) {
 			log.error("Cannot add MessageTemplate");
 		}
 //    	  		try {
