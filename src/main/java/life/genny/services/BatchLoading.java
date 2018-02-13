@@ -315,7 +315,12 @@ public class BatchLoading {
           String targetCode = ((String) queQues.get("targetCode"));
           String weightStr = ((String) queQues.get("weight"));
           String mandatoryStr = ((String) queQues.get("mandatory"));
-          final Double weight = Double.valueOf(weightStr);
+          Double weight = 0.0;
+          try {
+			weight = Double.valueOf(weightStr);
+		} catch (NumberFormatException e1) {
+			weight = 0.0;
+		}
           Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
           Question sbe = null;
           Question tbe = null;
