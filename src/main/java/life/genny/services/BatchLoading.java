@@ -338,11 +338,13 @@ public class BatchLoading {
 					} else {
 						
 					}
+				} catch (NoResultException e1) {
+					qq = service.upsert(qq);
 				} catch (Exception e) {
 					existing.setMandatory(qq.getMandatory());
 					existing.setWeight(qq.getWeight());
 					qq = service.upsert(existing);
-				}
+				} 
 				
 			} catch (NullPointerException e) {
 				log.error("Cannot find QuestionQuestion "+tbe);
