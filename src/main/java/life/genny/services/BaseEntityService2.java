@@ -803,19 +803,15 @@ public class BaseEntityService2 {
     }
   }
 
-  @Transactional
+
   public QuestionQuestion upsert(QuestionQuestion qq) {
     try {
-      QuestionQuestion val =
+      QuestionQuestion existing =
           findQuestionQuestionByCode(qq.getPk().getSource().getCode(), qq.getPk().getTargetCode());
-      // BeanNotNullFields copyFields = new BeanNotNullFields();
-      // copyFields.copyProperties(val, qq);
-      System.out.println("------- QUESTION 123 ------------" + val);
-      System.out.println("------- QUESTION 456 ------------" + qq);
-
-      val = getEntityManager().merge(qq);
-      // BeanUtils.copyProperties(validation, val);
-      return val;
+      existing.setMandatory(qq.getMandatory());
+      existing.setWeight(qq.getWeight());
+      existing = getEntityManager().merge(existing);
+      return existing;
     } catch (NoResultException e) {
       System.out.println("------- QUESTION 00 ------------");
       getEntityManager().persist(qq);
@@ -1792,7 +1788,7 @@ public class BaseEntityService2 {
     QuestionQuestion result = null;
     try {
       result = (QuestionQuestion) getEntityManager().createQuery(
-          "SELECT qq FROM QuestionQuestion qq where qq.source.code=:sourceCode and qq.targetCode=:targetCode")
+          "SELECT qq FROM QuestionQuestion qq where qq.pk.sourceCode=:sourceCode and qq.pk.targetCode=:targetCode")
           .setParameter("sourceCode", sourceCode).setParameter("targetCode", targetCode)
           .getSingleResult();
     } catch (Exception e) {

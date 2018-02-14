@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.persistence.NoResultException;
+import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
@@ -305,6 +306,7 @@ public class BatchLoading {
    * 
    * @param project
    */
+  @Transactional
   public void questionQuestions(Map<String, Object> project) {
     if (project.get("questionQuestions") == null)
       return;
@@ -336,7 +338,7 @@ public class BatchLoading {
 					if (existing == null) {
 						qq = service.upsert(qq);
 					} else {
-						
+						service.upsert(qq);
 					}
 				} catch (NoResultException e1) {
 					qq = service.upsert(qq);
