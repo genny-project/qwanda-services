@@ -692,9 +692,15 @@ public class BatchLoading {
   }
 
   public void messageTemplates(Map<String, Object> project) {
-    if (project.get("messages") == null)
-      return;
+		
+    if (project.get("messages") == null) {
+    	System.out.println("project.get(messages) is null");
+    	return;
+    }
+      
     ((HashMap<String, HashMap>) project.get("messages")).entrySet().stream().forEach(data -> {
+    	
+    	System.out.println("messages, data ::"+data);
       Map<String, Object> template = data.getValue();
       String code = (String) template.get("code");
       String name = (String) template.get("name");
@@ -713,6 +719,7 @@ public class BatchLoading {
       templateObj.setSms_template(smsTemplate);
       templateObj.setSubject(subject);
       templateObj.setToast_template(toastTemplate);
+      
       if (StringUtils.isBlank(name)) {
     	  	log.error("Empty Name");
       } else {
@@ -720,8 +727,12 @@ public class BatchLoading {
 			QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
 			  if (msg == null) {
 				  Long id = service.insert(templateObj);
+				  System.out.println("message id ::"+id);
 			  }
-		} catch (Exception e) {
+				} catch (NoResultException e1) {
+					Long id = service.insert(templateObj);
+					System.out.println("message id ::" + id);
+				} catch (Exception e) {
 			log.error("Cannot add MessageTemplate");
 	
 		}
