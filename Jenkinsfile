@@ -10,7 +10,7 @@ pipeline {
 		stage('Build') {
 			steps {
 				sh './build.sh'
-				mvn '-U clean install -DskipTests=true'
+				sh 'mvn -U clean install -DskipTests=true'
 			}
 		}
 		stage('Build Docker') {
