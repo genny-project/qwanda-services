@@ -13,6 +13,11 @@ pipeline {
 				sh 'mvn clean install -U -DskipTests=true'
 			}
 		}
+		stage('Build Docker') {
+			steps {
+				sh "./build-docker.sh ${env.BRANCH_NAME}-latest"
+			}
+		}
 		stage('Deploy') {
       when { branch 'master'}
 			steps {
