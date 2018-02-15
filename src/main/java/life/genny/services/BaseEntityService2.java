@@ -583,6 +583,8 @@ public class BaseEntityService2 {
               Set<EntityAttribute> safeSet = new HashSet<EntityAttribute>();
               safeSet.add(safeOne);
               safeBe.setBaseEntityAttributes(safeSet);
+              // Add Links 
+              safeBe.setLinks(beTarget.getLinks());
               
               if (optNewEA.isPresent()) {
             	  	msg.setEa(safeOne);
