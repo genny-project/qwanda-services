@@ -533,7 +533,7 @@ public class BaseEntityService2 {
             	  	}
               }
             }
-            if (sendAttributeChangeEvent) {
+            if (sendAttributeChangeEvent && answer.getChangeEvent()) {
               String oldValue = null;
               if (old != null) {
                 oldValue = old.toString();
