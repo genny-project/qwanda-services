@@ -444,11 +444,11 @@ public class BaseEntityService2 {
       return entity.getId();
     } catch (final PersistenceException e) {
       // so update otherwise // TODO merge?
-      getEntityManager().merge(entity);
+   //   getEntityManager().merge(entity);
       return entity.getId();
     } catch (final IllegalStateException e) {
       // so update otherwise // TODO merge?
-      getEntityManager().merge(entity);
+  //    getEntityManager().merge(entity);
       return entity.getId();
     }
     // }
