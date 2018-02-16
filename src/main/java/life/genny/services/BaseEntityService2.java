@@ -434,9 +434,14 @@ public class BaseEntityService2 {
     // entity.setRealm("genny");
     // always check if baseentity exists through check for unique code
     try {
-      getEntityManager().persist(entity);
-      String json = JsonUtils.toJson(entity);
-      writeToDDT(entity.getCode(),json);
+    	  BaseEntity be = this.findBaseEntityByCode(entity.getCode());
+    	  if (be == null) {
+    		  getEntityManager().persist(entity);
+    		  String json = JsonUtils.toJson(entity);
+    		  writeToDDT(entity.getCode(),json);
+    	  } else {
+    		  return be.getId();
+    	  }
     } catch (final ConstraintViolationException e) {
       // so update otherwise // TODO merge?
      // getEntityManager().merge(entity);
