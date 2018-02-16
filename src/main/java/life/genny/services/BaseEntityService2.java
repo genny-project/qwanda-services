@@ -85,7 +85,7 @@ public class BaseEntityService2 {
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
   private static final String DEFAULT_REALM = "genny";
-  
+
   Map<String,String> ddtCacheMock = new ConcurrentHashMap<String,String>();
 
 
@@ -434,14 +434,19 @@ public class BaseEntityService2 {
     // entity.setRealm("genny");
     // always check if baseentity exists through check for unique code
     try {
-    	  BaseEntity be = this.findBaseEntityByCode(entity.getCode());
-    	  if (be == null) {
-    		  getEntityManager().persist(entity);
-    		  String json = JsonUtils.toJson(entity);
-    		  writeToDDT(entity.getCode(),json);
-    	  } else {
-    		  return be.getId();
-    	  }
+    	  // BaseEntity be = this.findBaseEntityByCode(entity.getCode());
+    	  // if (be == null) {
+    		//   getEntityManager().persist(entity);
+    		//   String json = JsonUtils.toJson(entity);
+    		//   writeToDDT(entity.getCode(),json);
+    	  // } else {
+    		//   return be.getId();
+    	  // }
+
+          getEntityManager().persist(entity);
+          String json = JsonUtils.toJson(entity);
+          writeToDDT(entity.getCode(), json);
+          
     } catch (final ConstraintViolationException e) {
       // so update otherwise // TODO merge?
      // getEntityManager().merge(entity);
@@ -521,7 +526,7 @@ public class BaseEntityService2 {
            getEntityManager().merge(beTarget);
           String json = JsonUtils.toJson(beTarget);
           writeToDDT(beTarget.getCode(),json);
-          
+
             boolean sendAttributeChangeEvent = false;
             if (!optExisting.isPresent()) {
               sendAttributeChangeEvent = true;
@@ -571,8 +576,8 @@ public class BaseEntityService2 {
                   new QEventAttributeValueChangeMessage(pojo, (oldValue), getCurrentToken());
               Optional<EntityAttribute> optNewEA =
                       beTarget.findEntityAttribute(answer.getAttributeCode());
-             
-              
+
+
  //             EntityAttribute safeOne = new EntityAttribute(beTarget, attribute, answer.getWeight(),optNewEA.get().getValue());
 //              EntityAttribute safeOne = deepClone(optNewEA.get()); //new EntityAttribute();
               EntityAttribute safeOne = new EntityAttribute();
@@ -581,16 +586,16 @@ public class BaseEntityService2 {
               safeOne.setBaseEntityCode(beTarget.getCode());
               safeOne.setInferred(optNewEA.get().getInferred());
               safeOne.setInferred(optNewEA.get().getPrivacyFlag());
-              
+
               safeOne.setLoopValue(optNewEA.get().getLoopValue());
-             
+
               BaseEntity safeBe = new BaseEntity(beTarget.getCode(),beTarget.getName());
               Set<EntityAttribute> safeSet = new HashSet<EntityAttribute>();
               safeSet.add(safeOne);
               safeBe.setBaseEntityAttributes(safeSet);
-              // Add Links 
+              // Add Links
               safeBe.setLinks(beTarget.getLinks());
-              
+
               if (optNewEA.isPresent()) {
             	  	msg.setEa(safeOne);
             	  	msg.setBe(safeBe);
@@ -671,7 +676,7 @@ public class BaseEntityService2 {
 	        return null;
 	    }
 	}
-  
+
   @Transactional
   public EntityEntity insertEntityEntity(final EntityEntity ee) {
 
@@ -710,9 +715,9 @@ public class BaseEntityService2 {
     	    } catch (Exception e) {
     	      // log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode +
     	      // " not found");
-   
+
     	    }
-  
+
 //    try {
 //
 //        entity = getEntityManager().merge(entity);
@@ -727,8 +732,8 @@ public class BaseEntityService2 {
 
   @Transactional
   public Long updateWithAttributes(BaseEntity entity) {
- 
-  
+
+
     try {
 
         entity = getEntityManager().merge(entity);
@@ -739,12 +744,12 @@ public class BaseEntityService2 {
         getEntityManager().persist(entity);
         String json = JsonUtils.toJson(entity);
         writeToDDT(entity.getCode(),json);
- 
+
       }
       return entity.getId();
   }
 
-  
+
   public Long update(Attribute attribute) {
     // always check if attribute exists through check for unique code
     try {
@@ -956,7 +961,7 @@ public class BaseEntityService2 {
       boolean includeEntityAttributes) throws NoResultException {
 
     BaseEntity result = null;
-    final String userRealmStr = getRealm(); 
+    final String userRealmStr = getRealm();
 
     if (includeEntityAttributes) {
        String privacySQL = ( inRole("admin"))?"":" and ea.privacyFlag=:flag";
@@ -966,7 +971,7 @@ public class BaseEntityService2 {
           .setParameter("baseEntityCode", baseEntityCode.toUpperCase())
           .setParameter("flag", false)
           .setParameter("realmStr", userRealmStr).getSingleResult();
-        
+
     } else {
       result = (BaseEntity) getEntityManager()
           .createQuery(
@@ -1343,7 +1348,7 @@ public class BaseEntityService2 {
 
     return eeResults;
   }
-  
+
   public List<BaseEntity> findChildrenByLinkValue(@NotNull final String sourceCode,
 	      final String linkCode, final String linkValue,final boolean includeAttributes, final Integer pageStart,
 	      final Integer pageSize, final Integer level, final MultivaluedMap<String, String> params,
@@ -1376,7 +1381,7 @@ public class BaseEntityService2 {
 	            + "EntityEntity ee JOIN be.baseEntityAttributes bee where ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode  and ee.pk.source.realm=:realmStr and ee.link.linkValue=:linkValue"
 	            + stakeholderFilter2).setParameter("sourceCode", sourceCode)
 	            .setParameter("linkAttributeCode", linkCode).setParameter("realmStr", userRealmStr).setParameter("linkValue", linkValue);
-	        
+
 	        if (stakeholderCode != null) {
 	          query.setParameter("stakeholderCode", stakeholderCode);
 	        }
@@ -1920,19 +1925,19 @@ public class BaseEntityService2 {
 	  }
 	  return defaultQST;
   }
-  
+
   public List<Ask> findAsksUsingQuestionSourceTarget( Question rootQuestion,  QuestionSourceTarget[] qstArray,  QuestionSourceTarget defaultQST) {
 	  // find the root QST from the qstArray
 	  QuestionSourceTarget qst = findQST(rootQuestion.getCode(),qstArray,defaultQST);
-	  
-	  
+
+
 	  return findAsksUsingQuestionSourceTarget(rootQuestion,qst, qstArray, false);
   }
 
   public List<Ask> findAsksUsingQuestionSourceTarget(final Question rootQuestion,final QuestionSourceTarget defaultQST, QuestionSourceTarget[] qstArray, Boolean childQuestionIsMandatory) {
 	    List<Ask> asks = new ArrayList<Ask>();
 	    Boolean mandatory = rootQuestion.getMandatory() || childQuestionIsMandatory;
-	    
+
 	    Ask ask = null;
 	    // check if this already exists?
 	    List<Ask> myAsks = findAsksByQuestion(rootQuestion, defaultQST.getSource(), defaultQST.getTarget());
@@ -1971,7 +1976,7 @@ public class BaseEntityService2 {
 	    asks.add(ask);
 	    return asks;
 	  }
-  
+
   public List<Ask> createAsksByQuestionCode(final String questionCode, final String sourceCode,
       final String targetCode) {
     Question rootQuestion = findQuestionByCode(questionCode);
@@ -3143,28 +3148,28 @@ public class BaseEntityService2 {
   protected String getRealm() {
     return DEFAULT_REALM;
   }
-  
+
 
 	public Boolean inRole(final String role) {
 		return true; // allow for qwanda-services
 	}
-	
 
-	
+
+
 	public void writeToDDT(final String key, final String value)
 	{
 		ddtCacheMock.put(key, value);
 	}
-	
+
 	public void updateDDT(final String key, final String value)
 	{
 		log.info("Update DDT "+key);
 	}
-	
+
 
 	public String readFromDDT(final String key)
 	{
-		
+
 		return ddtCacheMock.get(key);
 	}
 }
