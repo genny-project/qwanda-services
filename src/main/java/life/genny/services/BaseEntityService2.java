@@ -591,6 +591,7 @@ public class BaseEntityService2 {
             	  	msg.setBe(safeBe);
               }
               sendQEventAttributeValueChangeMessage(msg);
+              updateDDT(beTarget.getCode(), JsonUtils.toJson(beTarget));
               System.out.println("Sent Event Change Msg " + pojo);
             }
 
@@ -3148,6 +3149,11 @@ public class BaseEntityService2 {
 	public void writeToDDT(final String key, final String value)
 	{
 		ddtCacheMock.put(key, value);
+	}
+	
+	public void updateDDT(final String key, final String value)
+	{
+		log.info("Update DDT "+key);
 	}
 	
 
