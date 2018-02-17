@@ -523,7 +523,7 @@ public class BaseEntityService2 {
             if (answer.getAttributeCode().equalsIgnoreCase("PRI_NAME")) {
                 beTarget.setName(answer.getValue());
             }
-           getEntityManager().merge(beTarget);
+           beTarget = getEntityManager().merge(beTarget);
           String json = JsonUtils.toJson(beTarget);
           writeToDDT(beTarget.getCode(),json);
 
@@ -546,7 +546,11 @@ public class BaseEntityService2 {
             if (sendAttributeChangeEvent && answer.getChangeEvent()) {
               String oldValue = null;
               if (old != null) {
+            	  if (answerLink.getValueMoney()!=null) {
+            		  oldValue = JsonUtils.toJson(optExisting.get().getValue());
+            	  } else {
                 oldValue = old.toString();
+            	  }
               }
               if (answerLink == null) {
                 System.out.println("answerLink is Null");
