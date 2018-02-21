@@ -98,7 +98,8 @@ public class BaseEntityService2 {
 	  final String userRealmStr = getRealm();
 	  
 	  // Extract pagination variables
-	  Integer pageStart = searchBE.getValue("QRY_PAGE_START").isPresent()?searchBE.getValue("QRY_PAGE_START").get()
+	  Integer pageStart = searchBE.getValue("QRY_PAGE_START",0);
+	  Integer pageSize = searchBE.getValue("QRY_PAGE_SIZE",100);	  
 	  
 	  Query query = null;
       query.setFirstResult(pageStart).setMaxResults(pageSize);
