@@ -91,6 +91,12 @@ public class BaseEntityService2 {
 
   EntityManager em;
   
+  public Long findBySearchBECount(@NotNull final BaseEntity searchBE)
+  {
+	  Long result = 0L;
+	  
+	  return result;
+  }
   
   public List<BaseEntity> findBySearchBE(@NotNull final BaseEntity searchBE) {
 
