@@ -1,10 +1,10 @@
 pipeline {
 	agent any
-  tools {
-      maven 'mvn 3.5'
-  }
+  	tools {
+      		maven 'mvn 3.5'
+  	}
 	triggers {
-  	upstream(upstreamProjects: "qwanda-services", threshold: hudson.model.Result.SUCCESS)
+  		upstream(upstreamProjects: "qwanda-services", threshold: hudson.model.Result.SUCCESS)
 	}
 	stages {
 		stage('Build') {
@@ -13,13 +13,8 @@ pipeline {
 				sh 'mvn clean install -DskipTests=true'
 			}
 		}
-		stage('Build Docker') {
-			steps {
-				sh "./build-docker.sh ${env.BRANCH_NAME}-latest"
-			}
-		}
 		stage('Deploy') {
-      when { branch 'master'}
+      			when { branch 'master'}
 			steps {
 				sh 'echo Deploying...'
 			}
