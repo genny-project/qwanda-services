@@ -85,11 +85,249 @@ public class BaseEntityService2 {
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
   private static final String DEFAULT_REALM = "genny";
-  
+
   Map<String,String> ddtCacheMock = new ConcurrentHashMap<String,String>();
 
 
   EntityManager em;
+  
+  public Long findBySearchBECount(@NotNull final BaseEntity searchBE)
+  {
+	  Long result = 0L;
+	  
+	  return result;
+  }
+  
+  public List<BaseEntity> findBySearchBE(@NotNull final BaseEntity searchBE) {
+
+	  List<BaseEntity> results = null;
+	  final String userRealmStr = getRealm();
+	  
+	  // Extract pagination variables
+	  Integer pageStart = searchBE.getValue("QRY_PAGE_START",0);
+	  Integer pageSize = searchBE.getValue("QRY_PAGE_SIZE",100);	  
+	  
+	  Query query = null;
+      query.setFirstResult(pageStart).setMaxResults(pageSize);
+      results = query.getResultList();
+	  
+//	    // Ignore this bit if stakeholder is null
+//	    String stakeholderFilter1 = "";
+//	    String stakeholderFilter2 = "";
+//	    if (stakeholderCode != null) {
+//	      stakeholderFilter1 = "EntityEntity ff JOIN be.baseEntityAttributes bff,";
+//	      stakeholderFilter2 = " and ff.link.targetCode=:stakeholderCode and ff.link.sourceCode=be.code ";
+//	    }
+//
+//	    final List<BaseEntity> eeResults;
+//	    new HashMap<String, BaseEntity>();
+//	    final String userRealmStr = getRealm();
+//
+//	    System.out.println("findChildrenByAttributeLink");
+//	    if (includeAttributes) {
+//	      System.out.println("findChildrenByAttributeLink - includesAttributes");
+//
+//	      // ugly and insecure
+//	      final Integer pairCount = params.size();
+//	      if (pairCount.equals(0)) {
+//	        System.out.println("findChildrenByAttributeLink - PairCount==0");
+//	        Query query = null;
+//
+//	        query = getEntityManager().createQuery("SELECT distinct be FROM BaseEntity be,"
+//	            + stakeholderFilter1
+//	            + "EntityEntity ee JOIN be.baseEntityAttributes bee where ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode  and ee.pk.source.realm=:realmStr"
+//	            + stakeholderFilter2).setParameter("sourceCode", sourceCode)
+//	            .setParameter("linkAttributeCode", linkCode).setParameter("realmStr", userRealmStr);
+//	        if (stakeholderCode != null) {
+//	          query.setParameter("stakeholderCode", stakeholderCode);
+//	        }
+//	        eeResults = query.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
+//
+//	      } else {
+//	        System.out.println("findChildrenByAttributeLink - PAIR COUNT IS  " + pairCount);
+//	        String eaStrings = "";
+//	        String eaStringsQ = "";
+//	        if (pairCount > 0) {
+//	          eaStringsQ = "(";
+//	          for (int i = 0; i < (pairCount); i++) {
+//	            eaStrings += ",EntityAttribute ea" + i;
+//	            eaStringsQ += "ea" + i + ".baseEntityCode=be.code or ";
+//	          }
+//	          eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
+//	          eaStringsQ += ") and ";
+//	        }
+//
+//	        String queryStr = "SELECT distinct be FROM BaseEntity be," + stakeholderFilter1
+//	            + "EntityEntity ee" + eaStrings + "  JOIN be.baseEntityAttributes bee where "
+//	            + eaStringsQ + "  ee.link.targetCode=be.code" + stakeholderFilter2
+//	            + " and ee.link.attributeCode=:linkAttributeCode and  be.realm=:realmStr and ee.link.sourceCode=:sourceCode and ";
+//	        int attributeCodeIndex = 0;
+//	        int valueIndex = 0;
+//	        final List<String> attributeCodeList = new ArrayList<String>();
+//	        final List<String> valueList = new ArrayList<String>();
+//
+//	        for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
+//	          if (entry.getKey().equals("pageStart") || entry.getKey().equals("pageSize")) { // ugly
+//	            continue;
+//	          }
+//	          final List<String> qvalueList = entry.getValue();
+//	          if (!qvalueList.isEmpty()) {
+//	            // create the value or
+//	            String valueQuery = "(";
+//	            for (final String value : qvalueList) {
+//	              valueQuery +=
+//	                  "ea" + attributeCodeIndex + ".valueString=:valueString" + valueIndex + " or ";
+//	              valueList.add(valueIndex, value);
+//	              valueIndex++;
+//	            }
+//	            // remove last or
+//	            valueQuery = valueQuery.substring(0, valueQuery.length() - 4);
+//	            valueQuery += ")";
+//	            attributeCodeList.add(attributeCodeIndex, entry.getKey());
+//	            if (attributeCodeIndex > 0) {
+//	              queryStr += " and ";
+//	            }
+//	            queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
+//	                + attributeCodeIndex + " and " + valueQuery;
+//	            System.out.println("findChildrenByAttributeLink Key : " + entry.getKey() + " Value : "
+//	                + entry.getValue());
+//	          }
+//	          attributeCodeIndex++;
+//
+//	        }
+//	        System.out.println("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
+//	        final Query query = getEntityManager().createQuery(queryStr);
+//	        int index = 0;
+//	        for (final String attributeParm : attributeCodeList) {
+//	          query.setParameter("attributeCode" + index, attributeParm);
+//	          System.out
+//	              .println("findChildrenByAttributeLink attributeCode" + index + "=:" + attributeParm);
+//	          index++;
+//	        }
+//	        index = 0;
+//	        for (final String valueParm : valueList) {
+//	          query.setParameter("valueString" + index, valueParm);
+//	          System.out.println("valueString" + index + "=:" + valueParm);
+//	          index++;
+//	        }
+//	        query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
+//	        query.setParameter("realmStr", userRealmStr);
+//	        if (stakeholderCode != null) {
+//	          query.setParameter("stakeholderCode", stakeholderCode);
+//	        }
+//
+//	        query.setFirstResult(pageStart).setMaxResults(pageSize);
+//	        eeResults = query.getResultList();
+//
+//	      }
+//	    } else {
+//	      System.out.println("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
+//
+//	      // ugly and insecure
+//	      final Integer pairCount = params.size();
+//	      if (pairCount.equals(0)) {
+//
+//	        Query query = getEntityManager().createQuery("SELECT distinct be FROM BaseEntity be,"
+//	            + stakeholderFilter1 + "EntityEntity ee  where ee.link.targetCode=be.code "
+//	            + stakeholderFilter2
+//	            + " and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode   and be.realm=:realmStr")
+//	            .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+//	            .setParameter("realmStr", userRealmStr).setFirstResult(pageStart);
+//	        if (stakeholderCode != null) {
+//	          query.setParameter("stakeholderCode", stakeholderCode);
+//	        }
+//
+//	        eeResults = query.setMaxResults(pageSize).getResultList();
+//
+//	      } else {
+//	        System.out.println("findChildrenByAttributeLink PAIR COUNT  " + pairCount);
+//	        String eaStrings = "";
+//	        String eaStringsQ = "";
+//	        if (pairCount > 0) {
+//	          eaStringsQ = "(";
+//	          for (int i = 0; i < (pairCount); i++) {
+//	            eaStrings += ",EntityAttribute ea" + i;
+//	            eaStringsQ += "ea" + i + ".baseEntityCode=be.code or ";
+//	          }
+//	          eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
+//	          eaStringsQ += ") and ";
+//	        }
+//
+//	        String queryStr = "SELECT distinct be FROM BaseEntity be," + stakeholderFilter1
+//	            + " EntityEntity ee" + eaStrings + "  where " + eaStringsQ
+//	            + " ee.link.targetCode=be.code " + stakeholderFilter2
+//	            + " and ee.link.attributeCode=:linkAttributeCode and be.realm=:realmStr and ee.link.sourceCode=:sourceCode and ";
+//	        int attributeCodeIndex = 0;
+//	        int valueIndex = 0;
+//	        final List<String> attributeCodeList = new ArrayList<String>();
+//	        final List<String> valueList = new ArrayList<String>();
+//
+//	        for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
+//	          if (entry.getKey().equals("pageStart") || entry.getKey().equals("pageSize")) { // ugly
+//	            continue;
+//	          }
+//	          final List<String> qvalueList = entry.getValue();
+//	          if (!qvalueList.isEmpty()) {
+//	            // create the value or
+//	            String valueQuery = "(";
+//	            for (final String value : qvalueList) {
+//	              valueQuery +=
+//	                  "ea" + attributeCodeIndex + ".valueString=:valueString" + valueIndex + " or ";
+//	              valueList.add(valueIndex, value);
+//	              valueIndex++;
+//	            }
+//	            // remove last or
+//
+//	            valueQuery = valueQuery.substring(0, valueQuery.length() - 4);
+//
+//	            valueQuery += ")";
+//	            attributeCodeList.add(attributeCodeIndex, entry.getKey());
+//	            if (attributeCodeIndex > 0) {
+//	              queryStr += " and ";
+//	            }
+//	            queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
+//	                + attributeCodeIndex + " and " + valueQuery;
+//	            System.out.println("findChildrenByAttributeLink Key : " + entry.getKey() + " Value : "
+//	                + entry.getValue());
+//	          }
+//	          attributeCodeIndex++;
+//
+//	        }
+//	        System.out.println("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
+//	        final Query query = getEntityManager().createQuery(queryStr);
+//	        int index = 0;
+//	        for (final String attributeParm : attributeCodeList) {
+//	          query.setParameter("attributeCode" + index, attributeParm);
+//	          System.out.println("attributeCode" + index + "=:" + attributeParm);
+//	          index++;
+//	        }
+//	        index = 0;
+//	        for (final String valueParm : valueList) {
+//	          query.setParameter("valueString" + index, valueParm);
+//	          System.out.println("valueString" + index + "=:" + valueParm);
+//	          index++;
+//	        }
+//	        query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
+//	        query.setParameter("realmStr", userRealmStr);
+//
+//	        query.setFirstResult(pageStart).setMaxResults(pageSize);
+//	        if (stakeholderCode != null) {
+//	          query.setParameter("stakeholderCode", stakeholderCode);
+//	        }
+//	        eeResults = query.getResultList();
+//	        System.out.println("findChildrenByAttributeLink NULL THE ATTRIBUTES");
+//	        // for (BaseEntity be : eeResults) {
+//	        // be.setBaseEntityAttributes(null); // ugly
+//	        // }
+//	      }
+//
+//	    }
+
+
+	    return results;
+	  }
+  
+  
 
   protected EntityManager getEntityManager() {
     return em;
@@ -434,9 +672,19 @@ public class BaseEntityService2 {
     // entity.setRealm("genny");
     // always check if baseentity exists through check for unique code
     try {
-      getEntityManager().persist(entity);
-      String json = JsonUtils.toJson(entity);
-      writeToDDT(entity.getCode(),json);
+    	  // BaseEntity be = this.findBaseEntityByCode(entity.getCode());
+    	  // if (be == null) {
+    		//   getEntityManager().persist(entity);
+    		//   String json = JsonUtils.toJson(entity);
+    		//   writeToDDT(entity.getCode(),json);
+    	  // } else {
+    		//   return be.getId();
+    	  // }
+
+          getEntityManager().persist(entity);
+          String json = JsonUtils.toJson(entity);
+          writeToDDT(entity.getCode(), json);
+          
     } catch (final ConstraintViolationException e) {
       // so update otherwise // TODO merge?
      // getEntityManager().merge(entity);
@@ -444,11 +692,11 @@ public class BaseEntityService2 {
       return entity.getId();
     } catch (final PersistenceException e) {
       // so update otherwise // TODO merge?
-      getEntityManager().merge(entity);
+   //   getEntityManager().merge(entity);
       return entity.getId();
     } catch (final IllegalStateException e) {
       // so update otherwise // TODO merge?
-      getEntityManager().merge(entity);
+  //    getEntityManager().merge(entity);
       return entity.getId();
     }
     // }
@@ -513,10 +761,10 @@ public class BaseEntityService2 {
             if (answer.getAttributeCode().equalsIgnoreCase("PRI_NAME")) {
                 beTarget.setName(answer.getValue());
             }
-           getEntityManager().merge(beTarget);
+           beTarget = getEntityManager().merge(beTarget);
           String json = JsonUtils.toJson(beTarget);
           writeToDDT(beTarget.getCode(),json);
-          
+
             boolean sendAttributeChangeEvent = false;
             if (!optExisting.isPresent()) {
               sendAttributeChangeEvent = true;
@@ -533,10 +781,14 @@ public class BaseEntityService2 {
             	  	}
               }
             }
-            if (sendAttributeChangeEvent) {
+            if (sendAttributeChangeEvent && answer.getChangeEvent()) {
               String oldValue = null;
               if (old != null) {
+            	  if (answerLink.getValueMoney()!=null) {
+            		  oldValue = JsonUtils.toJson(optExisting.get().getValue());
+            	  } else {
                 oldValue = old.toString();
+            	  }
               }
               if (answerLink == null) {
                 System.out.println("answerLink is Null");
@@ -566,8 +818,8 @@ public class BaseEntityService2 {
                   new QEventAttributeValueChangeMessage(pojo, (oldValue), getCurrentToken());
               Optional<EntityAttribute> optNewEA =
                       beTarget.findEntityAttribute(answer.getAttributeCode());
-             
-              
+
+
  //             EntityAttribute safeOne = new EntityAttribute(beTarget, attribute, answer.getWeight(),optNewEA.get().getValue());
 //              EntityAttribute safeOne = deepClone(optNewEA.get()); //new EntityAttribute();
               EntityAttribute safeOne = new EntityAttribute();
@@ -576,21 +828,22 @@ public class BaseEntityService2 {
               safeOne.setBaseEntityCode(beTarget.getCode());
               safeOne.setInferred(optNewEA.get().getInferred());
               safeOne.setInferred(optNewEA.get().getPrivacyFlag());
-              
+
               safeOne.setLoopValue(optNewEA.get().getLoopValue());
-             
+
               BaseEntity safeBe = new BaseEntity(beTarget.getCode(),beTarget.getName());
               Set<EntityAttribute> safeSet = new HashSet<EntityAttribute>();
               safeSet.add(safeOne);
               safeBe.setBaseEntityAttributes(safeSet);
-              // Add Links 
+              // Add Links
               safeBe.setLinks(beTarget.getLinks());
-              
+
               if (optNewEA.isPresent()) {
             	  	msg.setEa(safeOne);
             	  	msg.setBe(safeBe);
               }
               sendQEventAttributeValueChangeMessage(msg);
+              updateDDT(beTarget.getCode(), JsonUtils.toJson(beTarget));
               System.out.println("Sent Event Change Msg " + pojo);
             }
 
@@ -665,7 +918,7 @@ public class BaseEntityService2 {
 	        return null;
 	    }
 	}
-  
+
   @Transactional
   public EntityEntity insertEntityEntity(final EntityEntity ee) {
 
@@ -704,9 +957,9 @@ public class BaseEntityService2 {
     	    } catch (Exception e) {
     	      // log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode +
     	      // " not found");
-   
+
     	    }
-  
+
 //    try {
 //
 //        entity = getEntityManager().merge(entity);
@@ -721,8 +974,8 @@ public class BaseEntityService2 {
 
   @Transactional
   public Long updateWithAttributes(BaseEntity entity) {
- 
-  
+
+
     try {
 
         entity = getEntityManager().merge(entity);
@@ -733,12 +986,12 @@ public class BaseEntityService2 {
         getEntityManager().persist(entity);
         String json = JsonUtils.toJson(entity);
         writeToDDT(entity.getCode(),json);
- 
+
       }
       return entity.getId();
   }
 
-  
+
   public Long update(Attribute attribute) {
     // always check if attribute exists through check for unique code
     try {
@@ -950,7 +1203,7 @@ public class BaseEntityService2 {
       boolean includeEntityAttributes) throws NoResultException {
 
     BaseEntity result = null;
-    final String userRealmStr = getRealm(); 
+    final String userRealmStr = getRealm();
 
     if (includeEntityAttributes) {
        String privacySQL = ( inRole("admin"))?"":" and ea.privacyFlag=:flag";
@@ -960,7 +1213,7 @@ public class BaseEntityService2 {
           .setParameter("baseEntityCode", baseEntityCode.toUpperCase())
           .setParameter("flag", false)
           .setParameter("realmStr", userRealmStr).getSingleResult();
-        
+
     } else {
       result = (BaseEntity) getEntityManager()
           .createQuery(
@@ -1337,7 +1590,7 @@ public class BaseEntityService2 {
 
     return eeResults;
   }
-  
+
   public List<BaseEntity> findChildrenByLinkValue(@NotNull final String sourceCode,
 	      final String linkCode, final String linkValue,final boolean includeAttributes, final Integer pageStart,
 	      final Integer pageSize, final Integer level, final MultivaluedMap<String, String> params,
@@ -1370,7 +1623,7 @@ public class BaseEntityService2 {
 	            + "EntityEntity ee JOIN be.baseEntityAttributes bee where ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode  and ee.pk.source.realm=:realmStr and ee.link.linkValue=:linkValue"
 	            + stakeholderFilter2).setParameter("sourceCode", sourceCode)
 	            .setParameter("linkAttributeCode", linkCode).setParameter("realmStr", userRealmStr).setParameter("linkValue", linkValue);
-	        
+
 	        if (stakeholderCode != null) {
 	          query.setParameter("stakeholderCode", stakeholderCode);
 	        }
@@ -1914,19 +2167,19 @@ public class BaseEntityService2 {
 	  }
 	  return defaultQST;
   }
-  
+
   public List<Ask> findAsksUsingQuestionSourceTarget( Question rootQuestion,  QuestionSourceTarget[] qstArray,  QuestionSourceTarget defaultQST) {
 	  // find the root QST from the qstArray
 	  QuestionSourceTarget qst = findQST(rootQuestion.getCode(),qstArray,defaultQST);
-	  
-	  
+
+
 	  return findAsksUsingQuestionSourceTarget(rootQuestion,qst, qstArray, false);
   }
 
   public List<Ask> findAsksUsingQuestionSourceTarget(final Question rootQuestion,final QuestionSourceTarget defaultQST, QuestionSourceTarget[] qstArray, Boolean childQuestionIsMandatory) {
 	    List<Ask> asks = new ArrayList<Ask>();
 	    Boolean mandatory = rootQuestion.getMandatory() || childQuestionIsMandatory;
-	    
+
 	    Ask ask = null;
 	    // check if this already exists?
 	    List<Ask> myAsks = findAsksByQuestion(rootQuestion, defaultQST.getSource(), defaultQST.getTarget());
@@ -1965,7 +2218,7 @@ public class BaseEntityService2 {
 	    asks.add(ask);
 	    return asks;
 	  }
-  
+
   public List<Ask> createAsksByQuestionCode(final String questionCode, final String sourceCode,
       final String targetCode) {
     Question rootQuestion = findQuestionByCode(questionCode);
@@ -3137,23 +3390,28 @@ public class BaseEntityService2 {
   protected String getRealm() {
     return DEFAULT_REALM;
   }
-  
+
 
 	public Boolean inRole(final String role) {
 		return true; // allow for qwanda-services
 	}
-	
 
-	
+
+
 	public void writeToDDT(final String key, final String value)
 	{
 		ddtCacheMock.put(key, value);
 	}
-	
+
+	public void updateDDT(final String key, final String value)
+	{
+		log.info("Update DDT "+key);
+	}
+
 
 	public String readFromDDT(final String key)
 	{
-		
+
 		return ddtCacheMock.get(key);
 	}
 }
