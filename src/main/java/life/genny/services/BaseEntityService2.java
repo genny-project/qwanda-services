@@ -1,6 +1,7 @@
 package life.genny.services;
 
 import static java.lang.System.out;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -14,8 +15,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -36,17 +38,21 @@ import javax.persistence.Query;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.exception.ConstraintViolationException;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.KeycloakSecurityContext;
 import org.mortbay.log.Log;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
@@ -74,9 +80,6 @@ import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.JsonUtils;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
-import io.vavr.Tuple3;
 
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
@@ -97,8 +100,20 @@ public class BaseEntityService2 {
 	Map<String, String> ddtCacheMock = new ConcurrentHashMap<String, String>();
 
 	EntityManager em;
+	
+	public List<BaseEntity> findBySearchBE2(@NotNull final String hql) {
+		List<BaseEntity> results = null;
 
-	class Column {
+		Query query = null;
+		query = getEntityManager().createQuery(hql);
+		query.setFirstResult(0).setMaxResults(1000);
+
+		results = query.getResultList();
+		System.out.println("RESULTS="+results);
+		return results;
+	}
+
+	class Column implements Comparable<Column>{
 		private String fieldName;
 		private String fieldCode;
 		private Double weight;
@@ -109,6 +124,10 @@ public class BaseEntityService2 {
 			this.weight = weight;
 		}
 
+		@Override
+		public int compareTo(Column compareColumn) {
+			return this.weight.compareTo(compareColumn.getWeight());
+		}
 		/**
 		 * @return the fieldName
 		 */
@@ -132,7 +151,7 @@ public class BaseEntityService2 {
 
 	}
 
-	class Order {
+	class Order  implements Comparable<Order>{
 		private String fieldName;
 		private String ascdesc;
 		private Double weight;
@@ -164,8 +183,31 @@ public class BaseEntityService2 {
 			return weight;
 		}
 
+		@Override
+		public int compareTo(Order o) {
+			return this.weight.compareTo(o.getWeight());
+		}
+
 	}
 
+	class OrderCompare implements Comparator<Order> {
+
+	    @Override
+	    public int compare(Order o1, Order o2) {
+	        // write comparison logic here like below , it's just a sample
+	        return o1.getWeight().compareTo(o2.getWeight());
+	    }
+	}
+	
+	class ColumnCompare implements Comparator<Column> {
+
+	    @Override
+	    public int compare(Column o1, Column o2) {
+	        // write comparison logic here like below , it's just a sample
+	        return o1.getWeight().compareTo(o2.getWeight());
+	    }
+	}
+	
 	public Long findBySearchBECount(@NotNull final BaseEntity searchBE) {
 		Long result = 0L;
 
@@ -247,7 +289,7 @@ public class BaseEntityService2 {
 		String orderString = "";
 
 		Integer filterIndex = 0;
-		final List<String> attributeCodeList = new ArrayList<String>();
+		final HashMap<String,String> attributeCodeMap = new HashMap<String,String>();
 		final List<Tuple2<String, Object>> valueList = new ArrayList<Tuple2<String, Object>>();
 		final List<Order> orderList = new ArrayList<Order>(); // attributeCode , ASC/DESC
 		final List<Column> columnList = new ArrayList<Column>(); // column to be searched for and returned
@@ -256,12 +298,23 @@ public class BaseEntityService2 {
 		for (EntityAttribute ea : searchBE.getBaseEntityAttributes()) {
 			if (ea.getAttributeCode().startsWith("SCH_")) {
 				continue;
-			}
-			if (ea.getAttributeCode().startsWith("QRY_")) {
+			}			 else if (ea.getAttributeCode().startsWith("SRT_")) {
+				String sortAttribute = ea.getAttributeCode().substring("SRT_".length());
+				orderList.add(new Order(sortAttribute, ea.getValueString().toUpperCase(), ea.getWeight())); // weight
+																											// specifies
+																											// the sort
+																											// order
+
+
+			} else {
+				String priAttributeCode = ea.getAttributeCode();
 				String attributeCodeEA = "ea" + filterIndex;
 				filterStrings += ",EntityAttribute " + attributeCodeEA;
-				filterStringsQ += " " + attributeCodeEA + ".baseEntityCode=be.code ";
-
+				filterStringsQ += " " + attributeCodeEA + ".baseEntityCode=be.code and "+attributeCodeEA+".pk.attribute.code='"+priAttributeCode+"' ";
+				if ((ea.getPk()==null)||ea.getPk().getAttribute()==null) {
+					Attribute attribute = this.findAttributeByCode(priAttributeCode);
+					ea.getPk().setAttribute(attribute);
+				}
 				switch (ea.getPk().getAttribute().getDataType().getClassName()) {
 				// case "java.lang.Integer":
 				// return (T) getValueInteger();
@@ -276,46 +329,50 @@ public class BaseEntityService2 {
 				case "range.LocalDate":
 					Range<LocalDate> rangeLocalDate = ea.getValueDateRange();
 					filterStringsQ += getHQL(rangeLocalDate, attributeCodeEA, "valueDate", filterIndex, valueList);
+					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
 					break;
 				case "java.lang.Boolean":
-					filterStringsQ += " and " + attributeCodeEA + ".valueBoolean=:v" + filterIndex + " ";
+					filterStringsQ += " and " + attributeCodeEA + ".valueBoolean=:v" + filterIndex + " and ";
 					valueList.add(Tuple.of("v" + filterIndex, ea.getValueBoolean()));
+					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueBoolean");
+					columnList.add(new Column(priAttributeCode, ea.getAttributeName(),ea.getWeight()));
 					break;
 				case "java.time.LocalDate":
-					filterStringsQ += " and " + attributeCodeEA + ".valueDate=:v" + filterIndex + " ";
+					filterStringsQ += " and " + attributeCodeEA + ".valueDate=:v" + filterIndex + " and ";
 					valueList.add(Tuple.of("v" + filterIndex, ea.getValueDate()));
+					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
+					columnList.add(new Column(priAttributeCode, ea.getAttributeName(),ea.getWeight()));
 					break;
 				// case "org.javamoney.moneta.Money":
 				// return (T) getValueMoney();
 				case "java.lang.String":
 				default:
-					filterStringsQ += " and " + attributeCodeEA + ".valueString=:v" + filterIndex + " ";
-					valueList.add(Tuple.of("v" + filterIndex, ea.getValueString()));
+					if (ea.getValueString()==null) {
+						filterStringsQ += " and " + attributeCodeEA + ".valueString like :v" + filterIndex + " and ";
+						valueList.add(Tuple.of("v" + filterIndex, "%%"));						
+					} else {
+						filterStringsQ += " and " + attributeCodeEA + ".valueString=:v" + filterIndex + " and ";
+						valueList.add(Tuple.of("v" + filterIndex, ea.getValueString()));
+					}
+					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueString");
+					columnList.add(new Column(priAttributeCode, ea.getAttributeName(),ea.getWeight()));
 				}
 				filterIndex++;
 
-			} else if (ea.getAttributeCode().startsWith("SRT_")) {
-				String sortAttribute = ea.getAttributeCode().substring("SRT_".length());
-				orderList.add(new Order(sortAttribute, ea.getValueString().toUpperCase(), ea.getWeight())); // weight
-																											// specifies
-																											// the sort
-																											// order
-
-			} else { // PRI_FIRST_NAME = "Bob"
-				String columnCode = ea.getAttributeCode().substring("COL_".length()).toUpperCase();
-				String columnName = ea.getAttributeName();
-				columnList.add(new Column(columnCode, columnName, ea.getWeight())); // weight specifies the sort order
-				columnCodes.put(columnCode, ea.getWeight());
-			}
+			} 
 		}
 
 		if (filterIndex > 0) {
-			filterStringsQ = " and (" + filterStringsQ.substring(0, filterStringsQ.length()) + ")  ";
+			filterStringsQ = " and (" + filterStringsQ.substring(0, filterStringsQ.length() - 5) + ")  ";
 		}
 
-		List<String> realms = Arrays.asList("genny", userRealmStr);
+		Set<String> realms = new HashSet<String>();
+		realms.add(userRealmStr);
+		realms.add("genny");
+				
+		orderString = createOrderString(attributeCodeMap,orderList);
 
-		String sql = "select distinct be from BaseEntity be, "
+		String sql = "select  be from BaseEntity be, "
 				+ ((stakeholderCode != null) ? " EntityEntity ff JOIN be.baseEntityAttributes bff," : "")
 				+ " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
 				+ " EntityEntity ee JOIN be.baseEntityAttributes bee " + filterStrings + " where "
@@ -333,13 +390,17 @@ public class BaseEntityService2 {
 				+ filterStringsQ + orderString;
 
 		log.info("SQL =[" + sql + "]");
-
+		System.out.println("SQL="+sql);
 		Query query = null;
+		System.out.println("PREQUERY");
+
 		query = getEntityManager().createQuery(sql);
+		System.out.println("PREQUERY2");
+
 		query.setFirstResult(pageStart).setMaxResults(pageSize);
 
 		query.setParameter("realms", realms);
-		query.setParameter("columnCodes", columnCodes.keySet());
+//		query.setParameter("columnCodes", columnCodes.keySet());
 
 		if (sourceCode != null) {
 			query.setParameter("sourceCode", sourceCode);
@@ -361,8 +422,11 @@ public class BaseEntityService2 {
 			System.out.println("Value: " + value._1 + " =: " + value._2);
 			query.setParameter(value._1, value._2);
 		}
+		System.out.println("PREQUERY3");
 		results = query.getResultList();
-
+		System.out.println("RESULTS="+results);
+	//	List<Object[]> results = query.getResultList();
+		return results;
 		// System.out.println("findChildrenByAttributeLink - PAIR COUNT IS " +
 		// pairCount);
 		// String eaStrings = "";
@@ -562,7 +626,24 @@ public class BaseEntityService2 {
 		//
 		// }
 
-		return results;
+		
+	}
+
+	private String createOrderString(HashMap<String,String> attributeCodeMap , List<Order> orderList) {
+		String ret = " order by ";
+		// Sort
+		Collections.sort(orderList,new OrderCompare());
+
+		for (Order order : orderList) {
+			String sqlAttribute = attributeCodeMap.get(order.getFieldName());
+			if (sqlAttribute != null) {
+			ret += sqlAttribute+" "+order.getAscdesc() +",";
+			} else {
+				System.out.println("ERROR - Cannot map "+order.getFieldName());
+			}
+		}
+		ret = ret.substring(0, ret.length()-1);
+		return ret;
 	}
 
 	protected EntityManager getEntityManager() {

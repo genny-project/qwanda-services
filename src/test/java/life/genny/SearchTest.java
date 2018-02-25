@@ -83,19 +83,19 @@ public class SearchTest {
 			// searchBE.setValue(new AttributeText("QRY_PRI_FIRST_NAME", "First
 			// Name"),"Bob");
 
-			searchBE.setValue(new AttributeDate("QRY_PRI_DOB", "DOB"), LocalDate.of(2018, 2, 20));
+			searchBE.setValue(new AttributeDate("PRI_DOB", "DOB"), LocalDate.of(2018, 2, 20));
 
 			searchBE.setValue(new AttributeText("SRT_PRI_DOB", "DOB"), "ASC", 0.8);
 			searchBE.setValue(new AttributeText("SRT_PRI_FIRSTNAME", "FIRSTNAME"), "DESC", 1.0); // higher priority
 																									// sorting
 
-			searchBE.setValue(new AttributeText("PRI_FIRST_NAME", "First name"), "First Name", 1.0); // return this
+			searchBE.setValue(new AttributeText("PRI_FIRSTNAME", "First name"), null, 1.0); // return this
 																										// column with
 																										// this header
-			searchBE.setValue(new AttributeText("PRI_DOB", "DOB"), "Birthday", 2.0); // return this column with this
-																						// header
-			searchBE.setValue(new AttributeText("PRI_LASTNAME", "LastName"), "Last Name", 1.5); // return this column
-																								// with this header
+//			searchBE.setValue(new AttributeText("PRI_DOB", "DOB"), "Birthday", 2.0); // return this column with this
+//																						// header
+//			searchBE.setValue(new AttributeText("PRI_LASTNAME", "LastName"), "Last Name", 1.5); // return this column
+//																								// with this header
 
 		} catch (BadDataException e) {
 			log.error("Bad Data Exception");
