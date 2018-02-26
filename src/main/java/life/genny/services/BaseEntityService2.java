@@ -1418,6 +1418,11 @@ public class BaseEntityService2 {
 			// getEntityManager().getTransaction().begin();
 			getEntityManager().persist(ee);
 			// getEntityManager().getTransaction().commit();
+			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee.getLink(), null, getCurrentToken());
+
+			sendQEventLinkChangeMessage(msg);
+			System.out.println("Sent Event Link Change Msg " + msg);
+
 		} catch (Exception e) {
 			// rollback
 		}
@@ -3175,6 +3180,8 @@ public class BaseEntityService2 {
 	@Transactional
 	public Integer updateEntityEntity(final Link link) throws NoResultException {
 		Integer result = 0;
+		
+		Link oldLink = findLink(link.getSourceCode(),link.getTargetCode(),link.getAttributeCode());
 
 		try {
 			result = getEntityManager().createQuery(
@@ -3184,6 +3191,12 @@ public class BaseEntityService2 {
 					.setParameter("targetCode", link.getTargetCode()).setParameter("linkValue", link.getLinkValue())
 					.setParameter("parentColor", link.getParentColor()).setParameter("childColor", link.getChildColor())
 					.setParameter("rule", link.getRule()).setParameter("weight", link.getWeight()).executeUpdate();
+
+			
+			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(link, oldLink, getCurrentToken());
+
+			sendQEventLinkChangeMessage(msg);
+			System.out.println("Sent Event Link Change Msg " + msg);
 
 		} catch (Exception e) {
 			// log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode +
@@ -3324,6 +3337,11 @@ public class BaseEntityService2 {
 		try {
 			ee = findEntityEntity(link.getSourceCode(), link.getTargetCode(), link.getAttributeCode());
 			removeEntityEntity(ee);
+			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(null, ee.getLink(), getCurrentToken());
+
+			sendQEventLinkChangeMessage(msg);
+			System.out.println("Sent Event Link Change Msg " + msg);
+
 		} catch (Exception e) {
 			log.error("EntityEntity " + link + " not found");
 		}
