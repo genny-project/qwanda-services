@@ -41,6 +41,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.KeycloakSecurityContext;
@@ -105,6 +106,9 @@ public class BaseEntityService2 {
 		List<BaseEntity> results = null;
 
 		Query query = null;
+		String[] attributeCodes = "PRI_FIRSTNAME:PRI_LASTNAME".split(":");
+	    getEntityManager().unwrap(Session.class).enableFilter("filterAttribute").setParameter("attributeCodes", attributeCodes);
+	//    getEntityManager().unwrap(Session.class).enableFilter("filterAttribute").setParameter("attributeCodes", attributeCodes);
 		query = getEntityManager().createQuery(hql);
 		query.setFirstResult(0).setMaxResults(1000);
 
@@ -113,6 +117,17 @@ public class BaseEntityService2 {
 		return results;
 	}
 
+	public List<Object> findBySearchBE3(@NotNull final String hql) {
+		List<Object> results = null;
+		System.out.println("Object result:"+hql);
+		Query query = null;
+		query = getEntityManager().createQuery(hql);
+		query.setFirstResult(0).setMaxResults(1000);
+
+		results = query.getResultList();
+		System.out.println("RESULTS="+results);
+		return results;
+	}
 	class Column implements Comparable<Column>{
 		private String fieldName;
 		private String fieldCode;
