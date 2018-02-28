@@ -1173,6 +1173,8 @@ public class BaseEntityService2 {
 								safeOne.setInferred(optNewEA.get().getPrivacyFlag());
 
 								safeOne.setLoopValue(optNewEA.get().getLoopValue());
+								safeOne.setAttribute(attribute);
+								safeOne.setBaseEntity(beTarget);
 								safeSet.add(safeOne);
 
 
