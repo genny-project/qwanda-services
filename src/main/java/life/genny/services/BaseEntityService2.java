@@ -1072,7 +1072,7 @@ public class BaseEntityService2 {
 				try {
 					// check that the codes exist
 				//	attribute = findAttributeByCode(answer.getAttributeCode());
-
+					attribute = answer.getAttribute();
 					if (answer.getAskId() != null) {
 						ask = findAskById(answer.getAskId());
 						if (!((answer.getSourceCode().equals(ask.getSourceCode()))
