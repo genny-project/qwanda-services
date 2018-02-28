@@ -1071,7 +1071,7 @@ public class BaseEntityService2 {
 			try {
 				try {
 					// check that the codes exist
-					attribute = findAttributeByCode(answer.getAttributeCode());
+				//	attribute = findAttributeByCode(answer.getAttributeCode());
 
 					if (answer.getAskId() != null) {
 						ask = findAskById(answer.getAskId());
@@ -1083,14 +1083,16 @@ public class BaseEntityService2 {
 						}
 					}
 
-					answer.setAttribute(attribute);
+				//	answer.setAttribute(attribute);
+					msg.getBe().addAnswer(answer);
 					getEntityManager().persist(answer);
 
 					// Check if answer represents a link only
 					if (attribute.getDataType().getClassName().startsWith("DTT_LINK_")) {
 						// add a link
-						addLink(answer.getValue(), answer.getTargetCode(), attribute.getDataType().getTypeName(),
+						EntityEntity ee = addLink(answer.getValue(), answer.getTargetCode(), attribute.getDataType().getTypeName(),
 								"ANSWER", answer.getWeight());
+						msg.getBe().getLinks().add(ee);
 					} else {
 
 						// update answerlink
@@ -1107,9 +1109,6 @@ public class BaseEntityService2 {
 							if (answer.getAttributeCode().equalsIgnoreCase("PRI_NAME")) {
 								beTarget.setName(answer.getValue());
 							}
-							beTarget = getEntityManager().merge(beTarget);
-							String json = JsonUtils.toJson(beTarget);
-							writeToDDT(beTarget.getCode(), json);
 
 							boolean sendAttributeChangeEvent = false;
 							if (!optExisting.isPresent()) {
@@ -1179,9 +1178,8 @@ public class BaseEntityService2 {
 
 								if (optNewEA.isPresent()) {
 									msg.setEa(safeOne);
+									msg.getBe().addAttribute(safeOne);
 								}
-								updateDDT(beTarget.getCode(), JsonUtils.toJson(beTarget));
-								System.out.println("Sent Event Change Msg " + pojo);
 							}
 
 						} catch (final Exception e) {
@@ -1207,7 +1205,12 @@ public class BaseEntityService2 {
 			}
 		}
 		if (changeEvent) {
-			sendQEventAttributeValueChangeMessage(msg);
+			beTarget = getEntityManager().merge(beTarget);  // if nothing changed then no need to merge beTarget
+
+			String json = JsonUtils.toJson(beTarget);
+			writeToDDT(beTarget.getCode(), json);			// Update the DDT
+
+			sendQEventAttributeValueChangeMessage(msg);	// msg should contain the baseentity with the changed attributes
 		}
 		return 0L;
 	}
