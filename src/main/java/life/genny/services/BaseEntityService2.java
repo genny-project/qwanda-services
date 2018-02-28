@@ -1118,7 +1118,7 @@ public class BaseEntityService2 {
 							if (optExisting.isPresent()) {
 								Object newOne = answerLink.getValue();
 								if (newOne != null) {
-									if (old.hashCode() != (newOne.hashCode())) {
+									if ((old==null) || (old.hashCode() != (newOne.hashCode()))) {
 										sendAttributeChangeEvent = true;
 									}
 								} else {
