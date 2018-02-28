@@ -1177,11 +1177,13 @@ public class BaseEntityService2 {
 								safeOne.setLoopValue(optNewEA.get().getLoopValue());
 								safeOne.setAttribute(attribute);
 								safeOne.setBaseEntity(beTarget);
+								safeOne.setValue(optNewEA.get().getValue());
 								safeSet.add(safeOne);
 
 
 								if (optNewEA.isPresent()) {
 									msg.setEa(safeOne);
+									msg.getBe().getAnswers().add(answerLink);
 									msg.getBe().addAttribute(safeOne);
 								}
 							}
