@@ -1166,6 +1166,7 @@ public class BaseEntityService2 {
 								// answer.getWeight(),optNewEA.get().getValue());
 								// EntityAttribute safeOne = deepClone(optNewEA.get()); //new EntityAttribute();
 								EntityAttribute safeOne = new EntityAttribute();
+								safeOne.setWeight(answer.getWeight());
 								safeOne.setAttributeCode(attribute.getCode());
 								safeOne.setAttributeName(attribute.getName());
 								safeOne.setBaseEntityCode(beTarget.getCode());
