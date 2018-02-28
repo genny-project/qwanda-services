@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>life.genny</groupId>
 	<artifactId>qwanda-services</artifactId>
-	<version>1.0.7</version>
+	<version>1.0.8</version>
 	<name>qwanda-services</name>
 	<description>Question and Answer Engine Services</description>
 
@@ -19,7 +19,7 @@
 		<jar.finalName>${project.name}</jar.finalName>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<qwanda-utils.version>1.0.7</qwanda-utils.version>
+		<qwanda-utils.version>1.0.8</qwanda-utils.version>
 
 		<!--java version -->
 		<java-version>1.8</java-version>
@@ -49,11 +49,15 @@
 		<jersey-version>2.13</jersey-version>
 		<version.apache-httpclient>4.5.3</version.apache-httpclient>
 		<version.keycloak>3.2.0.Final</version.keycloak>
-		<hibernate.version>5.2.4.Final</hibernate.version>
+		<version.hibernate>5.2.13.Final</version.hibernate>
+		<version.hibernate-validator>5.2.1.Final</version.hibernate-validator>
+		<version.hsqldb>2.4.0</version.hsqldb>
+		<version.h2db>1.4.193</version.h2db>
 		<keycloak-core.version>3.2.0.Final</keycloak-core.version>
 		<keycloak-adapter-core.version>3.2.0.Final</keycloak-adapter-core.version>
 		<version.resteasy>3.0.10.Final</version.resteasy>
 
+		<m2e.jpa.activation>false</m2e.jpa.activation>
 
 	</properties>
 
@@ -86,18 +90,22 @@
 	</repositories>
 
 	<dependencies>
-<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
-<dependency>
-    <groupId>org.hibernate</groupId>
-    <artifactId>hibernate-core</artifactId>
-    <version>5.2.12.Final</version>
-</dependency>
-
-                <dependency>
-                        <groupId>javax.persistence</groupId>
-                        <artifactId>persistence-api</artifactId>
-                        <version>1.0.2</version>
-                </dependency>
+		<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>${version.hibernate}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+			<version>${version.hibernate}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate.javax.persistence</groupId>
+			<artifactId>hibernate-jpa-2.1-api</artifactId>
+			<version>1.0.2.Final</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/javax.validation/validation-api -->
 		<dependency>
 			<groupId>javax.validation</groupId>
@@ -132,12 +140,12 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator</artifactId>
-			<version>5.2.1.Final</version>
+			<version>${version.hibernate-validator}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator-annotation-processor</artifactId>
-			<version>5.2.1.Final</version>
+			<version>${version.hibernate-validator}</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.el</groupId>
@@ -273,6 +281,7 @@
 			<version>1.4.196</version>
 			<scope>test</scope>
 		</dependency>
+<<<<<<< HEAD
 		<!--<dependency>
 		      <groupId>org.hibernate</groupId>
 		      <artifactId>hibernate-core</artifactId>
@@ -283,9 +292,29 @@
 		      <artifactId>hibernate-entitymanager</artifactId>
 		      <version>4.2.8.Final</version>
 		</dependency>-->
+=======
+		<!-- https://mvnrepository.com/artifact/org.orbisgis/h2gis -->
+		<dependency>
+			<groupId>org.orbisgis</groupId>
+			<artifactId>h2gis</artifactId>
+			<version>1.3.2</version>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-spatial</artifactId>
+			<version>${version.hibernate}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.vavr</groupId>
+			<artifactId>vavr</artifactId>
+			<version>0.9.1</version>
+		</dependency>
+>>>>>>> 0db15a2672cd992ed6209bfa399fadc92d6e74fe
 
 	</dependencies>
 	<build>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

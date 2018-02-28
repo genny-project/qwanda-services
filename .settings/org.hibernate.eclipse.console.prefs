@@ -1,3 +1,3 @@
-default.configuration=qwanda-services
+default.configuration=qwanda-services (1)
 eclipse.preferences.version=1
 hibernate3.enabled=true

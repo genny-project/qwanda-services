@@ -26,7 +26,6 @@ import java.util.TimeZone;
 
 import javax.persistence.Query;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 
 import org.apache.logging.log4j.Logger;
 import org.javamoney.moneta.Money;
@@ -55,15 +54,13 @@ import life.genny.qwanda.MoneyDeserializer;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeDate;
-import life.genny.qwanda.attribute.AttributeLink;
+import life.genny.qwanda.attribute.AttributeInteger;
 import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.entity.Person;
 import life.genny.qwanda.exception.BadDataException;
-import life.genny.qwanda.message.QBaseMSGMessageTemplate;
-import life.genny.qwanda.message.QDataAnswerMessage;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
 import life.genny.qwandautils.JsonUtils;
@@ -76,6 +73,43 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   private static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
+	@Test
+	public void searchBETest() {
+
+		BaseEntity searchBE = new BaseEntity("SER_TEST_SEARCH", "Search test");
+		try {
+			// searchBE.setValue(new AttributeText("SCH_STAKEHOLDER_CODE",
+			// "Stakeholder"),"PER_USER1");
+			searchBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
+			searchBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 10);
+			
+			// Set some Filter attributes
+			// searchBE.setValue(new AttributeText("QRY_PRI_FIRST_NAME", "First
+			// Name"),"Bob");
+
+			searchBE.setValue(new AttributeDate("QRY_PRI_DOB", "DOB"), LocalDate.of(2018, 2, 20));
+
+			searchBE.setValue(new AttributeText("SRT_PRI_DOB", "DOB"), "ASC", 0.8);
+			searchBE.setValue(new AttributeText("SRT_PRI_FIRSTNAME", "FIRSTNAME"), "DESC", 1.0); // higher priority
+																									// sorting
+
+			searchBE.setValue(new AttributeText("PRI_FIRST_NAME", "First name"), "First Name", 1.0); // return this
+																										// column with
+																										// this header
+			searchBE.setValue(new AttributeText("PRI_DOB", "DOB"), "Birthday", 2.0); // return this column with this
+																						// header
+			searchBE.setValue(new AttributeText("PRI_LASTNAME", "LastName"), "Last Name", 1.5); // return this column
+																								// with this header
+
+		} catch (BadDataException e) {
+			log.error("Bad Data Exception");
+		}
+
+		List<BaseEntity> results = service.findBySearchBE(searchBE);
+		log.info(results);
+	}
+  
+  
   @Test
   public void saveAnswerTest() {
 	 getEm().getTransaction().begin();
@@ -1016,12 +1050,12 @@ public void questionGroupTest()
 		int i=0;
 		for (Ask ask : askMsgs.getItems()) {
 			for (Ask ask2 : ask.getChildAsks()) {
-			System.out.println(ask2);
+		//	System.out.println(ask2);
 //			for (Ask ask3 : ask2.getChildAsks()) 
 			try {
 				if (i>-1) {
 				String j = gson.toJson(ask2);
-				System.out.println("Json="+j);
+		//		System.out.println("Json="+j);
 				}
 				i++;
 			} catch (Exception e) {
@@ -1035,7 +1069,7 @@ public void questionGroupTest()
 //		askMsgs.getItems()[0].getChildAsks()[2] = null;
 //		askMsgs.getItems()[0].getChildAsks()[1] = null;
 		String json = gson.toJson(askMsgs);
-		System.out.println("json:"+json);
+	//	System.out.println("json:"+json);
 		
 		
 	}
@@ -1140,4 +1174,6 @@ public void questionGroupTest()
 		  Boolean result = QwandaUtils.isMandatoryFieldsCompleted(askMsg, baseEntityList);
 		 System.out.println("The Test Result for isMandatoryCompleted is  ::    "+result);
 	   }
+	 
+
 }
