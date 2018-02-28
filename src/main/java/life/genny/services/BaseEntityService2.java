@@ -1341,13 +1341,14 @@ public class BaseEntityService2 {
 							// answer.getWeight(),optNewEA.get().getValue());
 							// EntityAttribute safeOne = deepClone(optNewEA.get()); //new EntityAttribute();
 							EntityAttribute safeOne = new EntityAttribute();
+							safeOne.setAttribute(attribute);
 							safeOne.setAttributeCode(attribute.getCode());
 							safeOne.setAttributeName(attribute.getName());
 							safeOne.setBaseEntityCode(beTarget.getCode());
 							safeOne.setInferred(optNewEA.get().getInferred());
 							safeOne.setInferred(optNewEA.get().getPrivacyFlag());
 
-							safeOne.setLoopValue(optNewEA.get().getLoopValue());
+							safeOne.setValue(optNewEA.get().getValue());
 
 							BaseEntity safeBe = new BaseEntity(beTarget.getCode(), beTarget.getName());
 							Set<EntityAttribute> safeSet = new HashSet<EntityAttribute>();
