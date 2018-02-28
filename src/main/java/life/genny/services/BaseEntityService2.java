@@ -1085,6 +1085,7 @@ public class BaseEntityService2 {
 
 				//	answer.setAttribute(attribute);
 					msg.getBe().addAnswer(answer);
+					msg.setAnswer(answer);
 					getEntityManager().persist(answer);
 
 					// Check if answer represents a link only
