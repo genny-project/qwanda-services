@@ -1204,11 +1204,13 @@ public class BaseEntityService2 {
 				log.error("Transaction Exception in saving Answer" + answer);
 			}
 		}
-		if (changeEvent) {
-			beTarget = getEntityManager().merge(beTarget);  // if nothing changed then no need to merge beTarget
+		
+		beTarget = getEntityManager().merge(beTarget);  // if nothing changed then no need to merge beTarget
 
-			String json = JsonUtils.toJson(beTarget);
-			writeToDDT(beTarget.getCode(), json);			// Update the DDT
+		String json = JsonUtils.toJson(beTarget);
+		writeToDDT(beTarget.getCode(), json);			// Update the DDT
+
+		if (changeEvent) {
 
 			sendQEventAttributeValueChangeMessage(msg);	// msg should contain the baseentity with the changed attributes
 		}
