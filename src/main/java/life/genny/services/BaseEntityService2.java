@@ -1065,9 +1065,12 @@ public class BaseEntityService2 {
 		safeBe.setLinks(beTarget.getLinks());
 		QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(beSource.getCode(),beTarget.getCode(),safeBe, getCurrentToken());
 		msg.setBe(safeBe);
-		Boolean changeEvent = answers[0].getChangeEvent();
+		Boolean changeEvent = false;
 
 		for (Answer answer : answers) {
+			if ("LNK_LOAD_LISTS".equalsIgnoreCase(answer.getAttributeCode())) {
+				System.out.println("LNK_LOAD_LISTS");
+			}
 			try {
 				try {
 					// check that the codes exist
@@ -1084,8 +1087,10 @@ public class BaseEntityService2 {
 					}
 
 				//	answer.setAttribute(attribute);
-					msg.getBe().addAnswer(answer);
-					msg.setAnswer(answer);
+					if (answer.getChangeEvent()) {
+						msg.getBe().addAnswer(answer);
+						msg.setAnswer(answer);
+					}
 					getEntityManager().persist(answer);
 
 					// Check if answer represents a link only
@@ -1186,6 +1191,8 @@ public class BaseEntityService2 {
 									msg.getBe().getAnswers().add(answerLink);
 									msg.getBe().addAttribute(safeOne);
 								}
+								
+								changeEvent = true; // flag it
 							}
 
 						} catch (final Exception e) {
