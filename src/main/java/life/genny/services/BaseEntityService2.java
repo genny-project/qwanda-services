@@ -1211,12 +1211,11 @@ public class BaseEntityService2 {
 			}
 		}
 		
-		beTarget = getEntityManager().merge(beTarget);  // if nothing changed then no need to merge beTarget
 
-		String json = JsonUtils.toJson(beTarget);
-		writeToDDT(beTarget.getCode(), json);			// Update the DDT
-
-		if (changeEvent) {
+		if (!msg.getBe().getBaseEntityAttributes().isEmpty()) {
+			beTarget = getEntityManager().merge(beTarget);  // if nothing changed then no need to merge beTarget
+			String json = JsonUtils.toJson(beTarget);
+			writeToDDT(beTarget.getCode(), json);			// Update the DDT
 
 			sendQEventAttributeValueChangeMessage(msg);	// msg should contain the baseentity with the changed attributes
 		}
