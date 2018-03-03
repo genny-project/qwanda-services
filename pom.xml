@@ -50,7 +50,7 @@
 		<version.apache-httpclient>4.5.3</version.apache-httpclient>
 		<version.keycloak>3.2.0.Final</version.keycloak>
 		<version.hibernate>5.2.13.Final</version.hibernate>
-		<version.hibernate-validator>5.2.1.Final</version.hibernate-validator>
+		<version.hibernate-validator>5.2.3.Final</version.hibernate-validator>
 		<version.hsqldb>2.4.0</version.hsqldb>
 		<version.h2db>1.4.193</version.h2db>
 		<keycloak-core.version>3.2.0.Final</keycloak-core.version>

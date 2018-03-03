@@ -3870,6 +3870,11 @@ public class BaseEntityService2 {
 	public void writeToDDT(final String key, final String value) {
 		ddtCacheMock.put(key, value);
 	}
+	
+	public void writeToDDT(final String key, final BaseEntity be)
+	{
+		ddtCacheMock.put(key, JsonUtils.toJson(be));
+	}
 
 	public void updateDDT(final String key, final String value) {
 		log.info("Update DDT " + key);
