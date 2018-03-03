@@ -3871,9 +3871,9 @@ public class BaseEntityService2 {
 		ddtCacheMock.put(key, value);
 	}
 	
-	public void writeToDDT(final String key, final BaseEntity be)
+	public void writeToDDT(final BaseEntity be)
 	{
-		ddtCacheMock.put(key, JsonUtils.toJson(be));
+		ddtCacheMock.put(be.getCode(), JsonUtils.toJson(be));
 	}
 
 	public void updateDDT(final String key, final String value) {
