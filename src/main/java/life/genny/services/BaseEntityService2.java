@@ -113,19 +113,19 @@ public class BaseEntityService2 {
 		query.setFirstResult(0).setMaxResults(1000);
 
 		results = query.getResultList();
-		System.out.println("RESULTS="+results);
+		log.debug("RESULTS="+results);
 		return results;
 	}
 
 	public List<Object> findBySearchBE3(@NotNull final String hql) {
 		List<Object> results = null;
-		System.out.println("Object result:"+hql);
+		log.debug("Object result:"+hql);
 		Query query = null;
 		query = getEntityManager().createQuery(hql);
 		query.setFirstResult(0).setMaxResults(1000);
 
 		results = query.getResultList();
-		System.out.println("RESULTS="+results);
+		log.debug("RESULTS="+results);
 		return results;
 	}
 	class Column implements Comparable<Column>{
@@ -405,12 +405,12 @@ public class BaseEntityService2 {
 				+ filterStringsQ + orderString;
 
 		log.info("SQL =[" + sql + "]");
-		System.out.println("SQL="+sql);
+		log.debug("SQL="+sql);
 		Query query = null;
-		System.out.println("PREQUERY");
+		log.debug("PREQUERY");
 
 		query = getEntityManager().createQuery(sql);
-		System.out.println("PREQUERY2");
+		log.debug("PREQUERY2");
 
 		query.setFirstResult(pageStart).setMaxResults(pageSize);
 
@@ -434,15 +434,15 @@ public class BaseEntityService2 {
 		}
 		//
 		for (Tuple2<String, Object> value : valueList) {
-			System.out.println("Value: " + value._1 + " =: " + value._2);
+			log.debug("Value: " + value._1 + " =: " + value._2);
 			query.setParameter(value._1, value._2);
 		}
-		System.out.println("PREQUERY3");
+		log.debug("PREQUERY3");
 		results = query.getResultList();
-		System.out.println("RESULTS="+results);
+		log.debug("RESULTS="+results);
 	//	List<Object[]> results = query.getResultList();
 		return results;
-		// System.out.println("findChildrenByAttributeLink - PAIR COUNT IS " +
+		// log.debug("findChildrenByAttributeLink - PAIR COUNT IS " +
 		// pairCount);
 		// String eaStrings = "";
 		// String eaStringsQ = "";
@@ -492,14 +492,14 @@ public class BaseEntityService2 {
 		// }
 		// queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
 		// + attributeCodeIndex + " and " + valueQuery;
-		// System.out.println("findChildrenByAttributeLink Key : " + entry.getKey() + "
+		// log.debug("findChildrenByAttributeLink Key : " + entry.getKey() + "
 		// Value : "
 		// + entry.getValue());
 		// }
 		// attributeCodeIndex++;
 		//
 		// }
-		// System.out.println("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" +
+		// log.debug("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" +
 		// queryStr);
 		// final Query query = getEntityManager().createQuery(queryStr);
 		// int index = 0;
@@ -513,7 +513,7 @@ public class BaseEntityService2 {
 		// index = 0;
 		// for (final String valueParm : valueList) {
 		// query.setParameter("valueString" + index, valueParm);
-		// System.out.println("valueString" + index + "=:" + valueParm);
+		// log.debug("valueString" + index + "=:" + valueParm);
 		// index++;
 		// }
 		// query.setParameter("sourceCode",
@@ -528,7 +528,7 @@ public class BaseEntityService2 {
 		//
 		// }
 		// } else {
-		// System.out.println("**************** ENTITY ENTITY WITH NO ATTRIBUTES
+		// log.debug("**************** ENTITY ENTITY WITH NO ATTRIBUTES
 		// ****************");
 		//
 		// // ugly and insecure
@@ -551,7 +551,7 @@ public class BaseEntityService2 {
 		// eeResults = query.setMaxResults(pageSize).getResultList();
 		//
 		// } else {
-		// System.out.println("findChildrenByAttributeLink PAIR COUNT " + pairCount);
+		// log.debug("findChildrenByAttributeLink PAIR COUNT " + pairCount);
 		// String eaStrings = "";
 		// String eaStringsQ = "";
 		// if (pairCount > 0) {
@@ -602,26 +602,26 @@ public class BaseEntityService2 {
 		// }
 		// queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
 		// + attributeCodeIndex + " and " + valueQuery;
-		// System.out.println("findChildrenByAttributeLink Key : " + entry.getKey() + "
+		// log.debug("findChildrenByAttributeLink Key : " + entry.getKey() + "
 		// Value : "
 		// + entry.getValue());
 		// }
 		// attributeCodeIndex++;
 		//
 		// }
-		// System.out.println("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" +
+		// log.debug("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" +
 		// queryStr);
 		// final Query query = getEntityManager().createQuery(queryStr);
 		// int index = 0;
 		// for (final String attributeParm : attributeCodeList) {
 		// query.setParameter("attributeCode" + index, attributeParm);
-		// System.out.println("attributeCode" + index + "=:" + attributeParm);
+		// log.debug("attributeCode" + index + "=:" + attributeParm);
 		// index++;
 		// }
 		// index = 0;
 		// for (final String valueParm : valueList) {
 		// query.setParameter("valueString" + index, valueParm);
-		// System.out.println("valueString" + index + "=:" + valueParm);
+		// log.debug("valueString" + index + "=:" + valueParm);
 		// index++;
 		// }
 		// query.setParameter("sourceCode",
@@ -633,7 +633,7 @@ public class BaseEntityService2 {
 		// query.setParameter("stakeholderCode", stakeholderCode);
 		// }
 		// eeResults = query.getResultList();
-		// System.out.println("findChildrenByAttributeLink NULL THE ATTRIBUTES");
+		// log.debug("findChildrenByAttributeLink NULL THE ATTRIBUTES");
 		// // for (BaseEntity be : eeResults) {
 		// // be.setBaseEntityAttributes(null); // ugly
 		// // }
@@ -654,7 +654,7 @@ public class BaseEntityService2 {
 			if (sqlAttribute != null) {
 			ret += sqlAttribute+" "+order.getAscdesc() +",";
 			} else {
-				System.out.println("ERROR - Cannot map "+order.getFieldName());
+				log.debug("ERROR - Cannot map "+order.getFieldName());
 			}
 		}
 		ret = ret.substring(0, ret.length()-1);
@@ -882,7 +882,7 @@ public class BaseEntityService2 {
 		// always check if question exists through check for unique code
 		try {
 			getEntityManager().persist(question);
-			System.out.println("Loaded " + question.getCode());
+			log.debug("Loaded " + question.getCode());
 		} catch (final ConstraintViolationException e) {
 			Question existing = findQuestionByCode(question.getCode());
 			existing = getEntityManager().merge(existing);
@@ -919,23 +919,23 @@ public class BaseEntityService2 {
 	public Long insert(final Validation validation) {
 		// always check if rule exists through check for unique code
 		try {
-			System.out.println("______________________________________");
+			log.debug("______________________________________");
 			getEntityManager().persist(validation);
-			System.out.println("Loaded Validation " + validation.getCode());
+			log.debug("Loaded Validation " + validation.getCode());
 		} catch (final ConstraintViolationException e) {
-			System.out.println("\n\n\n\n\n\n222222222222\n\n\n\n\n\n\n\n\n");
+			log.debug("\n\n\n\n\n\n222222222222\n\n\n\n\n\n\n\n\n");
 			final Validation existing = findValidationByCode(validation.getCode());
-			System.out.println("\n\n\n\n\n\n" + existing + "\n\n\n\n\n\n\n\n\n");
+			log.debug("\n\n\n\n\n\n" + existing + "\n\n\n\n\n\n\n\n\n");
 			return existing.getId();
 		} catch (final PersistenceException e) {
-			System.out.println("\n\n\n\n\n\n22222***" + validation.getCode() + "****2222222\n\n\n\n\n\n\n\n\n");
+			log.debug("\n\n\n\n\n\n22222***" + validation.getCode() + "****2222222\n\n\n\n\n\n\n\n\n");
 			final Validation existing = findValidationByCode(validation.getCode());
-			System.out.println("\n\n\n\n\n\n" + existing.getRegex() + "\n\n\n\n\n\n\n\n\n");
+			log.debug("\n\n\n\n\n\n" + existing.getRegex() + "\n\n\n\n\n\n\n\n\n");
 			return existing.getId();
 		} catch (final IllegalStateException e) {
-			System.out.println("\n\n\n\n\n\n222222222222\n\n\n\n\n\n\n\n\n");
+			log.debug("\n\n\n\n\n\n222222222222\n\n\n\n\n\n\n\n\n");
 			final Validation existing = findValidationByCode(validation.getCode());
-			System.out.println("\n\n\n\n\n\n" + existing + "\n\n\n\n\n\n\n\n\n");
+			log.debug("\n\n\n\n\n\n" + existing + "\n\n\n\n\n\n\n\n\n");
 			return existing.getId();
 		}
 		return validation.getId();
@@ -1004,7 +1004,7 @@ public class BaseEntityService2 {
 		// get security
 		// if (securityService.isAuthorised()) {
 		// String realm = securityService.getRealm();
-		// System.out.println("Realm = " + realm);
+		// log.debug("Realm = " + realm);
 		// entity.setRealm(realm); // always override
 		// }
 		// entity.setRealm("genny");
@@ -1069,7 +1069,7 @@ public class BaseEntityService2 {
 
 		for (Answer answer : answers) {
 			if ("LNK_LOAD_LISTS".equalsIgnoreCase(answer.getAttributeCode())) {
-				System.out.println("LNK_LOAD_LISTS");
+				log.debug("LNK_LOAD_LISTS");
 			}
 			try {
 				try {
@@ -1142,19 +1142,19 @@ public class BaseEntityService2 {
 									}
 								}
 								if (answerLink == null) {
-									System.out.println("answerLink is Null");
+									log.debug("answerLink is Null");
 								}
 								if (getCurrentToken() == null) {
-									System.out.println("getCurrentToken is Null");
+									log.debug("getCurrentToken is Null");
 								}
 								if (answerLink.getValue() == null) {
-									System.out.println("answerLink.getValue() is Null");
+									log.debug("answerLink.getValue() is Null");
 								}
 								if (answerLink.getTargetCode() == null) {
-									System.out.println("answerLink.getTargetCode() is Null");
+									log.debug("answerLink.getTargetCode() is Null");
 								}
 								if (answerLink.getSourceCode() == null) {
-									System.out.println("answerLink.getSourceCode() is Null");
+									log.debug("answerLink.getSourceCode() is Null");
 								}
 								// Hack: avoid stack overflow
 								Answer pojo = new Answer(answer.getSourceCode(), answer.getTargetCode(),
@@ -1202,7 +1202,7 @@ public class BaseEntityService2 {
 					}
 
 				} catch (final EntityExistsException e) {
-					System.out.println("Answer Insert EntityExistsException");
+					log.debug("Answer Insert EntityExistsException");
 					// so update otherwise // TODO merge?
 //					Answer existing = findAnswerById(answer.getId());
 //					existing.setRefused(answer.getRefused());
@@ -1315,19 +1315,19 @@ public class BaseEntityService2 {
 								}
 							}
 							if (answerLink == null) {
-								System.out.println("answerLink is Null");
+								log.debug("answerLink is Null");
 							}
 							if (getCurrentToken() == null) {
-								System.out.println("getCurrentToken is Null");
+								log.debug("getCurrentToken is Null");
 							}
 							if (answerLink.getValue() == null) {
-								System.out.println("answerLink.getValue() is Null");
+								log.debug("answerLink.getValue() is Null");
 							}
 							if (answerLink.getTargetCode() == null) {
-								System.out.println("answerLink.getTargetCode() is Null");
+								log.debug("answerLink.getTargetCode() is Null");
 							}
 							if (answerLink.getSourceCode() == null) {
-								System.out.println("answerLink.getSourceCode() is Null");
+								log.debug("answerLink.getSourceCode() is Null");
 							}
 							// Hack: avoid stack overflow
 							Answer pojo = new Answer(answer.getSourceCode(), answer.getTargetCode(),
@@ -1369,7 +1369,7 @@ public class BaseEntityService2 {
 							}
 							sendQEventAttributeValueChangeMessage(msg);
 							updateDDT(beTarget.getCode(), JsonUtils.toJson(beTarget));
-							System.out.println("Sent Event Change Msg " + pojo);
+							log.debug("Sent Event Change Msg " + pojo);
 						}
 
 					} catch (final Exception e) {
@@ -1379,7 +1379,7 @@ public class BaseEntityService2 {
 				}
 
 			} catch (final EntityExistsException e) {
-				System.out.println("Answer Insert EntityExistsException");
+				log.debug("Answer Insert EntityExistsException");
 				// so update otherwise // TODO merge?
 				Answer existing = findAnswerById(answer.getId());
 				existing.setRefused(answer.getRefused());
@@ -1393,7 +1393,7 @@ public class BaseEntityService2 {
 		} catch (Exception transactionException) {
 			log.error("Transaction Exception in saving Answer" + answer);
 		}
-		System.out.println("Saved Answer!");
+		log.debug("Saved Answer!");
 		return answer.getId();
 	}
 
@@ -1454,7 +1454,7 @@ public class BaseEntityService2 {
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee.getLink(), null, getCurrentToken());
 
 			sendQEventLinkChangeMessage(msg);
-			System.out.println("Sent Event Link Change Msg " + msg);
+			log.debug("Sent Event Link Change Msg " + msg);
 
 		} catch (Exception e) {
 			// rollback
@@ -1577,7 +1577,7 @@ public class BaseEntityService2 {
 
 		try {
 			getEntityManager().persist(object);
-			System.out.println("UPSERTING:" + object);
+			log.debug("UPSERTING:" + object);
 			return object;
 		} catch (Exception e) {
 			object = getEntityManager().merge(object);
@@ -1594,7 +1594,7 @@ public class BaseEntityService2 {
 			existing = getEntityManager().merge(existing);
 			return existing;
 		} catch (NoResultException e) {
-			System.out.println("------- QUESTION 00 ------------");
+			log.debug("------- QUESTION 00 ------------");
 			getEntityManager().persist(qq);
 			QuestionQuestion id = qq;
 			return id;
@@ -1647,9 +1647,9 @@ public class BaseEntityService2 {
 
 			BeanNotNullFields copyFields = new BeanNotNullFields();
 			copyFields.copyProperties(val, be);
-			// System.out.println("***********" + val);
+			// log.debug("***********" + val);
 			val = getEntityManager().merge(val);
-			// System.out.println("*******&&&&&&&&&&&&****");
+			// log.debug("*******&&&&&&&&&&&&****");
 
 			return be;
 		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
@@ -1767,7 +1767,7 @@ public class BaseEntityService2 {
 	}
 
 	public Question findQuestionByCode(@NotNull final String code) throws NoResultException {
-		// System.out.println("FindQuestionByCode:"+code);
+		// log.debug("FindQuestionByCode:"+code);
 		List<Question> result = null;
 		final String userRealmStr = getRealm();
 		try {
@@ -1901,14 +1901,14 @@ public class BaseEntityService2 {
 		new HashMap<String, BaseEntity>();
 		final String userRealmStr = getRealm();
 
-		System.out.println("findChildrenByAttributeLink");
+		log.debug("findChildrenByAttributeLink");
 		if (includeAttributes) {
-			System.out.println("findChildrenByAttributeLink - includesAttributes");
+			log.debug("findChildrenByAttributeLink - includesAttributes");
 
 			// ugly and insecure
 			final Integer pairCount = params.size();
 			if (pairCount.equals(0)) {
-				System.out.println("findChildrenByAttributeLink - PairCount==0");
+				log.debug("findChildrenByAttributeLink - PairCount==0");
 				Query query = null;
 
 				query = getEntityManager().createQuery("SELECT distinct be FROM BaseEntity be," + stakeholderFilter1
@@ -1921,7 +1921,7 @@ public class BaseEntityService2 {
 				eeResults = query.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
 			} else {
-				System.out.println("findChildrenByAttributeLink - PAIR COUNT IS  " + pairCount);
+				log.debug("findChildrenByAttributeLink - PAIR COUNT IS  " + pairCount);
 				String eaStrings = "";
 				String eaStringsQ = "";
 				if (pairCount > 0) {
@@ -1965,24 +1965,24 @@ public class BaseEntityService2 {
 						}
 						queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode" + attributeCodeIndex
 								+ " and " + valueQuery;
-						System.out.println(
+						log.debug(
 								"findChildrenByAttributeLink Key : " + entry.getKey() + " Value : " + entry.getValue());
 					}
 					attributeCodeIndex++;
 
 				}
-				System.out.println("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
+				log.debug("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
 				final Query query = getEntityManager().createQuery(queryStr);
 				int index = 0;
 				for (final String attributeParm : attributeCodeList) {
 					query.setParameter("attributeCode" + index, attributeParm);
-					System.out.println("findChildrenByAttributeLink attributeCode" + index + "=:" + attributeParm);
+					log.debug("findChildrenByAttributeLink attributeCode" + index + "=:" + attributeParm);
 					index++;
 				}
 				index = 0;
 				for (final String valueParm : valueList) {
 					query.setParameter("valueString" + index, valueParm);
-					System.out.println("valueString" + index + "=:" + valueParm);
+					log.debug("valueString" + index + "=:" + valueParm);
 					index++;
 				}
 				query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
@@ -1996,7 +1996,7 @@ public class BaseEntityService2 {
 
 			}
 		} else {
-			System.out.println("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
+			log.debug("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
 			// ugly and insecure
 			final Integer pairCount = params.size();
@@ -2014,7 +2014,7 @@ public class BaseEntityService2 {
 				eeResults = query.setMaxResults(pageSize).getResultList();
 
 			} else {
-				System.out.println("findChildrenByAttributeLink PAIR COUNT  " + pairCount);
+				log.debug("findChildrenByAttributeLink PAIR COUNT  " + pairCount);
 				String eaStrings = "";
 				String eaStringsQ = "";
 				if (pairCount > 0) {
@@ -2059,24 +2059,24 @@ public class BaseEntityService2 {
 						}
 						queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode" + attributeCodeIndex
 								+ " and " + valueQuery;
-						System.out.println(
+						log.debug(
 								"findChildrenByAttributeLink Key : " + entry.getKey() + " Value : " + entry.getValue());
 					}
 					attributeCodeIndex++;
 
 				}
-				System.out.println("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
+				log.debug("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
 				final Query query = getEntityManager().createQuery(queryStr);
 				int index = 0;
 				for (final String attributeParm : attributeCodeList) {
 					query.setParameter("attributeCode" + index, attributeParm);
-					System.out.println("attributeCode" + index + "=:" + attributeParm);
+					log.debug("attributeCode" + index + "=:" + attributeParm);
 					index++;
 				}
 				index = 0;
 				for (final String valueParm : valueList) {
 					query.setParameter("valueString" + index, valueParm);
-					System.out.println("valueString" + index + "=:" + valueParm);
+					log.debug("valueString" + index + "=:" + valueParm);
 					index++;
 				}
 				query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
@@ -2087,7 +2087,7 @@ public class BaseEntityService2 {
 					query.setParameter("stakeholderCode", stakeholderCode);
 				}
 				eeResults = query.getResultList();
-				System.out.println("findChildrenByAttributeLink NULL THE ATTRIBUTES");
+				log.debug("findChildrenByAttributeLink NULL THE ATTRIBUTES");
 				// for (BaseEntity be : eeResults) {
 				// be.setBaseEntityAttributes(null); // ugly
 				// }
@@ -2115,14 +2115,14 @@ public class BaseEntityService2 {
 		new HashMap<String, BaseEntity>();
 		final String userRealmStr = getRealm();
 
-		System.out.println("findChildrenByAttributeLink");
+		log.debug("findChildrenByAttributeLink");
 		if (includeAttributes) {
-			System.out.println("findChildrenByAttributeLink - includesAttributes");
+			log.debug("findChildrenByAttributeLink - includesAttributes");
 
 			// ugly and insecure
 			final Integer pairCount = params.size();
 			if (pairCount.equals(0)) {
-				System.out.println("findChildrenByAttributeLink - PairCount==0");
+				log.debug("findChildrenByAttributeLink - PairCount==0");
 				Query query = null;
 
 				query = getEntityManager().createQuery("SELECT distinct be FROM BaseEntity be," + stakeholderFilter1
@@ -2137,7 +2137,7 @@ public class BaseEntityService2 {
 				eeResults = query.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
 			} else {
-				System.out.println("findChildrenByAttributeLink - PAIR COUNT IS  " + pairCount);
+				log.debug("findChildrenByAttributeLink - PAIR COUNT IS  " + pairCount);
 				String eaStrings = "";
 				String eaStringsQ = "";
 				if (pairCount > 0) {
@@ -2181,24 +2181,24 @@ public class BaseEntityService2 {
 						}
 						queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode" + attributeCodeIndex
 								+ " and " + valueQuery;
-						System.out.println(
+						log.debug(
 								"findChildrenByAttributeLink Key : " + entry.getKey() + " Value : " + entry.getValue());
 					}
 					attributeCodeIndex++;
 
 				}
-				System.out.println("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
+				log.debug("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
 				final Query query = getEntityManager().createQuery(queryStr);
 				int index = 0;
 				for (final String attributeParm : attributeCodeList) {
 					query.setParameter("attributeCode" + index, attributeParm);
-					System.out.println("findChildrenByAttributeLink attributeCode" + index + "=:" + attributeParm);
+					log.debug("findChildrenByAttributeLink attributeCode" + index + "=:" + attributeParm);
 					index++;
 				}
 				index = 0;
 				for (final String valueParm : valueList) {
 					query.setParameter("valueString" + index, valueParm);
-					System.out.println("valueString" + index + "=:" + valueParm);
+					log.debug("valueString" + index + "=:" + valueParm);
 					index++;
 				}
 				query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
@@ -2212,7 +2212,7 @@ public class BaseEntityService2 {
 
 			}
 		} else {
-			System.out.println("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
+			log.debug("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
 			// ugly and insecure
 			final Integer pairCount = params.size();
@@ -2231,7 +2231,7 @@ public class BaseEntityService2 {
 				eeResults = query.setMaxResults(pageSize).getResultList();
 
 			} else {
-				System.out.println("findChildrenByAttributeLink PAIR COUNT  " + pairCount);
+				log.debug("findChildrenByAttributeLink PAIR COUNT  " + pairCount);
 				String eaStrings = "";
 				String eaStringsQ = "";
 				if (pairCount > 0) {
@@ -2276,24 +2276,24 @@ public class BaseEntityService2 {
 						}
 						queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode" + attributeCodeIndex
 								+ " and " + valueQuery;
-						System.out.println(
+						log.debug(
 								"findChildrenByAttributeLink Key : " + entry.getKey() + " Value : " + entry.getValue());
 					}
 					attributeCodeIndex++;
 
 				}
-				System.out.println("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
+				log.debug("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" + queryStr);
 				final Query query = getEntityManager().createQuery(queryStr);
 				int index = 0;
 				for (final String attributeParm : attributeCodeList) {
 					query.setParameter("attributeCode" + index, attributeParm);
-					System.out.println("attributeCode" + index + "=:" + attributeParm);
+					log.debug("attributeCode" + index + "=:" + attributeParm);
 					index++;
 				}
 				index = 0;
 				for (final String valueParm : valueList) {
 					query.setParameter("valueString" + index, valueParm);
-					System.out.println("valueString" + index + "=:" + valueParm);
+					log.debug("valueString" + index + "=:" + valueParm);
 					index++;
 				}
 				query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
@@ -2305,7 +2305,7 @@ public class BaseEntityService2 {
 				}
 				query.setParameter("linkValue", linkValue);
 				eeResults = query.getResultList();
-				System.out.println("findChildrenByAttributeLink NULL THE ATTRIBUTES");
+				log.debug("findChildrenByAttributeLink NULL THE ATTRIBUTES");
 				// for (BaseEntity be : eeResults) {
 				// be.setBaseEntityAttributes(null); // ugly
 				// }
@@ -2323,7 +2323,7 @@ public class BaseEntityService2 {
 
 		Long total = 0L;
 		final Integer pairCount = params.size();
-		System.out.println("findChildrenByAttributeLinkCount PAIR COUNT IS " + pairCount);
+		log.debug("findChildrenByAttributeLinkCount PAIR COUNT IS " + pairCount);
 		String eaStrings = "";
 		String eaStringsQ = "";
 		if (pairCount > 0) {
@@ -2363,23 +2363,23 @@ public class BaseEntityService2 {
 				}
 				queryStr += " and  ea" + attributeCodeIndex + ".attributeCode=:attributeCode" + attributeCodeIndex
 						+ " and " + valueQuery;
-				System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+				log.debug("Key : " + entry.getKey() + " Value : " + entry.getValue());
 			}
 			attributeCodeIndex++;
 
 		}
-		System.out.println("findChildrenByAttributeLinkCount KIDS + ATTRIBUTE Query=" + queryStr);
+		log.debug("findChildrenByAttributeLinkCount KIDS + ATTRIBUTE Query=" + queryStr);
 		final Query query = getEntityManager().createQuery(queryStr);
 		int index = 0;
 		for (final String attributeParm : attributeCodeList) {
 			query.setParameter("attributeCode" + index, attributeParm);
-			System.out.println("attributeCode" + index + "=:" + attributeParm);
+			log.debug("attributeCode" + index + "=:" + attributeParm);
 			index++;
 		}
 		index = 0;
 		for (final String valueParm : valueList) {
 			query.setParameter("valueString" + index, valueParm);
-			System.out.println("valueString" + index + "=:" + valueParm);
+			log.debug("valueString" + index + "=:" + valueParm);
 			index++;
 		}
 		query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
@@ -2401,7 +2401,7 @@ public class BaseEntityService2 {
 
 		Long total = 0L;
 		final Integer pairCount = params.size();
-		System.out.println("findChildrenByAttributeLinkCount PAIR COUNT IS " + pairCount);
+		log.debug("findChildrenByAttributeLinkCount PAIR COUNT IS " + pairCount);
 		String eaStrings = "";
 		String eaStringsQ = "";
 		if (pairCount > 0) {
@@ -2441,23 +2441,23 @@ public class BaseEntityService2 {
 				}
 				queryStr += " and  ea" + attributeCodeIndex + ".attributeCode=:attributeCode" + attributeCodeIndex
 						+ " and " + valueQuery;
-				System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+				log.debug("Key : " + entry.getKey() + " Value : " + entry.getValue());
 			}
 			attributeCodeIndex++;
 
 		}
-		System.out.println("findChildrenByAttributeLinkCount KIDS + ATTRIBUTE Query=" + queryStr);
+		log.debug("findChildrenByAttributeLinkCount KIDS + ATTRIBUTE Query=" + queryStr);
 		final Query query = getEntityManager().createQuery(queryStr);
 		int index = 0;
 		for (final String attributeParm : attributeCodeList) {
 			query.setParameter("attributeCode" + index, attributeParm);
-			System.out.println("attributeCode" + index + "=:" + attributeParm);
+			log.debug("attributeCode" + index + "=:" + attributeParm);
 			index++;
 		}
 		index = 0;
 		for (final String valueParm : valueList) {
 			query.setParameter("valueString" + index, valueParm);
-			System.out.println("valueString" + index + "=:" + valueParm);
+			log.debug("valueString" + index + "=:" + valueParm);
 			index++;
 		}
 		query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
@@ -2904,7 +2904,7 @@ public class BaseEntityService2 {
 						.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 
 			} else {
-				System.out.println("PAIR COUNT IS NOT ZERO " + pairCount);
+				log.debug("PAIR COUNT IS NOT ZERO " + pairCount);
 				String eaStrings = "";
 				String eaStringsQ = "(";
 				for (int i = 0; i < (pairCount); i++) {
@@ -2944,7 +2944,7 @@ public class BaseEntityService2 {
 						}
 						queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode" + attributeCodeIndex
 								+ " and " + valueQuery;
-						System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+						log.debug("Key : " + entry.getKey() + " Value : " + entry.getValue());
 					}
 					attributeCodeIndex++;
 
@@ -2953,13 +2953,13 @@ public class BaseEntityService2 {
 				int index = 0;
 				for (final String attributeParm : attributeCodeList) {
 					query.setParameter("attributeCode" + index, attributeParm);
-					System.out.println("attributeCode" + index + "=:" + attributeParm);
+					log.debug("attributeCode" + index + "=:" + attributeParm);
 					index++;
 				}
 				index = 0;
 				for (final String valueParm : valueList) {
 					query.setParameter("valueString" + index, valueParm);
-					System.out.println("valueString" + index + "=:" + valueParm);
+					log.debug("valueString" + index + "=:" + valueParm);
 					index++;
 				}
 
@@ -3021,23 +3021,23 @@ public class BaseEntityService2 {
 						queryStr += " and ";
 					}
 					queryStr += " bee.attributeCode=:attributeCode" + attributeCodeIndex + " and " + valueQuery;
-					System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+					log.debug("Key : " + entry.getKey() + " Value : " + entry.getValue());
 				}
 				attributeCodeIndex++;
 
 			}
-			System.out.println("Query=" + queryStr);
+			log.debug("Query=" + queryStr);
 			final Query query = getEntityManager().createQuery(queryStr);
 			int index = 0;
 			for (final String attributeParm : attributeCodeList) {
 				query.setParameter("attributeCode" + index, attributeParm);
-				System.out.println("attributeCode" + index + "=:" + attributeParm);
+				log.debug("attributeCode" + index + "=:" + attributeParm);
 				index++;
 			}
 			index = 0;
 			for (final String valueParm : valueList) {
 				query.setParameter("valueString" + index, valueParm);
-				System.out.println("valueString" + index + "=:" + valueParm);
+				log.debug("valueString" + index + "=:" + valueParm);
 				index++;
 			}
 			result = (Long) query.getSingleResult();
@@ -3063,10 +3063,10 @@ public class BaseEntityService2 {
 					.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
 					.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
 			if (eeResults.isEmpty()) {
-				System.out.println("EEE IS EMPTY");
+				log.debug("EEE IS EMPTY");
 			} else {
-				System.out.println("EEE Count" + eeResults.size());
-				System.out.println("EEE" + eeResults);
+				log.debug("EEE Count" + eeResults.size());
+				log.debug("EEE" + eeResults);
 			}
 			return eeResults;
 
@@ -3229,7 +3229,7 @@ public class BaseEntityService2 {
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(link, oldLink, getCurrentToken());
 
 			sendQEventLinkChangeMessage(msg);
-			System.out.println("Sent Event Link Change Msg " + msg);
+			log.debug("Sent Event Link Change Msg " + msg);
 
 		} catch (Exception e) {
 			// log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode +
@@ -3286,7 +3286,7 @@ public class BaseEntityService2 {
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(null, oldLink, getCurrentToken());
 
 			sendQEventLinkChangeMessage(msg);
-			System.out.println("Sent Event Link Change Msg " + msg);
+			log.debug("Sent Event Link Change Msg " + msg);
 
 		} catch (Exception e) {
 			// rollback
@@ -3358,7 +3358,7 @@ public class BaseEntityService2 {
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee.getLink(), null, getCurrentToken());
 
 			sendQEventLinkChangeMessage(msg);
-			System.out.println("Sent Event Link Change Msg " + msg);
+			log.debug("Sent Event Link Change Msg " + msg);
 
 		}
 		return ee;
@@ -3373,7 +3373,7 @@ public class BaseEntityService2 {
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(null, ee.getLink(), getCurrentToken());
 
 			sendQEventLinkChangeMessage(msg);
-			System.out.println("Sent Event Link Change Msg " + msg);
+			log.debug("Sent Event Link Change Msg " + msg);
 
 		} catch (Exception e) {
 			log.error("EntityEntity " + link + " not found");
@@ -3521,7 +3521,7 @@ public class BaseEntityService2 {
 				group = this.findBaseEntityByCode(parentCode); // careful as GRPUSERS needs to
 				parentGroupList.add(group);
 			} catch (NoResultException e) {
-				System.out.println("Group Code does not exist :" + parentCode);
+				log.debug("Group Code does not exist :" + parentCode);
 			}
 
 		}
@@ -3536,15 +3536,15 @@ public class BaseEntityService2 {
 				final LinkedHashMap map = (LinkedHashMap) user;
 				final Map<String, Object> userMap = new HashMap<String, Object>();
 				for (final Object key : map.keySet()) {
-					// System.out.println(key + ":" + map.get(key));
+					// log.debug(key + ":" + map.get(key));
 					userMap.put((String) key, map.get(key));
 
 				}
 				usersMap.put((String) userMap.get("username"), userMap);
-				System.out.println();
+			
 			}
 
-			System.out.println("finished");
+			log.debug("finished");
 		} catch (final IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -3559,7 +3559,7 @@ public class BaseEntityService2 {
 			if (users.isEmpty()) {
 				final String code = "PER_CH40_"
 						+ kcusername.toUpperCase().replaceAll("\\ ", "").replaceAll("\\.", "").replaceAll("\\&", "");
-				System.out.println("New User Code = " + code);
+				log.debug("New User Code = " + code);
 				String firstName = (String) userMap.get("firstName");
 				firstName = firstName.replaceAll("\\.", " "); // replace dots
 				firstName = firstName.replaceAll("\\_", " "); // replace dots
@@ -3601,7 +3601,7 @@ public class BaseEntityService2 {
 						}
 					}
 					count++;
-					System.out.println("BE:" + user);
+					log.debug("BE:" + user);
 				} catch (final BadDataException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -3627,7 +3627,7 @@ public class BaseEntityService2 {
 	public void init(final KeycloakSecurityContext kContext) {
 		// Entities
 		if (kContext == null) {
-			System.out.println("Null Keycloak Context");
+			log.debug("Null Keycloak Context");
 			return;
 		}
 
@@ -3702,7 +3702,7 @@ public class BaseEntityService2 {
 
 		final Map<String, String> envParams = System.getenv();
 		String keycloakUrl = envParams.get("KEYCLOAKURL");
-		System.out.println("Keycloak URL=[" + keycloakUrl + "]");
+		log.debug("Keycloak URL=[" + keycloakUrl + "]");
 		keycloakUrl = keycloakUrl.replaceAll("'", "");
 		final String realm = envParams.get("KEYCLOAK_REALM");
 		final String username = envParams.get("KEYCLOAK_USERNAME");
@@ -3710,7 +3710,7 @@ public class BaseEntityService2 {
 		final String clientid = envParams.get("KEYCLOAK_CLIENTID");
 		final String secret = envParams.get("KEYCLOAK_SECRET");
 
-		System.out.println("Realm is :[" + realm + "]");
+		log.debug("Realm is :[" + realm + "]");
 
 		final KeycloakService kcs = new KeycloakService(keycloakUrl, realm, username, password, clientid, secret);
 		final List<LinkedHashMap> users = kcs.fetchKeycloakUsers(maxReturned);
@@ -3726,7 +3726,7 @@ public class BaseEntityService2 {
 			newUser.addAttribute(createAttributeText("UUID"), 1.0, user.get("id"));
 			newUser.addAttribute(createAttributeText("EMAIL"), 1.0, user.get("email"));
 			newUser.addAttribute(createAttributeText("USERNAME"), 1.0, user.get("username"));
-			System.out.println("Code=" + newUser.getCode());
+			log.debug("Code=" + newUser.getCode());
 			;
 			insert(newUser);
 			// Now link to groups
@@ -3741,7 +3741,7 @@ public class BaseEntityService2 {
 		for (Group parent : parentGroupList) {
 			parent = getEntityManager().merge(parent);
 		}
-		System.out.println(users);
+		log.debug(users);
 	}
 
 	public Link moveLink(final String originalSourceCode, final String targetCode, final String linkCode,
@@ -3768,7 +3768,7 @@ public class BaseEntityService2 {
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee, oldLink, getCurrentToken());
 
 			sendQEventLinkChangeMessage(msg);
-			System.out.println("Sent Event Link Change Msg " + msg);
+			log.debug("Sent Event Link Change Msg " + msg);
 
 			// getEntityManager().getTransaction().commit();
 		} catch (Exception e) {
@@ -3790,7 +3790,7 @@ public class BaseEntityService2 {
 	// // so update otherwise // TODO merge?
 	// BaseEntity existing = findBaseEntityByCode(entity.getCode());
 	// List<EntityAttribute> changes = existing.merge(entity);
-	// System.out.println("Updated "+existing+ ":"+ changes);
+	// log.debug("Updated "+existing+ ":"+ changes);
 	// existing = getEntityManager().merge(existing);
 	// return existing.getId();
 	//
@@ -3826,7 +3826,7 @@ public class BaseEntityService2 {
 	@Transactional
 	public Long update(final QBaseMSGMessageTemplate template) {
 		QBaseMSGMessageTemplate temp = getEntityManager().merge(template);
-		System.out.println("klnsnfklsdjfjsdfjklsfsdf " + temp);
+		log.debug("klnsnfklsdjfjsdfjklsfsdf " + temp);
 		return template.getId();
 	}
 
