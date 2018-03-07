@@ -103,37 +103,40 @@ public class BaseEntityService2 {
 	Map<String, String> ddtCacheMock = new ConcurrentHashMap<String, String>();
 
 	EntityManager em;
-	
+
 	public List<BaseEntity> findBySearchBE2(@NotNull final String hql) {
 		List<BaseEntity> results = null;
 
 		Query query = null;
-		Set<String> attributeCodes = new HashSet<String>(Arrays.asList("PRI_FIRSTNAME","PRI_LASTNAME"));
+		Set<String> attributeCodes = new HashSet<String>(Arrays.asList("PRI_FIRSTNAME", "PRI_LASTNAME"));
 		String attributeCode = "PRI_FIRSTNAME";
 		Filter filter = getEntityManager().unwrap(Session.class).enableFilter("filterAttribute");
 		filter.setParameterList("attributeCodes", attributeCodes);
-	//    getEntityManager().unwrap(Session.class).enableFilter("filterAttribute").setParameter("attributeCodes", attributeCodes);
-	//    getEntityManager().unwrap(Session.class).enableFilter("filterAttribute").setParameter("attributeCodes", attributeCodes);
+		// getEntityManager().unwrap(Session.class).enableFilter("filterAttribute").setParameter("attributeCodes",
+		// attributeCodes);
+		// getEntityManager().unwrap(Session.class).enableFilter("filterAttribute").setParameter("attributeCodes",
+		// attributeCodes);
 		query = getEntityManager().createQuery(hql);
 		query.setFirstResult(0).setMaxResults(1000);
 
 		results = query.getResultList();
-		log.debug("RESULTS="+results);
+		log.debug("RESULTS=" + results);
 		return results;
 	}
 
 	public List<Object> findBySearchBE3(@NotNull final String hql) {
 		List<Object> results = null;
-		log.debug("Object result:"+hql);
+		log.debug("Object result:" + hql);
 		Query query = null;
 		query = getEntityManager().createQuery(hql);
 		query.setFirstResult(0).setMaxResults(1000);
 
 		results = query.getResultList();
-		log.debug("RESULTS="+results);
+		log.debug("RESULTS=" + results);
 		return results;
 	}
-	class Column implements Comparable<Column>{
+
+	class Column implements Comparable<Column> {
 		private String fieldName;
 		private String fieldCode;
 		private Double weight;
@@ -148,6 +151,7 @@ public class BaseEntityService2 {
 		public int compareTo(Column compareColumn) {
 			return this.weight.compareTo(compareColumn.getWeight());
 		}
+
 		/**
 		 * @return the fieldName
 		 */
@@ -171,7 +175,7 @@ public class BaseEntityService2 {
 
 	}
 
-	class Order  implements Comparable<Order>{
+	class Order implements Comparable<Order> {
 		private String fieldName;
 		private String ascdesc;
 		private Double weight;
@@ -212,22 +216,22 @@ public class BaseEntityService2 {
 
 	class OrderCompare implements Comparator<Order> {
 
-	    @Override
-	    public int compare(Order o1, Order o2) {
-	        // write comparison logic here like below , it's just a sample
-	        return o1.getWeight().compareTo(o2.getWeight());
-	    }
+		@Override
+		public int compare(Order o1, Order o2) {
+			// write comparison logic here like below , it's just a sample
+			return o1.getWeight().compareTo(o2.getWeight());
+		}
 	}
-	
+
 	class ColumnCompare implements Comparator<Column> {
 
-	    @Override
-	    public int compare(Column o1, Column o2) {
-	        // write comparison logic here like below , it's just a sample
-	        return o1.getWeight().compareTo(o2.getWeight());
-	    }
+		@Override
+		public int compare(Column o1, Column o2) {
+			// write comparison logic here like below , it's just a sample
+			return o1.getWeight().compareTo(o2.getWeight());
+		}
 	}
-	
+
 	public Long findBySearchBECount(@NotNull final BaseEntity searchBE) {
 		Long result = 0L;
 
@@ -309,29 +313,49 @@ public class BaseEntityService2 {
 		String orderString = "";
 
 		Integer filterIndex = 0;
-		final HashMap<String,String> attributeCodeMap = new HashMap<String,String>();
+		final HashMap<String, String> attributeCodeMap = new HashMap<String, String>();
 		final List<Tuple2<String, Object>> valueList = new ArrayList<Tuple2<String, Object>>();
 		final List<Order> orderList = new ArrayList<Order>(); // attributeCode , ASC/DESC
 		final List<Column> columnList = new ArrayList<Column>(); // column to be searched for and returned
 		Map<String, Double> columnCodes = new HashMap<String, Double>();
+		Set<String> attributeCodes = new HashSet<String>();
 
 		for (EntityAttribute ea : searchBE.getBaseEntityAttributes()) {
 			if (ea.getAttributeCode().startsWith("SCH_")) {
 				continue;
-			}			 else if (ea.getAttributeCode().startsWith("SRT_")) {
-				String sortAttribute = ea.getAttributeCode().substring("SRT_".length());
-				orderList.add(new Order(sortAttribute, ea.getValueString().toUpperCase(), ea.getWeight())); // weight
+			} else if (ea.getAttributeCode().startsWith("SRT_")) {
+				String sortAttributeCode = ea.getAttributeCode().substring("SRT_".length());
+				orderList.add(new Order(sortAttributeCode, ea.getValueString().toUpperCase(), ea.getWeight())); // weight
 																											// specifies
 																											// the sort
 																											// order
-
+				String attributeCodeEA = "ea" + filterIndex;
+				filterStrings += ",EntityAttribute " + attributeCodeEA;
+				filterStringsQ += " and " + attributeCodeEA + ".baseEntityCode=be.code and " + attributeCodeEA
+						+ ".pk.attribute.code='" + sortAttributeCode + "' ";
+				if ((ea.getPk() == null) || ea.getPk().getAttribute() == null) {
+					Attribute attribute = this.findAttributeByCode(sortAttributeCode);
+					ea.getPk().setAttribute(attribute);
+				}
+				switch (ea.getPk().getAttribute().getDataType().getClassName()) {
+				case "java.lang.String":
+				case "String":
+				default:
+					attributeCodeMap.put(sortAttributeCode, attributeCodeEA + ".valueString");			
+				}
+				filterIndex++;
+			} else if (ea.getAttributeCode().startsWith("COL_")) {
+				String columnAttributeCode = ea.getAttributeCode().substring("COL_".length());
+				columnList.add(new Column(columnAttributeCode, ea.getAttributeName(), ea.getWeight()));
+				attributeCodes.add(columnAttributeCode);
 
 			} else {
 				String priAttributeCode = ea.getAttributeCode();
 				String attributeCodeEA = "ea" + filterIndex;
 				filterStrings += ",EntityAttribute " + attributeCodeEA;
-				filterStringsQ += " " + attributeCodeEA + ".baseEntityCode=be.code and "+attributeCodeEA+".pk.attribute.code='"+priAttributeCode+"' ";
-				if ((ea.getPk()==null)||ea.getPk().getAttribute()==null) {
+				filterStringsQ += " " + attributeCodeEA + ".baseEntityCode=be.code and " + attributeCodeEA
+						+ ".pk.attribute.code='" + priAttributeCode + "' ";
+				if ((ea.getPk() == null) || ea.getPk().getAttribute() == null) {
 					Attribute attribute = this.findAttributeByCode(priAttributeCode);
 					ea.getPk().setAttribute(attribute);
 				}
@@ -352,55 +376,51 @@ public class BaseEntityService2 {
 					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
 					break;
 				case "java.lang.Boolean":
+				case "Boolean":
 					filterStringsQ += " and " + attributeCodeEA + ".valueBoolean=:v" + filterIndex + " and ";
 					valueList.add(Tuple.of("v" + filterIndex, ea.getValueBoolean()));
 					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueBoolean");
-					columnList.add(new Column(priAttributeCode, ea.getAttributeName(),ea.getWeight()));
 					break;
 				case "java.time.LocalDate":
+				case "LocalDate":
 					filterStringsQ += " and " + attributeCodeEA + ".valueDate=:v" + filterIndex + " and ";
 					valueList.add(Tuple.of("v" + filterIndex, ea.getValueDate()));
 					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
-					columnList.add(new Column(priAttributeCode, ea.getAttributeName(),ea.getWeight()));
 					break;
 				// case "org.javamoney.moneta.Money":
 				// return (T) getValueMoney();
 				case "java.lang.String":
+				case "String":
 				default:
-					if (ea.getValueString()==null) {
+					if (ea.getValueString() == null) {
 						filterStringsQ += " and " + attributeCodeEA + ".valueString like :v" + filterIndex + " and ";
-						valueList.add(Tuple.of("v" + filterIndex, "%%"));						
+						valueList.add(Tuple.of("v" + filterIndex, "%%"));
 					} else {
 						filterStringsQ += " and " + attributeCodeEA + ".valueString=:v" + filterIndex + " and ";
 						valueList.add(Tuple.of("v" + filterIndex, ea.getValueString()));
 					}
 					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueString");
-					columnList.add(new Column(priAttributeCode, ea.getAttributeName(),ea.getWeight()));
 				}
 				filterIndex++;
 
-			} 
+			}
 		}
 
 		if (filterIndex > 0) {
-			filterStringsQ = " and (" + filterStringsQ.substring(0, filterStringsQ.length() - 5) + ")  ";
+			filterStringsQ = " and (" + filterStringsQ.substring(4, filterStringsQ.length() ) + ")  ";
 		}
 
 		Set<String> realms = new HashSet<String>();
 		realms.add(userRealmStr);
 		realms.add("genny");
-				
-		orderString = createOrderString(attributeCodeMap,orderList);
 
-		String sql = "select  be from BaseEntity be, "
+		orderString = createOrderString(attributeCodeMap, orderList);
+
+		String sql = "select distinct be from BaseEntity be, "
 				+ ((stakeholderCode != null) ? " EntityEntity ff JOIN be.baseEntityAttributes bff," : "")
 				+ " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
 				+ " EntityEntity ee JOIN be.baseEntityAttributes bee " + filterStrings + " where "
-				+ " be.realm in (:realms)  "
-				+ ((!columnCodes.keySet().isEmpty())
-						? " and bea.baseEntityCode=be.code and bea.pk.attribute.code in (:columnCodes) "
-						: "")
-				+ ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
+				+ " be.realm in (:realms)  " + ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
 				+ ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
 				+ ((sourceCode != null) ? " and ee.link.sourceCode=:sourceCode " : "")
 				+ ((targetCode != null) ? " and ee.link.targetCode=:targetCode " : "")
@@ -410,9 +430,12 @@ public class BaseEntityService2 {
 				+ filterStringsQ + orderString;
 
 		log.info("SQL =[" + sql + "]");
-		log.debug("SQL="+sql);
+		System.out.println("HQL=" + sql+"         ==> FILTER COLUMN CODES="+attributeCodes);
 		Query query = null;
 		log.debug("PREQUERY");
+
+		Filter filter = getEntityManager().unwrap(Session.class).enableFilter("filterAttribute");
+		filter.setParameterList("attributeCodes", attributeCodes);
 
 		query = getEntityManager().createQuery(sql);
 		log.debug("PREQUERY2");
@@ -420,7 +443,7 @@ public class BaseEntityService2 {
 		query.setFirstResult(pageStart).setMaxResults(pageSize);
 
 		query.setParameter("realms", realms);
-//		query.setParameter("columnCodes", columnCodes.keySet());
+		// query.setParameter("columnCodes", columnCodes.keySet());
 
 		if (sourceCode != null) {
 			query.setParameter("sourceCode", sourceCode);
@@ -444,8 +467,8 @@ public class BaseEntityService2 {
 		}
 		log.debug("PREQUERY3");
 		results = query.getResultList();
-		log.debug("RESULTS="+results);
-	//	List<Object[]> results = query.getResultList();
+		log.debug("RESULTS=" + results);
+		// List<Object[]> results = query.getResultList();
 		return results;
 		// log.debug("findChildrenByAttributeLink - PAIR COUNT IS " +
 		// pairCount);
@@ -646,23 +669,26 @@ public class BaseEntityService2 {
 		//
 		// }
 
-		
 	}
 
-	private String createOrderString(HashMap<String,String> attributeCodeMap , List<Order> orderList) {
+	private String createOrderString(HashMap<String, String> attributeCodeMap, List<Order> orderList) {
+		if (orderList.isEmpty()) {
+			return "";
+		}
 		String ret = " order by ";
 		// Sort
-		Collections.sort(orderList,new OrderCompare());
+		Collections.sort(orderList, new OrderCompare());
 
 		for (Order order : orderList) {
 			String sqlAttribute = attributeCodeMap.get(order.getFieldName());
 			if (sqlAttribute != null) {
-			ret += sqlAttribute+" "+order.getAscdesc() +",";
+				ret += sqlAttribute + " " + order.getAscdesc() + ",";
 			} else {
-				log.debug("ERROR - Cannot map "+order.getFieldName());
+				log.debug("ERROR - Cannot map " + order.getFieldName());
 			}
 		}
-		ret = ret.substring(0, ret.length()-1);
+		ret = ret.substring(0, ret.length() - 1);
+		
 		return ret;
 	}
 
@@ -1062,13 +1088,14 @@ public class BaseEntityService2 {
 		// The target and source are the same for all the answers
 		beTarget = findBaseEntityByCode(answers[0].getTargetCode());
 		beSource = findBaseEntityByCode(answers[0].getSourceCode());
-		
+
 		BaseEntity safeBe = new BaseEntity(beTarget.getCode(), beTarget.getName());
 		Set<EntityAttribute> safeSet = new HashSet<EntityAttribute>();
 		safeBe.setBaseEntityAttributes(safeSet);
 		// Add Links
 		safeBe.setLinks(beTarget.getLinks());
-		QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(beSource.getCode(),beTarget.getCode(),safeBe, getCurrentToken());
+		QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(beSource.getCode(),
+				beTarget.getCode(), safeBe, getCurrentToken());
 		msg.setBe(safeBe);
 		Boolean changeEvent = false;
 
@@ -1079,7 +1106,7 @@ public class BaseEntityService2 {
 			try {
 				try {
 					// check that the codes exist
-				//	attribute = findAttributeByCode(answer.getAttributeCode());
+					// attribute = findAttributeByCode(answer.getAttributeCode());
 					attribute = answer.getAttribute();
 					if (answer.getAskId() != null) {
 						ask = findAskById(answer.getAskId());
@@ -1091,7 +1118,7 @@ public class BaseEntityService2 {
 						}
 					}
 
-				//	answer.setAttribute(attribute);
+					// answer.setAttribute(attribute);
 					if (answer.getChangeEvent()) {
 						msg.getBe().addAnswer(answer);
 						msg.setAnswer(answer);
@@ -1101,8 +1128,8 @@ public class BaseEntityService2 {
 					// Check if answer represents a link only
 					if (attribute.getDataType().getClassName().startsWith("DTT_LINK_")) {
 						// add a link
-						EntityEntity ee = addLink(answer.getValue(), answer.getTargetCode(), attribute.getDataType().getTypeName(),
-								"ANSWER", answer.getWeight());
+						EntityEntity ee = addLink(answer.getValue(), answer.getTargetCode(),
+								attribute.getDataType().getTypeName(), "ANSWER", answer.getWeight());
 						msg.getBe().getLinks().add(ee);
 					} else {
 
@@ -1128,7 +1155,7 @@ public class BaseEntityService2 {
 							if (optExisting.isPresent()) {
 								Object newOne = answerLink.getValue();
 								if (newOne != null) {
-									if ((old==null) || (old.hashCode() != (newOne.hashCode()))) {
+									if ((old == null) || (old.hashCode() != (newOne.hashCode()))) {
 										sendAttributeChangeEvent = true;
 									}
 								} else {
@@ -1190,13 +1217,12 @@ public class BaseEntityService2 {
 								safeOne.setValue(optNewEA.get().getValue());
 								safeSet.add(safeOne);
 
-
 								if (optNewEA.isPresent()) {
 									msg.setEa(safeOne);
 									msg.getBe().getAnswers().add(answerLink);
 									msg.getBe().addAttribute(safeOne);
 								}
-								
+
 								changeEvent = true; // flag it
 							}
 
@@ -1209,27 +1235,26 @@ public class BaseEntityService2 {
 				} catch (final EntityExistsException e) {
 					log.debug("Answer Insert EntityExistsException");
 					// so update otherwise // TODO merge?
-//					Answer existing = findAnswerById(answer.getId());
-//					existing.setRefused(answer.getRefused());
-//					existing.setExpired(answer.getExpired());
-//					existing.setWeight(answer.getWeight());
-//					existing.setValue(answer.getValue());
-//					existing = getEntityManager().merge(existing);
-//					return existing.getId();
+					// Answer existing = findAnswerById(answer.getId());
+					// existing.setRefused(answer.getRefused());
+					// existing.setExpired(answer.getExpired());
+					// existing.setWeight(answer.getWeight());
+					// existing.setValue(answer.getValue());
+					// existing = getEntityManager().merge(existing);
+					// return existing.getId();
 
 				}
 			} catch (Exception transactionException) {
 				log.error("Transaction Exception in saving Answer" + answer);
 			}
 		}
-		
 
 		if (!msg.getBe().getBaseEntityAttributes().isEmpty()) {
-			beTarget = getEntityManager().merge(beTarget);  // if nothing changed then no need to merge beTarget
+			beTarget = getEntityManager().merge(beTarget); // if nothing changed then no need to merge beTarget
 			String json = JsonUtils.toJson(beTarget);
-			writeToDDT(beTarget.getCode(), json);			// Update the DDT
+			writeToDDT(beTarget.getCode(), json); // Update the DDT
 
-			sendQEventAttributeValueChangeMessage(msg);	// msg should contain the baseentity with the changed attributes
+			sendQEventAttributeValueChangeMessage(msg); // msg should contain the baseentity with the changed attributes
 		}
 		return 0L;
 	}
@@ -3218,8 +3243,8 @@ public class BaseEntityService2 {
 	@Transactional
 	public Integer updateEntityEntity(final Link link) throws NoResultException {
 		Integer result = 0;
-		
-		Link oldLink = findLink(link.getSourceCode(),link.getTargetCode(),link.getAttributeCode());
+
+		Link oldLink = findLink(link.getSourceCode(), link.getTargetCode(), link.getAttributeCode());
 
 		try {
 			result = getEntityManager().createQuery(
@@ -3230,7 +3255,6 @@ public class BaseEntityService2 {
 					.setParameter("parentColor", link.getParentColor()).setParameter("childColor", link.getChildColor())
 					.setParameter("rule", link.getRule()).setParameter("weight", link.getWeight()).executeUpdate();
 
-			
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(link, oldLink, getCurrentToken());
 
 			sendQEventLinkChangeMessage(msg);
@@ -3546,7 +3570,7 @@ public class BaseEntityService2 {
 
 				}
 				usersMap.put((String) userMap.get("username"), userMap);
-			
+
 			}
 
 			log.debug("finished");
@@ -3875,9 +3899,8 @@ public class BaseEntityService2 {
 	public void writeToDDT(final String key, final String value) {
 		ddtCacheMock.put(key, value);
 	}
-	
-	public void writeToDDT(final BaseEntity be)
-	{
+
+	public void writeToDDT(final BaseEntity be) {
 		ddtCacheMock.put(be.getCode(), JsonUtils.toJson(be));
 	}
 
