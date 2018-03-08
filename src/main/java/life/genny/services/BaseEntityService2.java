@@ -103,6 +103,8 @@ public class BaseEntityService2 {
 	Map<String, String> ddtCacheMock = new ConcurrentHashMap<String, String>();
 
 	EntityManager em;
+	
+	List<String> allowedConditions = Arrays.asList("=", "<", ">","<=",">=","LIKE","!=","<>");
 
 	public List<BaseEntity> findBySearchBE2(@NotNull final String hql) {
 		List<BaseEntity> results = null;
@@ -345,12 +347,42 @@ public class BaseEntityService2 {
 					Attribute attribute = this.findAttributeByCode(sortAttributeCode);
 					ea.getPk().setAttribute(attribute);
 				}
+				String sortType = "valueString";
 				switch (ea.getPk().getAttribute().getDataType().getClassName()) {
+				case "java.time.LocalTime":
+				case "LocalTime":
+					sortType = "valueTime";
+					break;
+				case "java.time.LocalDate":
+				case "LocalDate":
+					sortType = "valueDate";
+					break;
+				case "java.time.LocalDateTime":
+				case "LocalDateTime":
+					sortType = "valueDateTime";
+					break;
+				case "java.lang.Boolean":
+				case "Boolean":
+					sortType = 	"valueBoolean";
+					break;
+				case "java.lang.Double":
+				case "Double":
+					sortType = 	"valueDouble";
+					break;
+				case "java.lang.Long":
+				case "Long":
+					sortType = 	"valueLong";
+					break;
+				case "java.lang.Integer":
+				case "Integer":
+					sortType = 	"valueInteger";
+					break;
 				case "java.lang.String":
 				case "String":
 				default:
-					attributeCodeMap.put(sortAttributeCode, attributeCodeEA + ".valueString");			
+						sortType = 	"valueString";	
 				}
+				attributeCodeMap.put(sortAttributeCode, attributeCodeEA + "."+sortType);
 				filterIndex++;
 			} else if (ea.getAttributeCode().startsWith("COL_")) {
 				String columnAttributeCode = ea.getAttributeCode().substring("COL_".length());
@@ -359,6 +391,15 @@ public class BaseEntityService2 {
 
 			} else {
 				String priAttributeCode = ea.getAttributeCode();
+				String condition = ea.getAttributeName();
+				if (condition!=null) {
+					final String conditionTest = condition.trim();
+					if (!allowedConditions.stream().anyMatch(str -> str.trim().equals(conditionTest))) {
+						condition = "=";
+						log.error("Error! Illegal condition! ["+ea.getAttributeCode()+"] for user "+getUser());
+						return results;
+					}
+				}
 				String attributeCodeEA = "ea" + filterIndex;
 				filterStrings += ",EntityAttribute " + attributeCodeEA;
 				filterStringsQ += " " + attributeCodeEA + ".pk.baseEntity.id=ea.pk.baseEntity.id and " + attributeCodeEA
@@ -368,16 +409,36 @@ public class BaseEntityService2 {
 					ea.getPk().setAttribute(attribute);
 				}
 				switch (ea.getPk().getAttribute().getDataType().getClassName()) {
-				// case "java.lang.Integer":
-				// return (T) getValueInteger();
-				// case "java.time.LocalDateTime":
-				// return (T) getValueDateTime();
-				// case "java.time.LocalTime":
-				// return (T) getValueTime();
-				// case "java.lang.Long":
-				// return (T) getValueLong();
-				// case "java.lang.Double":
-				// return (T) getValueDouble();
+				case "java.lang.Integer":
+				case "Integer":
+					if (ea.getAttributeName() == null) {
+						filterStringsQ += " and " + attributeCodeEA + ".valueInteger=:v" + filterIndex + " ";
+					} else {
+						filterStringsQ += " and " + attributeCodeEA + ".valueInteger "+condition+" :v" + filterIndex + " ";
+					}
+					valueList.add(Tuple.of("v" + filterIndex, ea.getValueInteger()));
+					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueInteger");
+					break;
+				case "java.lang.Long":
+				case "Long":
+					if (ea.getAttributeName() == null) {
+						filterStringsQ += " and " + attributeCodeEA + ".valueLong=:v" + filterIndex + " ";
+					} else {
+						filterStringsQ += " and " + attributeCodeEA + ".valueLong "+condition+" :v" + filterIndex + " ";
+					}
+					valueList.add(Tuple.of("v" + filterIndex, ea.getValueLong()));
+					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueLong");
+					break;
+				case "java.lang.Double":
+				case "Double":
+					if (ea.getAttributeName() == null) {
+						filterStringsQ += " and " + attributeCodeEA + ".valueDouble=:v" + filterIndex + " ";
+					} else {
+						filterStringsQ += " and " + attributeCodeEA + ".valueDouble "+condition+" :v" + filterIndex + " ";
+					}
+					valueList.add(Tuple.of("v" + filterIndex, ea.getValueDouble()));
+					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDouble");
+					break;
 				case "range.LocalDate":
 					Range<LocalDate> rangeLocalDate = ea.getValueDateRange();
 					filterStringsQ += getHQL(rangeLocalDate, attributeCodeEA, "valueDate", filterIndex, valueList);
@@ -385,28 +446,51 @@ public class BaseEntityService2 {
 					break;
 				case "java.lang.Boolean":
 				case "Boolean":
-					filterStringsQ += " and " + attributeCodeEA + ".valueBoolean=:v" + filterIndex + " and ";
+					filterStringsQ += " and " + attributeCodeEA + ".valueBoolean=:v" + filterIndex + " ";
 					valueList.add(Tuple.of("v" + filterIndex, ea.getValueBoolean()));
 					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueBoolean");
 					break;
 				case "java.time.LocalDate":
 				case "LocalDate":
-					filterStringsQ += " and " + attributeCodeEA + ".valueDate=:v" + filterIndex + " and ";
+					if (ea.getAttributeName() == null) {
+						filterStringsQ += " and " + attributeCodeEA + ".valueDate=:v" + filterIndex + " ";
+					} else {
+						filterStringsQ += " and " + attributeCodeEA + ".valueDate "+condition+" :v" + filterIndex + " ";
+					}
 					valueList.add(Tuple.of("v" + filterIndex, ea.getValueDate()));
 					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
+					break;
+				case "java.time.LocalDateTime":
+				case "LocalDateTime":
+					if (ea.getAttributeName() == null) {
+						filterStringsQ += " and " + attributeCodeEA + ".valueDateTime=:v" + filterIndex + " ";
+					} else {
+						filterStringsQ += " and " + attributeCodeEA + ".valueDateTime "+condition+" :v" + filterIndex + " ";
+					}
+					valueList.add(Tuple.of("v" + filterIndex, ea.getValueDateTime()));
+					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
+					break;
+				case "java.time.LocalTime":
+				case "LocalTime":
+					if (ea.getAttributeName() == null) {
+						filterStringsQ += " and " + attributeCodeEA + ".valueTime=:v" + filterIndex + " ";
+					} else {
+						filterStringsQ += " and " + attributeCodeEA + ".valueTime "+condition+" :v" + filterIndex + " ";
+					}
+					valueList.add(Tuple.of("v" + filterIndex, ea.getValueTime()));
+					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueTime");
 					break;
 				// case "org.javamoney.moneta.Money":
 				// return (T) getValueMoney();
 				case "java.lang.String":
 				case "String":
 				default:
-					if (ea.getValueString() == null) {
-						filterStringsQ += " and " + attributeCodeEA + ".valueString like :v" + filterIndex + " and ";
-						valueList.add(Tuple.of("v" + filterIndex, "%%"));
+					if (ea.getAttributeName() == null) {
+						filterStringsQ += " and " + attributeCodeEA + ".valueString=:v" + filterIndex + " ";
 					} else {
-						filterStringsQ += " and " + attributeCodeEA + ".valueString=:v" + filterIndex + " and ";
-						valueList.add(Tuple.of("v" + filterIndex, ea.getValueString()));
+						filterStringsQ += " and " + attributeCodeEA + ".valueString "+condition+" :v" + filterIndex + " ";
 					}
+					valueList.add(Tuple.of("v" + filterIndex, ea.getValueString()));
 					attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueString");
 				}
 				filterIndex++;
@@ -415,7 +499,12 @@ public class BaseEntityService2 {
 		}
 
 		if (filterIndex > 0) {
-			filterStringsQ = " and (" + filterStringsQ.substring(4, filterStringsQ.length() ) + ")  ";
+			// This is ugly
+			filterStringsQ = filterStringsQ.trim();
+			if (filterStringsQ.startsWith("and")) {
+				filterStringsQ = filterStringsQ.substring("and".length());
+			}
+			filterStringsQ = " and (" + filterStringsQ.substring(0, filterStringsQ.length() ) + ")  ";
 		}
 
 		Set<String> realms = new HashSet<String>();
@@ -479,206 +568,8 @@ public class BaseEntityService2 {
 		log.debug("PREQUERY3");
 		results = query.getResultList();
 		log.debug("RESULTS=" + results);
-		// List<Object[]> results = query.getResultList();
 		return results;
-		// log.debug("findChildrenByAttributeLink - PAIR COUNT IS " +
-		// pairCount);
-		// String eaStrings = "";
-		// String eaStringsQ = "";
-		// if (pairCount > 0) {
-		// eaStringsQ = "(";
-		// for (int i = 0; i < (pairCount); i++) {
-		// eaStrings += ",EntityAttribute ea" + i;
-		// eaStringsQ += "ea" + i + ".baseEntityCode=be.code or ";
-		// }
-		// eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
-		// eaStringsQ += ") and ";
-		// }
-		//
-		// String queryStr = "SELECT distinct be FROM BaseEntity be," +
-		// stakeholderFilter1
-		// + "EntityEntity ee" + eaStrings + " JOIN be.baseEntityAttributes bee where "
-		// + eaStringsQ + " ee.link.targetCode=be.code" + stakeholderFilter2
-		// + " and ee.link.attributeCode=:linkAttributeCode and be.realm=:realmStr and
-		// ee.link.sourceCode=:sourceCode and ";
-		// int attributeCodeIndex = 0;
-		// int valueIndex = 0;
-		// final List<String> attributeCodeList = new ArrayList<String>();
-		// final List<String> valueList = new ArrayList<String>();
-		//
-		// for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
-		// if (entry.getKey().equals("pageStart") || entry.getKey().equals("pageSize"))
-		// { // ugly
-		// continue;
-		// }
-		// final List<String> qvalueList = entry.getValue();
-		// if (!qvalueList.isEmpty()) {
-		// // create the value or
-		// String valueQuery = "(";
-		// for (final String value : qvalueList) {
-		// valueQuery +=
-		// "ea" + attributeCodeIndex + ".valueString=:valueString" + valueIndex + " or
-		// ";
-		// valueList.add(valueIndex, value);
-		// valueIndex++;
-		// }
-		// // remove last or
-		// valueQuery = valueQuery.substring(0, valueQuery.length() - 4);
-		// valueQuery += ")";
-		// attributeCodeList.add(attributeCodeIndex, entry.getKey());
-		// if (attributeCodeIndex > 0) {
-		// queryStr += " and ";
-		// }
-		// queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
-		// + attributeCodeIndex + " and " + valueQuery;
-		// log.debug("findChildrenByAttributeLink Key : " + entry.getKey() + "
-		// Value : "
-		// + entry.getValue());
-		// }
-		// attributeCodeIndex++;
-		//
-		// }
-		// log.debug("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" +
-		// queryStr);
-		// final Query query = getEntityManager().createQuery(queryStr);
-		// int index = 0;
-		// for (final String attributeParm : attributeCodeList) {
-		// query.setParameter("attributeCode" + index, attributeParm);
-		// System.out
-		// .println("findChildrenByAttributeLink attributeCode" + index + "=:" +
-		// attributeParm);
-		// index++;
-		// }
-		// index = 0;
-		// for (final String valueParm : valueList) {
-		// query.setParameter("valueString" + index, valueParm);
-		// log.debug("valueString" + index + "=:" + valueParm);
-		// index++;
-		// }
-		// query.setParameter("sourceCode",
-		// sourceCode).setParameter("linkAttributeCode", linkCode);
-		// query.setParameter("realmStr", userRealmStr);
-		// if (stakeholderCode != null) {
-		// query.setParameter("stakeholderCode", stakeholderCode);
-		// }
-		//
-		// query.setFirstResult(pageStart).setMaxResults(pageSize);
-		// eeResults = query.getResultList();
-		//
-		// }
-		// } else {
-		// log.debug("**************** ENTITY ENTITY WITH NO ATTRIBUTES
-		// ****************");
-		//
-		// // ugly and insecure
-		// final Integer pairCount = params.size();
-		// if (pairCount.equals(0)) {
-		//
-		// Query query = getEntityManager().createQuery("SELECT distinct be FROM
-		// BaseEntity be,"
-		// + stakeholderFilter1 + "EntityEntity ee where ee.link.targetCode=be.code "
-		// + stakeholderFilter2
-		// + " and ee.link.attributeCode=:linkAttributeCode and
-		// ee.link.sourceCode=:sourceCode and be.realm=:realmStr")
-		// .setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode",
-		// linkCode)
-		// .setParameter("realmStr", userRealmStr).setFirstResult(pageStart);
-		// if (stakeholderCode != null) {
-		// query.setParameter("stakeholderCode", stakeholderCode);
-		// }
-		//
-		// eeResults = query.setMaxResults(pageSize).getResultList();
-		//
-		// } else {
-		// log.debug("findChildrenByAttributeLink PAIR COUNT " + pairCount);
-		// String eaStrings = "";
-		// String eaStringsQ = "";
-		// if (pairCount > 0) {
-		// eaStringsQ = "(";
-		// for (int i = 0; i < (pairCount); i++) {
-		// eaStrings += ",EntityAttribute ea" + i;
-		// eaStringsQ += "ea" + i + ".baseEntityCode=be.code or ";
-		// }
-		// eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
-		// eaStringsQ += ") and ";
-		// }
-		//
-		// String queryStr = "SELECT distinct be FROM BaseEntity be," +
-		// stakeholderFilter1
-		// + " EntityEntity ee" + eaStrings + " where " + eaStringsQ
-		// + " ee.link.targetCode=be.code " + stakeholderFilter2
-		// + " and ee.link.attributeCode=:linkAttributeCode and be.realm=:realmStr and
-		// ee.link.sourceCode=:sourceCode and ";
-		// int attributeCodeIndex = 0;
-		// int valueIndex = 0;
-		// final List<String> attributeCodeList = new ArrayList<String>();
-		// final List<String> valueList = new ArrayList<String>();
-		//
-		// for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
-		// if (entry.getKey().equals("pageStart") || entry.getKey().equals("pageSize"))
-		// { // ugly
-		// continue;
-		// }
-		// final List<String> qvalueList = entry.getValue();
-		// if (!qvalueList.isEmpty()) {
-		// // create the value or
-		// String valueQuery = "(";
-		// for (final String value : qvalueList) {
-		// valueQuery +=
-		// "ea" + attributeCodeIndex + ".valueString=:valueString" + valueIndex + " or
-		// ";
-		// valueList.add(valueIndex, value);
-		// valueIndex++;
-		// }
-		// // remove last or
-		//
-		// valueQuery = valueQuery.substring(0, valueQuery.length() - 4);
-		//
-		// valueQuery += ")";
-		// attributeCodeList.add(attributeCodeIndex, entry.getKey());
-		// if (attributeCodeIndex > 0) {
-		// queryStr += " and ";
-		// }
-		// queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
-		// + attributeCodeIndex + " and " + valueQuery;
-		// log.debug("findChildrenByAttributeLink Key : " + entry.getKey() + "
-		// Value : "
-		// + entry.getValue());
-		// }
-		// attributeCodeIndex++;
-		//
-		// }
-		// log.debug("findChildrenByAttributeLink KIDS + ATTRIBUTE Query=" +
-		// queryStr);
-		// final Query query = getEntityManager().createQuery(queryStr);
-		// int index = 0;
-		// for (final String attributeParm : attributeCodeList) {
-		// query.setParameter("attributeCode" + index, attributeParm);
-		// log.debug("attributeCode" + index + "=:" + attributeParm);
-		// index++;
-		// }
-		// index = 0;
-		// for (final String valueParm : valueList) {
-		// query.setParameter("valueString" + index, valueParm);
-		// log.debug("valueString" + index + "=:" + valueParm);
-		// index++;
-		// }
-		// query.setParameter("sourceCode",
-		// sourceCode).setParameter("linkAttributeCode", linkCode);
-		// query.setParameter("realmStr", userRealmStr);
-		//
-		// query.setFirstResult(pageStart).setMaxResults(pageSize);
-		// if (stakeholderCode != null) {
-		// query.setParameter("stakeholderCode", stakeholderCode);
-		// }
-		// eeResults = query.getResultList();
-		// log.debug("findChildrenByAttributeLink NULL THE ATTRIBUTES");
-		// // for (BaseEntity be : eeResults) {
-		// // be.setBaseEntityAttributes(null); // ugly
-		// // }
-		// }
-		//
-		// }
+
 
 	}
 
