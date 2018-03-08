@@ -287,6 +287,14 @@ public class BaseEntityService2 {
 	}
 
 	public List<BaseEntity> findBySearchBE(@NotNull final BaseEntity searchBE) {
+//		select distinct ea.pk.baseEntity  from EntityAttribute ea , EntityAttribute eb
+//		where
+//		       ea.attributeCode='PRI_LASTNAME'
+//		       and ea.valueString like '%CROW%'
+//		       and eb.pk.baseEntity.code = ea.pk.baseEntity.code
+//		       and eb.attributeCode='PRI_FIRSTNAME'
+//
+//		order by ea.valueString ASC,eb.valueString DESC
 
 		// String attributes have Exact Value matching and SORT ASC/DESC
 
@@ -331,7 +339,7 @@ public class BaseEntityService2 {
 																											// order
 				String attributeCodeEA = "ea" + filterIndex;
 				filterStrings += ",EntityAttribute " + attributeCodeEA;
-				filterStringsQ += " and " + attributeCodeEA + ".baseEntityCode=be.code and " + attributeCodeEA
+				filterStringsQ += " and " + attributeCodeEA + ".pk.baseEntity.id=ea.pk.baseEntity.id and " + attributeCodeEA
 						+ ".pk.attribute.code='" + sortAttributeCode + "' ";
 				if ((ea.getPk() == null) || ea.getPk().getAttribute() == null) {
 					Attribute attribute = this.findAttributeByCode(sortAttributeCode);
@@ -353,7 +361,7 @@ public class BaseEntityService2 {
 				String priAttributeCode = ea.getAttributeCode();
 				String attributeCodeEA = "ea" + filterIndex;
 				filterStrings += ",EntityAttribute " + attributeCodeEA;
-				filterStringsQ += " " + attributeCodeEA + ".baseEntityCode=be.code and " + attributeCodeEA
+				filterStringsQ += " " + attributeCodeEA + ".pk.baseEntity.id=ea.pk.baseEntity.id and " + attributeCodeEA
 						+ ".pk.attribute.code='" + priAttributeCode + "' ";
 				if ((ea.getPk() == null) || ea.getPk().getAttribute() == null) {
 					Attribute attribute = this.findAttributeByCode(priAttributeCode);
@@ -416,17 +424,20 @@ public class BaseEntityService2 {
 
 		orderString = createOrderString(attributeCodeMap, orderList);
 
-		String sql = "select distinct be from BaseEntity be, "
-				+ ((stakeholderCode != null) ? " EntityEntity ff JOIN be.baseEntityAttributes bff," : "")
-				+ " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
-				+ " EntityEntity ee JOIN be.baseEntityAttributes bee " + filterStrings + " where "
-				+ " be.realm in (:realms)  " + ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
-				+ ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
-				+ ((sourceCode != null) ? " and ee.link.sourceCode=:sourceCode " : "")
-				+ ((targetCode != null) ? " and ee.link.targetCode=:targetCode " : "")
-				+ ((stakeholderCode != null)
-						? " and ff.link.targetCode=:stakeholderCode and ff.link.sourceCode=be.code "
-						: "")
+		String sql = "select distinct ea.pk.baseEntity  from EntityAttribute ea "
+//				+ ((stakeholderCode != null) ? " EntityEntity ff JOIN be.baseEntityAttributes bff," : "")
+//				+ " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
+//				+ " EntityEntity ee JOIN be.baseEntityAttributes bee " 
+				+ filterStrings 
+				+ " where "
+				+ " ea.pk.baseEntity.realm in (:realms)  " 
+//+ ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
+//				+ ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
+//				+ ((sourceCode != null) ? " and ee.link.sourceCode=:sourceCode " : "")
+//				+ ((targetCode != null) ? " and ee.link.targetCode=:targetCode " : "")
+//				+ ((stakeholderCode != null)
+//						? " and ff.link.targetCode=:stakeholderCode and ff.link.sourceCode=be.code "
+//						: "")
 				+ filterStringsQ + orderString;
 
 		log.info("SQL =[" + sql + "]");
