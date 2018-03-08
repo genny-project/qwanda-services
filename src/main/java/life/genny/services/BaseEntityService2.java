@@ -331,6 +331,24 @@ public class BaseEntityService2 {
 		Set<String> attributeCodes = new HashSet<String>();
 
 		for (EntityAttribute ea : searchBE.getBaseEntityAttributes()) {
+			// Check no nasty SQL injection
+			// Need named procedures
+			// Quick and dirty ; check
+			String condition = ea.getAttributeName();
+			if (condition!=null) {
+				final String conditionTest = condition.trim();
+				if (!allowedConditions.stream().anyMatch(str -> str.trim().equals(conditionTest))) {
+					log.error("Error! Illegal condition!("+conditionTest+") ["+ea.getAttributeCode()+"] for user "+getUser());
+					return results;
+				}
+			}
+			String valueString = ea.getValueString();
+			if (valueString!=null) {
+				if (valueString.contains(";")) {
+					log.error("Error! Illegal condition!("+valueString+") ["+ea.getAttributeCode()+"] for user "+getUser());
+					return results;
+				}
+			}
 			if (ea.getAttributeCode().startsWith("SCH_")) {
 				continue;
 			} else if (ea.getAttributeCode().startsWith("SRT_")) {
@@ -391,18 +409,9 @@ public class BaseEntityService2 {
 
 			} else {
 				String priAttributeCode = ea.getAttributeCode();
-				String condition = ea.getAttributeName();
-				if (condition!=null) {
-					final String conditionTest = condition.trim();
-					if (!allowedConditions.stream().anyMatch(str -> str.trim().equals(conditionTest))) {
-						condition = "=";
-						log.error("Error! Illegal condition! ["+ea.getAttributeCode()+"] for user "+getUser());
-						return results;
-					}
-				}
 				String attributeCodeEA = "ea" + filterIndex;
 				filterStrings += ",EntityAttribute " + attributeCodeEA;
-				filterStringsQ += " " + attributeCodeEA + ".pk.baseEntity.id=ea.pk.baseEntity.id and " + attributeCodeEA
+				filterStringsQ += " and " + attributeCodeEA + ".pk.baseEntity.id=ea.pk.baseEntity.id and " + attributeCodeEA
 						+ ".pk.attribute.code='" + priAttributeCode + "' ";
 				if ((ea.getPk() == null) || ea.getPk().getAttribute() == null) {
 					Attribute attribute = this.findAttributeByCode(priAttributeCode);
