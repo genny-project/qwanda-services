@@ -577,6 +577,12 @@ public class BaseEntityService2 {
 		log.debug("PREQUERY3");
 		results = query.getResultList();
 		log.debug("RESULTS=" + results);
+		
+		// Set simple sort index for frontend to use
+		Integer index=0;
+		for (BaseEntity be : results) {
+			be.setIndex(index++);
+		}
 		return results;
 
 
@@ -2036,6 +2042,11 @@ public class BaseEntityService2 {
 
 		}
 		// TODO: improve
+		// Set simple sort index for frontend to use
+		Integer index=0;
+		for (BaseEntity be : eeResults) {
+			be.setIndex(index++);
+		}
 
 		return eeResults;
 	}
@@ -2254,6 +2265,11 @@ public class BaseEntityService2 {
 
 		}
 		// TODO: improve
+		// Set simple sort index for frontend to use
+		Integer index=0;
+		for (BaseEntity be : eeResults) {
+			be.setIndex(index++);
+		}
 
 		return eeResults;
 	}
