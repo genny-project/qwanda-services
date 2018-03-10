@@ -33,7 +33,7 @@ public class SearchTest {
 	protected static BaseEntityService2 service = null;
 	static BatchLoading bl;
 
-	@BeforeClass
+//	@BeforeClass
 	public static void init() throws FileNotFoundException, SQLException {
 		log.info("Setting up EntityManagerFactory");
 		try {
@@ -52,7 +52,7 @@ public class SearchTest {
 		}
 	}
 
-	@AfterClass
+//	@AfterClass
 	public static void tearDown() {
 		log.info("Starting Tear down");
 		if (em != null) {
@@ -69,7 +69,7 @@ public class SearchTest {
 		}
 	}
 
-	@Test
+//	@Test
 	public void searchBETest() {
 
 		BaseEntity searchBE = new BaseEntity("SER_TEST_SEARCH", "Search test");

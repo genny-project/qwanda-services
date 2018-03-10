@@ -73,7 +73,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   private static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-	@Test
+//	@Test
 	public void searchBETest() {
 
 		BaseEntity searchBE = new BaseEntity("SER_TEST_SEARCH", "Search test");
