@@ -1349,6 +1349,8 @@ public class BaseEntityService2 {
 		// always check if baseentity exists through check for unique code
 		try {
 			getEntityManager().persist(attribute);
+	
+			this.pushAttributes();
 		} catch (final ConstraintViolationException e) {
 			// so update otherwise // TODO merge?
 			Attribute existing = findAttributeByCode(attribute.getCode());
@@ -3838,5 +3840,9 @@ public class BaseEntityService2 {
 	public String readFromDDT(final String key) {
 
 		return ddtCacheMock.get(key);
+	}
+	
+	public void pushAttributes() {
+		log.info("Pushing attributes to DDT");
 	}
 }
