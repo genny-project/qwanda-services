@@ -1692,7 +1692,7 @@ public class BaseEntityService2 {
 
 			try {
 				result = (BaseEntity) getEntityManager().createQuery(
-						"SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr "
+						"SELECT be FROM BaseEntity be LEFT JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr "
 								+ privacySQL)
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())//.setParameter("flag", false)
 						.setParameter("realmStr", userRealmStr).getSingleResult();
