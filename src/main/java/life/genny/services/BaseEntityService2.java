@@ -1565,7 +1565,12 @@ public class BaseEntityService2 {
 			// BeanUtils.copyProperties(validation, val);
 			return val;
 		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+			try {
 			getEntityManager().persist(validation);
+			} catch (javax.persistence.PersistenceException pe) {
+				log.error("Error in saving validation :"+validation+" :"+pe.getLocalizedMessage());
+			}
+			
 			Validation id = validation;
 			return id;
 		}
@@ -1582,7 +1587,11 @@ public class BaseEntityService2 {
 			// BeanUtils.copyProperties(attr, val);
 			return val;
 		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+			try {
 			getEntityManager().persist(attr);
+			} catch (javax.persistence.PersistenceException pe) {
+				log.error("Error in saving attribute :"+attr+" :"+pe.getLocalizedMessage());
+			}
 			Long id = attr.getId();
 			return attr;
 		}
@@ -1679,13 +1688,18 @@ public class BaseEntityService2 {
 		final String userRealmStr = getRealm();
 
 		if (includeEntityAttributes) {
-			String privacySQL = (inRole("admin")) ? "" : " and ea.privacyFlag=:flag";
+			String privacySQL = "";//(inRole("admin")) ? "" : " and ea.privacyFlag=:flag";
 
-			result = (BaseEntity) getEntityManager().createQuery(
-					"SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr "
-							+ privacySQL)
-					.setParameter("baseEntityCode", baseEntityCode.toUpperCase()).setParameter("flag", false)
-					.setParameter("realmStr", userRealmStr).getSingleResult();
+			try {
+				result = (BaseEntity) getEntityManager().createQuery(
+						"SELECT be FROM BaseEntity be JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr "
+								+ privacySQL)
+						.setParameter("baseEntityCode", baseEntityCode.toUpperCase()).setParameter("flag", false)
+						.setParameter("realmStr", userRealmStr).getSingleResult();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 		} else {
 			result = (BaseEntity) getEntityManager()
@@ -1743,8 +1757,12 @@ public class BaseEntityService2 {
 
 	public Validation findValidationByCode(@NotNull final String code) throws NoResultException {
 		Validation result = null;
-		result = (Validation) getEntityManager().createQuery("SELECT a FROM Validation a where a.code=:code")
-				.setParameter("code", code).getSingleResult();
+		try {
+			result = (Validation) getEntityManager().createQuery("SELECT a FROM Validation a where a.code=:code")
+					.setParameter("code", code).getSingleResult();
+		} catch (Exception e) {
+			log.error("Error in finding Validation! "+code);
+		}
 
 		return result;
 	}
