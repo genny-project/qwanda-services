@@ -331,25 +331,7 @@ public class BaseEntityService2 {
 		Set<String> attributeCodes = new HashSet<String>();
 
 		for (EntityAttribute ea : searchBE.getBaseEntityAttributes()) {
-			// Check no nasty SQL injection
-			// Need named procedures
-			// Quick and dirty ; check
-			String condition = ea.getAttributeName();
-			if (condition!=null) {
-				final String conditionTest = condition.trim();
-				if (!allowedConditions.stream().anyMatch(str -> str.trim().equals(conditionTest))) {
-					log.error("Error! Illegal condition!("+conditionTest+") ["+ea.getAttributeCode()+"] for user "+getUser());
-					return results;
-				}
-			}
-			String valueString = ea.getValueString();
-			if (valueString!=null) {
-				if (valueString.contains(";")) {
-					log.error("Error! Illegal condition!("+valueString+") ["+ea.getAttributeCode()+"] for user "+getUser());
-					return results;
-				}
-			}
-			if (ea.getAttributeCode().startsWith("SCH_")) {
+				if (ea.getAttributeCode().startsWith("SCH_")) {
 				continue;
 			} else if (ea.getAttributeCode().startsWith("SRT_")) {
 				String sortAttributeCode = ea.getAttributeCode().substring("SRT_".length());
@@ -408,6 +390,25 @@ public class BaseEntityService2 {
 				attributeCodes.add(columnAttributeCode);
 
 			} else {
+				// Check no nasty SQL injection
+				// Need named procedures
+				// Quick and dirty ; check
+				String condition = ea.getAttributeName();
+				if (condition!=null) {
+					final String conditionTest = condition.trim();
+					if (!allowedConditions.stream().anyMatch(str -> str.trim().equals(conditionTest))) {
+						log.error("Error! Illegal condition!("+conditionTest+") ["+ea.getAttributeCode()+"] for user "+getUser());
+						return results;
+					}
+				}
+				String valueString = ea.getValueString();
+				if (valueString!=null) {
+					if (valueString.contains(";")) {
+						log.error("Error! Illegal condition!("+valueString+") ["+ea.getAttributeCode()+"] for user "+getUser());
+						return results;
+					}
+				}
+
 				String priAttributeCode = ea.getAttributeCode();
 				String attributeCodeEA = "ea" + filterIndex;
 				filterStrings += ",EntityAttribute " + attributeCodeEA;
