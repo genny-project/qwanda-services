@@ -1880,7 +1880,7 @@ public class BaseEntityService2 {
 				Query query = null;
 
 				query = getEntityManager().createQuery("SELECT distinct be FROM BaseEntity be," + stakeholderFilter1
-						+ "EntityEntity ee JOIN be.baseEntityAttributes bee where ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode  and ee.pk.source.realm=:realmStr"
+						+ "EntityEntity ee JOIN be.baseEntityAttributes bee where ee.link.targetCode=be.code and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode  and be.realm=:realmStr and ee.pk.source.realm=:realmStr"
 						+ stakeholderFilter2).setParameter("sourceCode", sourceCode)
 						.setParameter("linkAttributeCode", linkCode).setParameter("realmStr", userRealmStr);
 				if (stakeholderCode != null) {
