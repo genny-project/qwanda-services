@@ -321,6 +321,7 @@ public class BaseEntityService2 {
 		String filterStrings = "";
 		String filterStringsQ = "";
 		String orderString = "";
+		String codeFilter = "";
 
 		Integer filterIndex = 0;
 		final HashMap<String, String> attributeCodeMap = new HashMap<String, String>();
@@ -386,10 +387,14 @@ public class BaseEntityService2 {
 				filterIndex++;
 			} else if (ea.getAttributeCode().startsWith("COL_")) {
 				String columnAttributeCode = ea.getAttributeCode().substring("COL_".length());
-				columnList.add(new Column(columnAttributeCode, ea.getAttributeName(), ea.getWeight()));
-				attributeCodes.add(columnAttributeCode);
-
+				if (!columnAttributeCode.equalsIgnoreCase("code")) {
+					columnList.add(new Column(columnAttributeCode, ea.getAttributeName(), ea.getWeight()));
+					attributeCodes.add(columnAttributeCode);
+				}
 			} else {
+				String priAttributeCode = ea.getAttributeCode();
+				
+
 				// Check no nasty SQL injection
 				// Need named procedures
 				// Quick and dirty ; check
@@ -409,7 +414,15 @@ public class BaseEntityService2 {
 					}
 				}
 
-				String priAttributeCode = ea.getAttributeCode();
+				if (priAttributeCode.equalsIgnoreCase("PRI_CODE")) {
+					if (ea.getAttributeName() == null) {
+						codeFilter += " and ea.pk.baseEntity.code=:v" + filterIndex + " ";
+					} else {
+						codeFilter += " and ea.pk.baseEntity.code "+condition+" :v" + filterIndex + " ";
+					}
+					valueList.add(Tuple.of("v" + filterIndex, ea.getValueString()));
+					filterIndex++;
+				} else {
 				String attributeCodeEA = "ea" + filterIndex;
 				filterStrings += ",EntityAttribute " + attributeCodeEA;
 				filterStringsQ += " and " + attributeCodeEA + ".pk.baseEntity.id=ea.pk.baseEntity.id and " + attributeCodeEA
@@ -506,6 +519,7 @@ public class BaseEntityService2 {
 				filterIndex++;
 
 			}
+			}
 		}
 
 		if (filterIndex > 0) {
@@ -530,6 +544,7 @@ public class BaseEntityService2 {
 				+ filterStrings 
 				+ " where "
 				+ " ea.pk.baseEntity.realm in (:realms)  " 
+				+ codeFilter
 //+ ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
 //				+ ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
 //				+ ((sourceCode != null) ? " and ee.link.sourceCode=:sourceCode " : "")
