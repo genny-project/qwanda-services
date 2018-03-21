@@ -725,10 +725,24 @@ public class BatchLoading {
       } else {
     	  try {
 			QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
-			  if (msg == null) {
-				  Long id = service.insert(templateObj);
-				  System.out.println("message id ::"+id);
-			  }
+			try {
+				if(msg != null) {
+					msg.setName(name);
+					msg.setDescription(description);
+					msg.setEmail_templateId(emailTemplateDocId);
+					msg.setSms_template(smsTemplate);
+					msg.setSubject(subject);
+					msg.setToast_template(toastTemplate);
+					Long id = service.update(msg);
+					System.out.println("updated message id ::" + id);
+				} else {
+					Long id = service.insert(templateObj);
+					System.out.println("message id ::" + id);
+				}
+				
+			} catch (Exception e) {
+				log.error("Cannot update QDataMSGMessage " + code);
+			}
 				} catch (NoResultException e1) {
 					Long id = service.insert(templateObj);
 					System.out.println("message id ::" + id);
