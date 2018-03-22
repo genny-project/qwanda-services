@@ -1074,7 +1074,7 @@ public void questionGroupTest()
 		
 	}
 	
-	@Test
+	//@Test  memberhub no longer exists
 	public void findAsks2SelectionTest()
 	{
 		System.out.println("FIND ASKS 2 TEST MEMBERHUB SELECTION");

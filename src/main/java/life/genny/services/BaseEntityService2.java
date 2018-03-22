@@ -681,8 +681,29 @@ public class BaseEntityService2 {
 	 *             when removing {@link BaseEntity} at given index
 	 */
 	public void removeBaseEntity(final String code) {
-		final BaseEntity baseEntity = findBaseEntityByCode(code);
-		getEntityManager().remove(baseEntity);
+		final BaseEntity be = findBaseEntityByCode(code);
+		if (be != null) {
+			
+			// remove all answers
+			Query query = getEntityManager().createQuery("delete from answer where targetCode=:targetCode");
+			query.setParameter("targetCode", code);
+			query.executeUpdate();
+			
+			query = getEntityManager().createQuery("delete from answer where sourceCode=:sourceCode");
+			query.setParameter("sourceCode", code);
+			query.executeUpdate();
+			
+			// remove all answerlinks
+			
+			// remove all attributes
+			
+			// remove all entityentity
+			
+			// remove the be
+			getEntityManager().remove(be);
+			// clear cache
+			writeToDDT(code, null);
+		}
 	}
 
 	/**
