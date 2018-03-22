@@ -680,16 +680,17 @@ public class BaseEntityService2 {
 	 * @throws IllegalStateException
 	 *             when removing {@link BaseEntity} at given index
 	 */
+	@Transactional
 	public void removeBaseEntity(final String code) {
 		final BaseEntity be = findBaseEntityByCode(code);
 		if (be != null) {
 			
 			// remove all answers
-			Query query = getEntityManager().createQuery("delete from answer where targetCode=:targetCode");
+			Query query = getEntityManager().createQuery("delete from Answer a where a.targetCode=:targetCode");
 			query.setParameter("targetCode", code);
 			query.executeUpdate();
 			
-			query = getEntityManager().createQuery("delete from answer where sourceCode=:sourceCode");
+			query = getEntityManager().createQuery("delete from Answer a where a.sourceCode=:sourceCode");
 			query.setParameter("sourceCode", code);
 			query.executeUpdate();
 			
