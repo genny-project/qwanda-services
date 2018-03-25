@@ -686,13 +686,13 @@ public class BaseEntityService2 {
 		if (be != null) {
 			
 			// remove all answers
-			Query query = getEntityManager().createQuery("delete from Answer a where a.targetCode=:targetCode");
-			query.setParameter("targetCode", code);
-			query.executeUpdate();
-			
-			query = getEntityManager().createQuery("delete from Answer a where a.sourceCode=:sourceCode");
-			query.setParameter("sourceCode", code);
-			query.executeUpdate();
+//			Query query = getEntityManager().createQuery("delete from Answer a where a.targetCode=:targetCode");
+//			query.setParameter("targetCode", code);
+//			query.executeUpdate();
+//			
+//			query = getEntityManager().createQuery("delete from Answer a where a.sourceCode=:sourceCode");
+//			query.setParameter("sourceCode", code);
+//			query.executeUpdate();
 			
 			// remove all answerlinks
 			
