@@ -2941,8 +2941,10 @@ public class BaseEntityService2 {
 
 		final List<BaseEntity> eeResults;
 		new HashMap<String, BaseEntity>();
+		String realmStr = this.getRealm();
 
 		if (includeAttributes) {
+			
 
 			// ugly and insecure
 			final Integer pairCount = params.size();
@@ -2966,7 +2968,7 @@ public class BaseEntityService2 {
 				eaStringsQ += ")";
 
 				String queryStr = "SELECT distinct be FROM BaseEntity be" + eaStrings
-						+ "  JOIN be.baseEntityAttributes bee where " + eaStringsQ + " and  ";
+						+ "  JOIN be.baseEntityAttributes bee where be.realm="+realmStr+" and " + eaStringsQ + " and  ";
 				int attributeCodeIndex = 0;
 				int valueIndex = 0;
 				final List<String> attributeCodeList = new ArrayList<String>();
@@ -3020,7 +3022,7 @@ public class BaseEntityService2 {
 		} else {
 			Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
-			eeResults = getEntityManager().createQuery("SELECT be FROM BaseEntity be  ").setFirstResult(pageStart)
+			eeResults = getEntityManager().createQuery("SELECT be FROM BaseEntity be where be.realm="+realmStr).setFirstResult(pageStart)
 					.setMaxResults(pageSize).getResultList();
 
 		}
@@ -3043,7 +3045,7 @@ public class BaseEntityService2 {
 					.createQuery("SELECT count(be.code) FROM BaseEntity be JOIN be.baseEntityAttributes bee")
 					.getSingleResult();
 		} else {
-			String queryStr = "SELECT count(be.code) FROM BaseEntity be JOIN be.baseEntityAttributes bee where  ";
+			String queryStr = "SELECT count(be.code) FROM BaseEntity be JOIN be.baseEntityAttributes bee where be.realm="+this.getRealm()+" and ";
 			int attributeCodeIndex = 0;
 			int valueIndex = 0;
 			final List<String> attributeCodeList = new ArrayList<String>();
