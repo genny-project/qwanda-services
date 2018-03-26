@@ -538,7 +538,7 @@ public class BaseEntityService2 {
 		orderString = createOrderString(attributeCodeMap, orderList);
 
 		String sql = "select distinct ea.pk.baseEntity  from EntityAttribute ea "
-//				+ ((stakeholderCode != null) ? " EntityEntity ff JOIN be.baseEntityAttributes bff," : "")
+				+ ((stakeholderCode != null) ? " ,EntityEntity ff " : "")
 //				+ " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
 //				+ " EntityEntity ee JOIN be.baseEntityAttributes bee " 
 				+ filterStrings 
@@ -549,9 +549,9 @@ public class BaseEntityService2 {
 //				+ ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
 //				+ ((sourceCode != null) ? " and ee.link.sourceCode=:sourceCode " : "")
 //				+ ((targetCode != null) ? " and ee.link.targetCode=:targetCode " : "")
-//				+ ((stakeholderCode != null)
-//						? " and ff.link.targetCode=:stakeholderCode and ff.link.sourceCode=be.code "
-//						: "")
+				+ ((stakeholderCode != null)
+						? " and ((ff.link.targetCode=:stakeholderCode and ff.link.sourceCode==ea.pk.baseEntity.code) or (ff.link.sourceCode=:stakeholderCode and ff.link.targetCode=ea.pk.baseEntity.code)  ) "
+						: "")
 				+ filterStringsQ + orderString;
 
 		log.info("SQL =[" + sql + "]");
