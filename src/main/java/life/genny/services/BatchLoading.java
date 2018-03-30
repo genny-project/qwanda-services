@@ -132,7 +132,13 @@ public class BatchLoading {
         DataType dataTypeRecord = dataTypeMap.get(dataType);
         ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
         String privacyStr = ((String) attributes.get("privacy"));
+        if (privacyStr != null) {
+        		privacyStr = privacyStr.toUpperCase();
+        }
         Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+        if (privacy) {
+        		System.out.println("Attribute "+code+" has default privacy");
+        }
         String descriptionStr = ((String) attributes.get("description"));
         String helpStr = ((String) attributes.get("help"));
         String placeholderStr = ((String) attributes.get("placeholder"));
