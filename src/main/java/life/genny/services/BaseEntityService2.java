@@ -1735,15 +1735,22 @@ public class BaseEntityService2 {
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())//.setParameter("flag", false)
 						.setParameter("realmStr", userRealmStr).getSingleResult();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				log.error("Cannot find "+baseEntityCode +" in db ");
+				throw new NoResultException("Cannot find "+baseEntityCode +" in db ");
 			}
 
 		} else {
+			try {
+
 			result = (BaseEntity) getEntityManager()
 					.createQuery("SELECT be FROM BaseEntity be where be.code=:baseEntityCode  and be.realm=:realmStr")
 					.setParameter("baseEntityCode", baseEntityCode.toUpperCase()).setParameter("realmStr", userRealmStr)
 					.getSingleResult();
+			} catch (Exception e) {
+				log.error("Cannot find "+baseEntityCode +" in db ");
+				throw new NoResultException("Cannot find "+baseEntityCode +" in db ");
+			}
+
 
 		}
 
