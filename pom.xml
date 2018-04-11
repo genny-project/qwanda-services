@@ -49,7 +49,7 @@
 		<jersey-version>2.13</jersey-version>
 		<version.apache-httpclient>4.5.3</version.apache-httpclient>
 		<version.keycloak>3.2.0.Final</version.keycloak>
-		<version.hibernate>5.2.13.Final</version.hibernate>
+		<version.hibernate>5.2.16.Final</version.hibernate>
 		<version.hibernate-validator>5.2.3.Final</version.hibernate-validator>
 		<version.hsqldb>2.4.0</version.hsqldb>
 		<version.h2db>1.4.193</version.h2db>
@@ -112,6 +112,12 @@
 			<artifactId>validation-api</artifactId>
 			<version>2.0.0.Final</version>
 		</dependency>
+<!-- https://mvnrepository.com/artifact/org.hibernate.hql/hibernate-hql-parser -->
+<dependency>
+    <groupId>org.hibernate.hql</groupId>
+    <artifactId>hibernate-hql-parser</artifactId>
+    <version>1.5.0.Final</version>
+</dependency>
 
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
