@@ -553,7 +553,7 @@ public class BaseEntityService2 {
 			    + ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
 				 + ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
 				 + ((sourceCode != null) ? " and ee.link.sourceCode=:sourceCode and ee.link.targetCode=ea.pk.baseEntity.code and " : "") 
-				 + ((targetCode != null) ? " and ee.link.targetCode=:targetCode and ee.link.parentCode=ea.pk.baseEntity.code and " : "")
+				 + ((targetCode != null) ? " and ee.link.targetCode=:targetCode and ee.link.sourceCode=ea.pk.baseEntity.code and " : "")
 				+ ((stakeholderCode != null)
 						? " and ((ff.link.targetCode=:stakeholderCode and ff.link.sourceCode=ea.pk.baseEntity.code) or (ff.link.sourceCode=:stakeholderCode and ff.link.targetCode=ea.pk.baseEntity.code)  ) "
 						: "")
