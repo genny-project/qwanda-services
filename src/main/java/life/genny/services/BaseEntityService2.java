@@ -559,6 +559,14 @@ public class BaseEntityService2 {
 						: "")
 				+ filterStringsQ + orderString;
 
+		// Ugly
+		if (StringUtils.isBlank(orderString)) {
+			sql = sql.trim();
+			if (sql.endsWith("and")) {
+				sql = sql.substring(0, sql.length()-3);
+			}
+		}
+		
 		log.info("SQL =[" + sql + "]");
 		System.out.println("HQL=" + sql + "         ==> FILTER COLUMN CODES=" + attributeCodes);
 		Query query = null;
