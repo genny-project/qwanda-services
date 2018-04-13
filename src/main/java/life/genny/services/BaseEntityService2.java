@@ -239,6 +239,15 @@ public class BaseEntityService2 {
 
 		return result;
 	}
+	
+	private String getRealmsStr(Set<String> realms)
+	{
+		String ret = "";
+		for (String realm : realms) {
+			ret += "'"+realm+"',";
+		}
+		return ret.substring(0, ret.length()-1);
+	}
 
 	private <T> String getHQL(Range rangeValue, String attributeCodeEA, String valueType, Integer filterIndex,
 			List<Tuple2<String, Object>> valueList) {
@@ -542,20 +551,21 @@ public class BaseEntityService2 {
 		Set<String> realms = new HashSet<String>();
 		realms.add(userRealmStr);
 		realms.add("genny");
+		String realmsStr = getRealmsStr(realms);
 
 		orderString = createOrderString(attributeCodeMap, orderList);
 
-		String sql = "select distinct ea.pk.baseEntity  from EntityAttribute ea "
+		String sql = "select distinct ea.pk.baseEntity be from EntityAttribute ea "
 				+ ((stakeholderCode != null) ? " ,EntityEntity ff " : "")
 				// + " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
 				 + (((sourceCode != null)||(targetCode != null)) ? " ,EntityEntity ee  " : "")
-				+ filterStrings + " where " + " ea.pk.baseEntity.realm in (:realms)  " + codeFilter
+				+ filterStrings + " where " + " be.realm in ("+realmsStr+")  " + codeFilter
 			    + ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
 				 + ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
-				 + ((sourceCode != null) ? " and ee.link.sourceCode=:sourceCode and ee.link.targetCode=ea.pk.baseEntity.code and " : "") 
-				 + ((targetCode != null) ? " and ee.link.targetCode=:targetCode and ee.link.sourceCode=ea.pk.baseEntity.code and " : "")
+				 + ((sourceCode != null) ? " and ee.pk.source.code=:sourceCode and ee.pk.targetCode=ea.pk.baseEntity.code and " : "") 
+				 + ((targetCode != null) ? " and ee.pk.targetCode=:targetCode and ee.pk.source.code=ea.pk.baseEntity.code and " : "")
 				+ ((stakeholderCode != null)
-						? " and ((ff.link.targetCode=:stakeholderCode and ff.link.sourceCode=ea.pk.baseEntity.code) or (ff.link.sourceCode=:stakeholderCode and ff.link.targetCode=ea.pk.baseEntity.code)  ) "
+						? " and ((ff.pk.targetCode=:stakeholderCode and ff.pk.source.code=ea.pk.baseEntity.code) or (ff.pk.source.code=:stakeholderCode and ff.pk.targetCode=ea.pk.baseEntity.code)  ) "
 						: "")
 				+ filterStringsQ + orderString;
 
@@ -580,7 +590,7 @@ public class BaseEntityService2 {
 
 		query.setFirstResult(pageStart).setMaxResults(pageSize);
 
-		query.setParameter("realms", realms);
+	//	query.setParameter("realms", realms);  This would not work
 		// query.setParameter("columnCodes", columnCodes.keySet());
 
 		if (sourceCode != null) {
