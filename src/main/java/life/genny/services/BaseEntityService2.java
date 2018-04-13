@@ -558,7 +558,7 @@ public class BaseEntityService2 {
 		String sql = "select distinct ea.pk.baseEntity from EntityAttribute ea "
 				+ ((stakeholderCode != null) ? " ,EntityEntity ff " : "")
 				// + " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
-				 + (((sourceCode != null)||(targetCode != null)) ? " ,EntityEntity ee  " : "")
+				 + (((sourceCode != null)||(targetCode != null)||(linkCode != null)||(linkValue != null)) ? " ,EntityEntity ee  " : "")
 				+ filterStrings + " where " + " ea.pk.baseEntity.realm in ("+realmsStr+")  " + codeFilter
 			    + ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
 				 + ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
@@ -576,6 +576,8 @@ public class BaseEntityService2 {
 				sql = sql.substring(0, sql.length()-3);
 			}
 		}
+		
+		sql = sql.replaceAll("and  and", "and"); // even more ugly...
 		
 		log.info("SQL =[" + sql + "]");
 		System.out.println("HQL=" + sql + "         ==> FILTER COLUMN CODES=" + attributeCodes);
