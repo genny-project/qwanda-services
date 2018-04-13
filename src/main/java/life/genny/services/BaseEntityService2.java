@@ -555,11 +555,11 @@ public class BaseEntityService2 {
 
 		orderString = createOrderString(attributeCodeMap, orderList);
 
-		String sql = "select distinct ea.pk.baseEntity be from EntityAttribute ea "
+		String sql = "select distinct ea.pk.baseEntity from EntityAttribute ea "
 				+ ((stakeholderCode != null) ? " ,EntityEntity ff " : "")
 				// + " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
 				 + (((sourceCode != null)||(targetCode != null)) ? " ,EntityEntity ee  " : "")
-				+ filterStrings + " where " + " be.realm in ("+realmsStr+")  " + codeFilter
+				+ filterStrings + " where " + " ea.pk.baseEntity.realm in ("+realmsStr+")  " + codeFilter
 			    + ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
 				 + ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
 				 + ((sourceCode != null) ? " and ee.pk.source.code=:sourceCode and ee.pk.targetCode=ea.pk.baseEntity.code and " : "") 
