@@ -613,7 +613,12 @@ public class BaseEntityService2 {
 		//
 		for (Tuple2<String, Object> value : valueList) {
 			log.debug("Value: " + value._1 + " =: " + value._2);
-			query.setParameter(value._1, value._2);
+			if (value._2 instanceof Boolean) {
+				Boolean result = (Boolean)value._2;
+				query.setParameter(value._1, result);
+			} else {
+				query.setParameter(value._1, value._2);
+			}
 		}
 		log.debug("PREQUERY3");
 		results = query.getResultList();
