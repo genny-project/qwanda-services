@@ -321,6 +321,7 @@ public class BaseEntityService2 {
 		Integer pageStart = searchBE.getValue("SCH_PAGE_START", 0);
 		Integer pageSize = searchBE.getValue("SCH_PAGE_SIZE", 100);
 		String stakeholderCode = searchBE.getValue("SCH_STAKEHOLDER_CODE", null);
+		String sourceStakeholderCode = searchBE.getValue("SCH_SOURCE_STAKEHOLDER_CODE", null);
 		String linkCode = searchBE.getValue("SCH_LINK_CODE", null);
 		String linkValue = searchBE.getValue("SCH_LINK_VALUE", null);
 		String sourceCode = searchBE.getValue("SCH_SOURCE_CODE", null);
@@ -545,7 +546,9 @@ public class BaseEntityService2 {
 			if (filterStringsQ.startsWith("and")) {
 				filterStringsQ = filterStringsQ.substring("and".length());
 			}
-			filterStringsQ = " and (" + filterStringsQ.substring(0, filterStringsQ.length()) + ")  ";
+			if(!StringUtils.isBlank(filterStringsQ)) {
+			   filterStringsQ = " and (" + filterStringsQ.substring(0, filterStringsQ.length()) + ")  ";	
+			}
 		}
 
 		Set<String> realms = new HashSet<String>();
@@ -557,6 +560,7 @@ public class BaseEntityService2 {
 
 		String sql = "select distinct ea.pk.baseEntity from EntityAttribute ea "
 				+ ((stakeholderCode != null) ? " ,EntityEntity ff " : "")
+				+ ((sourceStakeholderCode != null) ? " ,EntityEntity gg " : "")
 				// + " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
 				 + (((sourceCode != null)||(targetCode != null)||(linkCode != null)||(linkValue != null)) ? " ,EntityEntity ee  " : "")
 				+ filterStrings + " where " + " ea.pk.baseEntity.realm in ("+realmsStr+")  " + codeFilter
@@ -566,6 +570,9 @@ public class BaseEntityService2 {
 				 + ((targetCode != null) ? " and ee.pk.targetCode=:targetCode and ee.pk.source.code=ea.pk.baseEntity.code and " : "")
 				+ ((stakeholderCode != null)
 						? " and ((ff.pk.targetCode=:stakeholderCode and ff.pk.source.code=ea.pk.baseEntity.code) or (ff.pk.source.code=:stakeholderCode and ff.pk.targetCode=ea.pk.baseEntity.code)  ) "
+						: "")
+				+ ((sourceStakeholderCode != null)
+						? " and ((gg.pk.targetCode=:sourceStakeholderCode and gg.pk.source.code=ee.pk.source.code) or (gg.pk.targetCode=:sourceStakeholderCode and gg.pk.targetCode=ee.pk.source.code)  ) "
 						: "")
 				+ filterStringsQ + orderString;
 
@@ -609,6 +616,9 @@ public class BaseEntityService2 {
 		}
 		if (stakeholderCode != null) {
 			query.setParameter("stakeholderCode", stakeholderCode);
+		}
+		if (sourceStakeholderCode != null) {
+			query.setParameter("sourceStakeholderCode", sourceStakeholderCode);
 		}
 		//
 		for (Tuple2<String, Object> value : valueList) {
