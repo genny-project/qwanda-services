@@ -14,6 +14,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -239,14 +241,13 @@ public class BaseEntityService2 {
 
 		return result;
 	}
-	
-	private String getRealmsStr(Set<String> realms)
-	{
+
+	private String getRealmsStr(Set<String> realms) {
 		String ret = "";
 		for (String realm : realms) {
-			ret += "'"+realm+"',";
+			ret += "'" + realm + "',";
 		}
-		return ret.substring(0, ret.length()-1);
+		return ret.substring(0, ret.length() - 1);
 	}
 
 	private <T> String getHQL(Range rangeValue, String attributeCodeEA, String valueType, Integer filterIndex,
@@ -346,55 +347,74 @@ public class BaseEntityService2 {
 				continue;
 			} else if (ea.getAttributeCode().startsWith("SRT_")) {
 				String sortAttributeCode = ea.getAttributeCode().substring("SRT_".length());
-				orderList.add(new Order(sortAttributeCode, ea.getValueString().toUpperCase(), ea.getWeight())); // weight
-				// specifies
-				// the sort
-				// order
-				String attributeCodeEA = "ea" + filterIndex;
-				filterStrings += ",EntityAttribute " + attributeCodeEA;
-				filterStringsQ += " and " + attributeCodeEA + ".pk.baseEntity.id=ea.pk.baseEntity.id and "
-						+ attributeCodeEA + ".pk.attribute.code='" + sortAttributeCode + "' ";
-				if ((ea.getPk() == null) || ea.getPk().getAttribute() == null) {
-					Attribute attribute = this.findAttributeByCode(sortAttributeCode);
-					ea.getPk().setAttribute(attribute);
+				if( ea.getWeight() == null) {
+					ea.setWeight(1000.0); //If no weight is given setting it to be in the last of the sort
 				}
-				String sortType = "valueString";
-				switch (ea.getPk().getAttribute().getDataType().getClassName()) {
-				case "java.time.LocalTime":
-				case "LocalTime":
-					sortType = "valueTime";
-					break;
-				case "java.time.LocalDate":
-				case "LocalDate":
-					sortType = "valueDate";
-					break;
-				case "java.time.LocalDateTime":
-				case "LocalDateTime":
-					sortType = "valueDateTime";
-					break;
-				case "java.lang.Boolean":
-				case "Boolean":
-					sortType = "valueBoolean";
-					break;
-				case "java.lang.Double":
-				case "Double":
-					sortType = "valueDouble";
-					break;
-				case "java.lang.Long":
-				case "Long":
-					sortType = "valueLong";
-					break;
-				case "java.lang.Integer":
-				case "Integer":
-					sortType = "valueInteger";
-					break;
-				case "java.lang.String":
-				case "String":
-				default:
-					sortType = "valueString";
+			    if (sortAttributeCode.equalsIgnoreCase("PRI_CODE")) {
+					orderList.add(new Order(sortAttributeCode, ea.getValueString().toUpperCase(), ea.getWeight())); // weight  
+				}else if (sortAttributeCode.equalsIgnoreCase("PRI_CREATED")) {
+					orderList.add(new Order(sortAttributeCode, ea.getValueString().toUpperCase(), ea.getWeight())); // weight  
 				}
-				attributeCodeMap.put(sortAttributeCode, attributeCodeEA + "." + sortType);
-				filterIndex++;
+				else if (sortAttributeCode.equalsIgnoreCase("PRI_UPDATED")) {
+					orderList.add(new Order(sortAttributeCode, ea.getValueString().toUpperCase(), ea.getWeight())); // weight  
+				}
+				else if (sortAttributeCode.equalsIgnoreCase("PRI_ID")) {
+					orderList.add(new Order(sortAttributeCode, ea.getValueString().toUpperCase(), ea.getWeight())); // weight  
+				}
+				else if (sortAttributeCode.equalsIgnoreCase("PRI_NAME")) {
+					orderList.add(new Order(sortAttributeCode, ea.getValueString().toUpperCase(), ea.getWeight())); // weight  
+				}
+				else {
+					orderList.add(new Order(sortAttributeCode, ea.getValueString().toUpperCase(), ea.getWeight())); // weight
+					// specifies
+					// the sort
+					// order
+					String attributeCodeEA = "ea" + filterIndex;
+					filterStrings += ",EntityAttribute " + attributeCodeEA;
+					filterStringsQ += " and " + attributeCodeEA + ".pk.baseEntity.id=ea.pk.baseEntity.id and "
+							+ attributeCodeEA + ".pk.attribute.code='" + sortAttributeCode + "' ";
+					if ((ea.getPk() == null) || ea.getPk().getAttribute() == null) {
+						Attribute attribute = this.findAttributeByCode(sortAttributeCode);
+						ea.getPk().setAttribute(attribute);
+					}
+					String sortType = "valueString";
+					switch (ea.getPk().getAttribute().getDataType().getClassName()) {
+					case "java.time.LocalTime":
+					case "LocalTime":
+						sortType = "valueTime";
+						break;
+					case "java.time.LocalDate":
+					case "LocalDate":
+						sortType = "valueDate";
+						break;
+					case "java.time.LocalDateTime":
+					case "LocalDateTime":
+						sortType = "valueDateTime";
+						break;
+					case "java.lang.Boolean":
+					case "Boolean":
+						sortType = "valueBoolean";
+						break;
+					case "java.lang.Double":
+					case "Double":
+						sortType = "valueDouble";
+						break;
+					case "java.lang.Long":
+					case "Long":
+						sortType = "valueLong";
+						break;
+					case "java.lang.Integer":
+					case "Integer":
+						sortType = "valueInteger";
+						break;
+					case "java.lang.String":
+					case "String":
+					default:
+						sortType = "valueString";
+					}
+					attributeCodeMap.put(sortAttributeCode, attributeCodeEA + "." + sortType);
+					filterIndex++;
+				}
 			} else if (ea.getAttributeCode().startsWith("COL_")) {
 				String columnAttributeCode = ea.getAttributeCode().substring("COL_".length());
 				if (!columnAttributeCode.equalsIgnoreCase("code")) {
@@ -432,6 +452,14 @@ public class BaseEntityService2 {
 						codeFilter += " and ea.pk.baseEntity.code " + condition + " :v" + filterIndex + " ";
 					}
 					valueList.add(Tuple.of("v" + filterIndex, ea.getValueString()));
+					filterIndex++;
+				} else if (priAttributeCode.equalsIgnoreCase("PRI_CREATED")) {
+					if (ea.getAttributeName() == null) {
+						codeFilter += " and ea.pk.baseEntity.created=:v" + filterIndex + " ";
+					} else {
+						codeFilter += " and ea.pk.baseEntity.created " + condition + " :v" + filterIndex + " ";
+					}
+					valueList.add(Tuple.of("v" + filterIndex, ea.getValueDateTime()));
 					filterIndex++;
 				} else {
 					String attributeCodeEA = "ea" + filterIndex;
@@ -546,8 +574,8 @@ public class BaseEntityService2 {
 			if (filterStringsQ.startsWith("and")) {
 				filterStringsQ = filterStringsQ.substring("and".length());
 			}
-			if(!StringUtils.isBlank(filterStringsQ)) {
-			   filterStringsQ = " and (" + filterStringsQ.substring(0, filterStringsQ.length()) + ")  ";	
+			if (!StringUtils.isBlank(filterStringsQ)) {
+				filterStringsQ = " and (" + filterStringsQ.substring(0, filterStringsQ.length()) + ")  ";
 			}
 		}
 
@@ -562,12 +590,18 @@ public class BaseEntityService2 {
 				+ ((stakeholderCode != null) ? " ,EntityEntity ff " : "")
 				+ ((sourceStakeholderCode != null) ? " ,EntityEntity gg " : "")
 				// + " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
-				 + (((sourceCode != null)||(targetCode != null)||(linkCode != null)||(linkValue != null)) ? " ,EntityEntity ee  " : "")
-				+ filterStrings + " where " + " ea.pk.baseEntity.realm in ("+realmsStr+")  " + codeFilter
-			    + ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
-				 + ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
-				 + ((sourceCode != null) ? " and ee.pk.source.code=:sourceCode and ee.pk.targetCode=ea.pk.baseEntity.code and " : "") 
-				 + ((targetCode != null) ? " and ee.pk.targetCode=:targetCode and ee.pk.source.code=ea.pk.baseEntity.code and " : "")
+				+ (((sourceCode != null) || (targetCode != null) || (linkCode != null) || (linkValue != null))
+						? " ,EntityEntity ee  "
+						: "")
+				+ filterStrings + " where " + " ea.pk.baseEntity.realm in (" + realmsStr + ")  " + codeFilter
+				+ ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
+				+ ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
+				+ ((sourceCode != null)
+						? " and ee.pk.source.code=:sourceCode and ee.pk.targetCode=ea.pk.baseEntity.code and "
+						: "")
+				+ ((targetCode != null)
+						? " and ee.pk.targetCode=:targetCode and ee.pk.source.code=ea.pk.baseEntity.code and "
+						: "")
 				+ ((stakeholderCode != null)
 						? " and ((ff.pk.targetCode=:stakeholderCode and ff.pk.source.code=ea.pk.baseEntity.code) or (ff.pk.source.code=:stakeholderCode and ff.pk.targetCode=ea.pk.baseEntity.code)  ) "
 						: "")
@@ -580,12 +614,12 @@ public class BaseEntityService2 {
 		if (StringUtils.isBlank(orderString)) {
 			sql = sql.trim();
 			if (sql.endsWith("and")) {
-				sql = sql.substring(0, sql.length()-3);
+				sql = sql.substring(0, sql.length() - 3);
 			}
 		}
-		
+
 		sql = sql.replaceAll("and  and", "and"); // even more ugly...
-		
+
 		log.info("SQL =[" + sql + "]");
 		System.out.println("HQL=" + sql + "         ==> FILTER COLUMN CODES=" + attributeCodes);
 		Query query = null;
@@ -599,7 +633,7 @@ public class BaseEntityService2 {
 
 		query.setFirstResult(pageStart).setMaxResults(pageSize);
 
-	//	query.setParameter("realms", realms);  This would not work
+		// query.setParameter("realms", realms); This would not work
 		// query.setParameter("columnCodes", columnCodes.keySet());
 
 		if (sourceCode != null) {
@@ -624,7 +658,16 @@ public class BaseEntityService2 {
 		for (Tuple2<String, Object> value : valueList) {
 			log.debug("Value: " + value._1 + " =: " + value._2);
 			if (value._2 instanceof Boolean) {
-				Boolean result = (Boolean)value._2;
+				Boolean result = (Boolean) value._2;
+				query.setParameter(value._1, result);
+			} else if (value._2 instanceof LocalDateTime) {
+				LocalDateTime result = (LocalDateTime) value._2;
+				query.setParameter(value._1, result);
+			} else if (value._2 instanceof LocalDate) {
+				LocalDate result = (LocalDate) value._2;
+				query.setParameter(value._1, result);
+			} else if (value._2 instanceof LocalTime) {
+				LocalTime result = (LocalTime) value._2;
 				query.setParameter(value._1, result);
 			} else {
 				query.setParameter(value._1, value._2);
@@ -652,7 +695,26 @@ public class BaseEntityService2 {
 		Collections.sort(orderList, new OrderCompare());
 
 		for (Order order : orderList) {
-			String sqlAttribute = attributeCodeMap.get(order.getFieldName());
+			String sqlAttribute = null;
+			if (order.getFieldName().equalsIgnoreCase("PRI_CREATED")) {
+				System.out.println(">>> Reached CreateOrderString with PRI_CREATED ");
+				sqlAttribute = " ea.pk.baseEntity.created";
+			} else if (order.getFieldName().equalsIgnoreCase("PRI_CODE")) {
+				System.out.println(">>> Reached CreateOrderString with PRI_CODE ");
+				sqlAttribute = " ea.pk.baseEntity.code";
+			}else if (order.getFieldName().equalsIgnoreCase("PRI_UPDATED")) {
+				System.out.println(">>> Reached CreateOrderString with PRI_UPDATED ");
+				sqlAttribute = " ea.pk.baseEntity.updated";
+			}else if (order.getFieldName().equalsIgnoreCase("PRI_ID")) {
+				System.out.println(">>> Reached CreateOrderString with PRI_ID ");
+				sqlAttribute = " ea.pk.baseEntity.id";
+			}else if (order.getFieldName().equalsIgnoreCase("PRI_NAME")) {
+				System.out.println(">>> Reached CreateOrderString with PRI_NAME ");
+				sqlAttribute = " ea.pk.baseEntity.name";
+			}
+			else {
+				sqlAttribute = attributeCodeMap.get(order.getFieldName());
+			}
 			if (sqlAttribute != null) {
 				ret += sqlAttribute + " " + order.getAscdesc() + ",";
 			} else {
@@ -1067,7 +1129,7 @@ public class BaseEntityService2 {
 		// }
 		return entity.getId();
 	}
- 
+
 	@Transactional
 	public Long insert(Answer[] answers) {
 
