@@ -758,7 +758,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     BaseEntity userBaseEnt = service.findBaseEntityByCode("PER_USER2");
     BaseEntity dashboardBaseEnt = service.findBaseEntityByCode("GRP_DASHBOARD");
 
-    Map<String, BaseEntity> templateEntityMap = new HashMap<>();
+    Map<String, Object> templateEntityMap = new HashMap<>();
     templateEntityMap.put("PROJECT", projectBaseEnt);
     templateEntityMap.put("USER", userBaseEnt);
     templateEntityMap.put("JOB", dashboardBaseEnt);
@@ -768,7 +768,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     
     String testStr1 = "Welcome {{OWNER.PRI_FIRSTNAME}} {{OWNER.PRI_LASTNAME}} ! Your load of type {{LOAD.PRI_LOAD_TYPE}} has been picked from {{LOAD.PRI_FULL_PICKUP_ADDRESS}} by {{DRIVER.PRI_FIRSTNAME}}. It will be delivered at {{LOAD.PRI_FULL_DROPOFF_ADDRESS}}";
 
-    Map<String, BaseEntity> templateEntityMap1 = new HashMap<>();
+    Map<String, Object> templateEntityMap1 = new HashMap<>();
     BaseEntity loadEnt = service.findBaseEntityByCode("LOD_LOAD5");
     BaseEntity ownerEnt = service.findBaseEntityByCode("PER_USER2");
     BaseEntity driverEnt = service.findBaseEntityByCode("PER_USER1");
