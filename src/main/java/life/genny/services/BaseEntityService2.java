@@ -1449,7 +1449,7 @@ public class BaseEntityService2 {
 								pojo.setExpired(answer.getExpired());
 								pojo.setRefused(answer.getRefused());
 								pojo.setAskId(answer.getAskId());
-
+								pojo.setDataType(answer.getDataType());
 								Optional<EntityAttribute> optNewEA = beTarget
 										.findEntityAttribute(answer.getAttributeCode());
 
