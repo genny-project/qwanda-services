@@ -291,14 +291,10 @@ public class BatchLoading {
       try {
         sbe = service.findBaseEntityByCode(parentCode);
         tbe = service.findBaseEntityByCode(targetCode);
-        if ("BEG_0000001".equals(parentCode) && "LOD_LOAD1".equals(targetCode)
-            && "LNK_BEG".equals(linkCode)) {
-          System.out.println("Debugging point");
-        }
         sbe.addTarget(tbe, linkAttribute, weight, valueString);
-
         service.updateWithAttributes(sbe);
       } catch (final NoResultException e) {
+    	  log.warn("CODE NOT PRESENT IN LINKING: "+parentCode+":"+targetCode+":"+linkAttribute);
       } catch (final BadDataException e) {
         e.printStackTrace();
       } catch (final NullPointerException e) {

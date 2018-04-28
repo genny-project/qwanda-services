@@ -2016,7 +2016,9 @@ public class BaseEntityService2 {
 	}
 
 	public BaseEntity findBaseEntityByCode(@NotNull final String baseEntityCode) throws NoResultException {
-
+		if ("CMP_EMSGROUP".equals(baseEntityCode) ) {
+			log.info("CMP_EMSGROUP");
+		}
 		return findBaseEntityByCode(baseEntityCode, false);
 
 	}
