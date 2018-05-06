@@ -684,8 +684,11 @@ public class BaseEntityService2 {
 		Query query = null;
 
 		// Limit column attributes returned using Hibernate filter
-		Filter filter = getEntityManager().unwrap(Session.class).enableFilter("filterAttribute");
-		filter.setParameterList("attributeCodes", attributeCodes);
+		// If empty then return everything
+		if (!attributeCodes.isEmpty()) {
+			Filter filter = getEntityManager().unwrap(Session.class).enableFilter("filterAttribute");
+			filter.setParameterList("attributeCodes", attributeCodes);
+		}
 
 		query = getEntityManager().createQuery(sql);
 
@@ -2210,7 +2213,8 @@ public class BaseEntityService2 {
 		String stakeholderFilter2 = "";
 		if (stakeholderCode != null) {
 			stakeholderFilter1 = "EntityEntity ff JOIN be.baseEntityAttributes bff,";
-			stakeholderFilter2 = " and ff.link.targetCode=:stakeholderCode and ff.link.sourceCode=be.code ";
+			stakeholderFilter2 = " and ff.pk.targetCode=:stakeholderCode and ff.pk.source.code=be.code";
+			
 		}
 
 		final List<BaseEntity> eeResults;
