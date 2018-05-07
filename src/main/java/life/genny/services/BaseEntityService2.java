@@ -788,7 +788,9 @@ public class BaseEntityService2 {
 				+ (((sourceCode != null) || (targetCode != null) || (linkCode != null) || (linkValue != null))
 						? " ,EntityEntity ee  "
 						: "")
-				+ filterStrings + " where " + " ea.pk.baseEntity.realm in (" + realmsStr + ")  " + codeFilter
+				+ filterStrings 
+				+ " where " + " ea.pk.baseEntity.realm in (" + realmsStr + ")  " 
+				+ codeFilter
 				+ ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
 				+ ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
 				+ ((sourceCode != null)
@@ -803,7 +805,8 @@ public class BaseEntityService2 {
 				+ ((sourceStakeholderCode != null)
 						? " and ((gg.pk.targetCode=:sourceStakeholderCode and gg.pk.source.code=ee.pk.source.code) or (gg.pk.targetCode=:sourceStakeholderCode and gg.pk.targetCode=ee.pk.source.code)  ) "
 						: "")
-				+ filterStringsQ + orderString;
+				+ filterStringsQ 
+				+ orderString;
 		
 		// Ugly
 		if (StringUtils.isBlank(orderString)) {
@@ -811,6 +814,10 @@ public class BaseEntityService2 {
 			if (sql.endsWith("and")) {
 				sql = sql.substring(0, sql.length() - 3);
 			}
+		} else {
+			sql = sql.trim();
+			sql = sql.replaceAll("and  order", " order"); // omg this is ugly
+			
 		}
 
 		sql = sql.replaceAll("and  and", "and"); // even more ugly...
