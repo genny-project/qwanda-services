@@ -4260,4 +4260,12 @@ public class BaseEntityService2 {
 	public void pushAttributes() {
 		log.info("Pushing attributes to DDT");
 	}
+	
+	public void writeToDDT(final List<BaseEntity> bes) {
+		log.info("Pushing baseentitys to DDT cache");
+		for (BaseEntity be : bes) {
+			writeToDDT(be);
+		}
+	}
+
 }
