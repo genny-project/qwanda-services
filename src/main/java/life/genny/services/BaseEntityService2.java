@@ -3728,6 +3728,7 @@ public class BaseEntityService2 {
 
 			ee = beSource.addTarget(beTarget, linkAttribute, weight, value);
 			beSource = getEntityManager().merge(beSource);
+			this.writeToDDT(beSource); //This is to ensure the BE in cache has its links updated
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee.getLink(), null, getCurrentToken());
 
 			sendQEventLinkChangeMessage(msg);
