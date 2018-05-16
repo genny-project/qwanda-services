@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>life.genny</groupId>
 	<artifactId>qwanda-services</artifactId>
-	<version>1.0.31</version>
+	<version>1.0.32</version>
 	<name>qwanda-services</name>
 	<description>Question and Answer Engine Services</description>
 
@@ -19,7 +19,7 @@
 		<jar.finalName>${project.name}</jar.finalName>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<qwanda-utils.version>1.0.31</qwanda-utils.version>
+		<qwanda-utils.version>1.0.32</qwanda-utils.version>
 
 		<!--java version -->
 		<java-version>1.8</java-version>
