@@ -4269,4 +4269,10 @@ public class BaseEntityService2 {
 		}
 	}
 
+
+	public String getToken()
+	{
+		return "DUMMY";
+	}
+
 }
