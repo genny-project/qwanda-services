@@ -78,6 +78,7 @@ import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.entity.Group;
 import life.genny.qwanda.entity.Person;
 import life.genny.qwanda.entity.Product;
+import life.genny.qwanda.entity.SearchEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
@@ -758,8 +759,18 @@ public class BaseEntityService2 {
 		if (ea.getAttributeName() == null) {
 			filterStringsQ += " and " + attributeCodeEA + ".value"+typeName+"=:v" + filterIndex + " ";
 		} else {
+			if (condition.equalsIgnoreCase(SearchEntity.Filter.BIT_MASK_POSITIVE.toString())) {
+				filterStringsQ += " and (" + attributeCodeEA + ".value"+typeName+" & :v"
+						+ filterIndex + " <> 0) ";
+			} 
+			else if (condition.equalsIgnoreCase(SearchEntity.Filter.BIT_MASK_ZERO.toString())) {
+				filterStringsQ += " and (" + attributeCodeEA + ".value"+typeName+" & :v"
+						+ filterIndex + " = 0) ";
+			} 
+			else {
 			filterStringsQ += " and " + attributeCodeEA + ".value"+typeName+" " + condition + " :v"
 					+ filterIndex + " ";
+			}
 		}
 		return filterStringsQ;
 	}
