@@ -408,7 +408,11 @@ public class BaseEntityService2 {
 				query.setParameter(value._1, value._2);
 			}
 		}
-		count = (Long)query.getSingleResult();
+		Object count1 = query.getSingleResult();
+		System.out.println("The Count Object is :: "+count1.toString());
+		count = (Long) count1;
+		//count = (Long)query.getSingleResult();
+	
 
 		return count;
 	}
@@ -760,12 +764,12 @@ public class BaseEntityService2 {
 			filterStringsQ += " and " + attributeCodeEA + ".value"+typeName+"=:v" + filterIndex + " ";
 		} else {
 			if (condition.equalsIgnoreCase(SearchEntity.Filter.BIT_MASK_POSITIVE.toString())) {
-				filterStringsQ += " and (" + attributeCodeEA + ".value"+typeName+" & :v"
-						+ filterIndex + " <> 0) ";
+				filterStringsQ += " and (bitwise_and(" + attributeCodeEA + ".value"+typeName+" , :v"
+						+ filterIndex + ") <> 0) ";
 			} 
 			else if (condition.equalsIgnoreCase(SearchEntity.Filter.BIT_MASK_ZERO.toString())) {
-				filterStringsQ += " and (" + attributeCodeEA + ".value"+typeName+" & :v"
-						+ filterIndex + " = 0) ";
+				filterStringsQ += " and (bitwise_and(" + attributeCodeEA + ".value"+typeName+" , :v"
+						+ filterIndex + ") = 0) ";
 			} 
 			else {
 			filterStringsQ += " and " + attributeCodeEA + ".value"+typeName+" " + condition + " :v"
