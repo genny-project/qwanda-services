@@ -1790,7 +1790,8 @@ public class BaseEntityService2 {
 					.createQuery("update BaseEntity be set be.name =:name where be.code=:sourceCode")
 					.setParameter("sourceCode", entity.getCode()).setParameter("name", entity.getName())
 					.executeUpdate();
-			String json = JsonUtils.toJson(entity);
+			BaseEntity updated = this.findBaseEntityByCode(entity.getCode());
+			String json = JsonUtils.toJson(updated);
 			writeToDDT(entity.getCode(), json);
 
 		} catch (Exception e) {
@@ -1810,6 +1811,7 @@ public class BaseEntityService2 {
 		// }
 		return entity.getId();
 	}
+	
 
 	@Transactional
 	public Long updateWithAttributes(BaseEntity entity) {
@@ -3693,14 +3695,19 @@ public class BaseEntityService2 {
 	@Transactional
 	public void removeEntityAttribute(final EntityAttribute ea) {
 		try {
-			BaseEntity source = findBaseEntityByCode(ea.getBaseEntityCode());
-			source.getBaseEntityAttributes().remove(ea);
-			getEntityManager().merge(source);
-			getEntityManager().remove(ea);
-
+			Query query = getEntityManager().createQuery("delete from EntityAttribute ea where  ea.baseEntityCode=:baseEntityCode and ea.attributeCode=:attributeCode");
+					 query.setParameter("baseEntityCode", ea.getBaseEntityCode());
+					 query.setParameter("attributeCode", ea.getAttributeCode());
+					query.executeUpdate();
+//			BaseEntity source = findBaseEntityByCode(ea.getBaseEntityCode());
+//			source.getBaseEntityAttributes().remove(ea);
+//			source = getEntityManager().merge(source);
+//		//	getEntityManager().remove(ea);
+//			return source;
 		} catch (Exception e) {
 			// rollback
 		}
+//		return null;
 	}
 
 	@Transactional
