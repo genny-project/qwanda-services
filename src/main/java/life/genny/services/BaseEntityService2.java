@@ -3713,6 +3713,18 @@ public class BaseEntityService2 {
 		}
 //		return null;
 	}
+	
+	@Transactional
+	public void removeEntityAttributes(final String attributeCode) {
+		try {
+			Query query = getEntityManager().createQuery("delete from EntityAttribute ea where  ea.attributeCode=:attributeCode");
+					 query.setParameter("attributeCode", attributeCode);
+					query.executeUpdate();
+		} catch (Exception e) {
+			
+		}
+
+	}
 
 	@Transactional
 	public EntityEntity addLink(final String sourceCode, final String targetCode, final String linkCode, Object value,
