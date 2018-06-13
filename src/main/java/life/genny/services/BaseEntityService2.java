@@ -61,6 +61,8 @@ import io.vavr.Tuple2;
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
+import life.genny.qwanda.Context;
+import life.genny.qwanda.ContextList;
 import life.genny.qwanda.CoreEntity;
 import life.genny.qwanda.GPS;
 import life.genny.qwanda.Link;
@@ -86,6 +88,7 @@ import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.JsonUtils;
+import life.genny.qwandautils.MergeUtil;
 
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
@@ -3004,6 +3007,10 @@ public class BaseEntityService2 {
 			ask.setMandatory(mandatory);
 		} else {
 			ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory);
+			
+			// Now merge ask name if required
+			ask = performMerge(ask);
+			
 			ask = upsert(ask);
 		}
 		// create one
@@ -3033,6 +3040,24 @@ public class BaseEntityService2 {
 
 		asks.add(ask);
 		return asks;
+	}
+
+	private Ask performMerge(Ask ask) {
+		if (ask.getName().contains("{{")) {
+			// now merge in data
+			String name = ask.getName();
+			
+			Map<String,Object> templateEntityMap = new HashMap<String,Object>();
+			ContextList contexts = ask.getContextList();
+			for (Context context : contexts.getContextList()) {
+				BaseEntity be = context.getEntity();
+				templateEntityMap.put(context.getName(), be);
+			}
+			String mergedName = MergeUtil.merge(name, templateEntityMap);
+			ask.setName(mergedName);
+		} 
+			return ask;
+
 	}
 
 	QuestionSourceTarget findQST(final String questionCode, final QuestionSourceTarget[] qstArray,
