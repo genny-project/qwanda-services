@@ -70,8 +70,16 @@ import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.QuestionSourceTarget;
 import life.genny.qwanda.attribute.Attribute;
+import life.genny.qwanda.attribute.AttributeBoolean;
+import life.genny.qwanda.attribute.AttributeDate;
+import life.genny.qwanda.attribute.AttributeDateTime;
+import life.genny.qwanda.attribute.AttributeDouble;
+import life.genny.qwanda.attribute.AttributeInteger;
 import life.genny.qwanda.attribute.AttributeLink;
+import life.genny.qwanda.attribute.AttributeLong;
+import life.genny.qwanda.attribute.AttributeMoney;
 import life.genny.qwanda.attribute.AttributeText;
+import life.genny.qwanda.attribute.AttributeTime;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
@@ -110,7 +118,7 @@ public class BaseEntityService2 {
 
 	EntityManager em;
 
-	List<String> allowedConditions = Arrays.asList("=", "<", ">", "<=", ">=", "LIKE", "!=", "<>","&+","&0");
+	List<String> allowedConditions = Arrays.asList("=", "<", ">", "<=", ">=", "LIKE", "!=", "<>", "&+", "&0");
 
 	public List<BaseEntity> findBySearchBE2(@NotNull final String hql) {
 		List<BaseEntity> results = null;
@@ -323,7 +331,7 @@ public class BaseEntityService2 {
 					case "Boolean":
 						filterStringsQ += " and " + attributeCodeEA + ".valueBoolean=:v" + filterIndex + " ";
 						valueList.add(Tuple.of("v" + filterIndex, ea.getValueBoolean()));
-							break;
+						break;
 					case "java.time.LocalDate":
 					case "LocalDate":
 						filterStringsQ = updateFilterStringsQ(filterStringsQ, filterIndex, ea, condition,
@@ -364,11 +372,10 @@ public class BaseEntityService2 {
 		realms.add("genny");
 		String realmsStr = getRealmsStr(realms);
 
-		String sql = createSearchSQL("count(distinct ea.pk.baseEntity)",stakeholderCode, sourceStakeholderCode, linkCode, linkValue, sourceCode,
-				targetCode, filterStrings, filterStringsQ, "", codeFilter, realmsStr);
+		String sql = createSearchSQL("count(distinct ea.pk.baseEntity)", stakeholderCode, sourceStakeholderCode,
+				linkCode, linkValue, sourceCode, targetCode, filterStrings, filterStringsQ, "", codeFilter, realmsStr);
 
 		Query query = null;
-
 
 		query = getEntityManager().createQuery(sql);
 
@@ -412,10 +419,9 @@ public class BaseEntityService2 {
 			}
 		}
 		Object count1 = query.getSingleResult();
-		System.out.println("The Count Object is :: "+count1.toString());
+		System.out.println("The Count Object is :: " + count1.toString());
 		count = (Long) count1;
-		//count = (Long)query.getSingleResult();
-	
+		// count = (Long)query.getSingleResult();
 
 		return count;
 	}
@@ -476,8 +482,6 @@ public class BaseEntityService2 {
 		return ret;
 	}
 
-
-	
 	public List<BaseEntity> findBySearchBE(@NotNull final BaseEntity searchBE) {
 		// select distinct ea.pk.baseEntity from EntityAttribute ea , EntityAttribute eb
 		// where
@@ -526,16 +530,16 @@ public class BaseEntityService2 {
 				continue;
 			} else if (ea.getAttributeCode().startsWith("SRT_")) {
 				String sortAttributeCode = ea.getAttributeCode().substring("SRT_".length());
-				if( ea.getWeight() == null) {
-					ea.setWeight(1000.0); //If no weight is given setting it to be in the last of the sort
+				if (ea.getWeight() == null) {
+					ea.setWeight(1000.0); // If no weight is given setting it to be in the last of the sort
 				}
-				orderList.add(new Order(sortAttributeCode, ea.getValueString().toUpperCase(), ea.getWeight())); // weight  
+				orderList.add(new Order(sortAttributeCode, ea.getValueString().toUpperCase(), ea.getWeight())); // weight
 
-			    if (!(sortAttributeCode.equalsIgnoreCase("PRI_CODE")
-			    		||(sortAttributeCode.equalsIgnoreCase("PRI_CREATED"))
-			    		|| (sortAttributeCode.equalsIgnoreCase("PRI_UPDATED")) 
-			    		||(sortAttributeCode.equalsIgnoreCase("PRI_ID")) 
-			    		||(sortAttributeCode.equalsIgnoreCase("PRI_NAME")))) {
+				if (!(sortAttributeCode.equalsIgnoreCase("PRI_CODE")
+						|| (sortAttributeCode.equalsIgnoreCase("PRI_CREATED"))
+						|| (sortAttributeCode.equalsIgnoreCase("PRI_UPDATED"))
+						|| (sortAttributeCode.equalsIgnoreCase("PRI_ID"))
+						|| (sortAttributeCode.equalsIgnoreCase("PRI_NAME")))) {
 					// specifies
 					// the sort
 					// order
@@ -686,8 +690,8 @@ public class BaseEntityService2 {
 
 		orderString = createOrderString(attributeCodeMap, orderList);
 
-		String sql = createSearchSQL("distinct ea.pk.baseEntity",stakeholderCode, sourceStakeholderCode, linkCode, linkValue, sourceCode,
-				targetCode, filterStrings, filterStringsQ, orderString, codeFilter, realmsStr);
+		String sql = createSearchSQL("distinct ea.pk.baseEntity", stakeholderCode, sourceStakeholderCode, linkCode,
+				linkValue, sourceCode, targetCode, filterStrings, filterStringsQ, orderString, codeFilter, realmsStr);
 
 		Query query = null;
 
@@ -764,19 +768,17 @@ public class BaseEntityService2 {
 	private String updateFilterStringsQ(String filterStringsQ, Integer filterIndex, EntityAttribute ea,
 			String condition, String attributeCodeEA, String typeName) {
 		if (ea.getAttributeName() == null) {
-			filterStringsQ += " and " + attributeCodeEA + ".value"+typeName+"=:v" + filterIndex + " ";
+			filterStringsQ += " and " + attributeCodeEA + ".value" + typeName + "=:v" + filterIndex + " ";
 		} else {
 			if (condition.equalsIgnoreCase(SearchEntity.Filter.BIT_MASK_POSITIVE.toString())) {
-				filterStringsQ += " and (bitwise_and(" + attributeCodeEA + ".value"+typeName+" , :v"
-						+ filterIndex + ") <> 0) ";
-			} 
-			else if (condition.equalsIgnoreCase(SearchEntity.Filter.BIT_MASK_ZERO.toString())) {
-				filterStringsQ += " and (bitwise_and(" + attributeCodeEA + ".value"+typeName+" , :v"
-						+ filterIndex + ") = 0) ";
-			} 
-			else {
-			filterStringsQ += " and " + attributeCodeEA + ".value"+typeName+" " + condition + " :v"
-					+ filterIndex + " ";
+				filterStringsQ += " and (bitwise_and(" + attributeCodeEA + ".value" + typeName + " , :v" + filterIndex
+						+ ") <> 0) ";
+			} else if (condition.equalsIgnoreCase(SearchEntity.Filter.BIT_MASK_ZERO.toString())) {
+				filterStringsQ += " and (bitwise_and(" + attributeCodeEA + ".value" + typeName + " , :v" + filterIndex
+						+ ") = 0) ";
+			} else {
+				filterStringsQ += " and " + attributeCodeEA + ".value" + typeName + " " + condition + " :v"
+						+ filterIndex + " ";
 			}
 		}
 		return filterStringsQ;
@@ -796,19 +798,17 @@ public class BaseEntityService2 {
 	 * @param realmsStr
 	 * @return
 	 */
-	private String createSearchSQL(String prefix,String stakeholderCode, String sourceStakeholderCode, String linkCode,
+	private String createSearchSQL(String prefix, String stakeholderCode, String sourceStakeholderCode, String linkCode,
 			String linkValue, String sourceCode, String targetCode, String filterStrings, String filterStringsQ,
 			String orderString, String codeFilter, String realmsStr) {
-		String sql = "select "+prefix+" from EntityAttribute ea "
+		String sql = "select " + prefix + " from EntityAttribute ea "
 				+ ((stakeholderCode != null) ? " ,EntityEntity ff " : "")
 				+ ((sourceStakeholderCode != null) ? " ,EntityEntity gg " : "")
 				// + " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
 				+ (((sourceCode != null) || (targetCode != null) || (linkCode != null) || (linkValue != null))
 						? " ,EntityEntity ee  "
 						: "")
-				+ filterStrings 
-				+ " where " + " ea.pk.baseEntity.realm in (" + realmsStr + ")  " 
-				+ codeFilter
+				+ filterStrings + " where " + " ea.pk.baseEntity.realm in (" + realmsStr + ")  " + codeFilter
 				+ ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
 				+ ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
 				+ ((sourceCode != null)
@@ -823,9 +823,8 @@ public class BaseEntityService2 {
 				+ ((sourceStakeholderCode != null)
 						? " and ((gg.pk.targetCode=:sourceStakeholderCode and gg.pk.source.code=ee.pk.source.code) or (gg.pk.targetCode=:sourceStakeholderCode and gg.pk.targetCode=ee.pk.source.code)  ) "
 						: "")
-				+ filterStringsQ 
-				+ orderString;
-		
+				+ filterStringsQ + orderString;
+
 		// Ugly
 		if (StringUtils.isBlank(orderString)) {
 			sql = sql.trim();
@@ -835,7 +834,7 @@ public class BaseEntityService2 {
 		} else {
 			sql = sql.trim();
 			sql = sql.replaceAll("and  order", " order"); // omg this is ugly
-			
+
 		}
 
 		sql = sql.replaceAll("and  and", "and"); // even more ugly...
@@ -923,17 +922,16 @@ public class BaseEntityService2 {
 			} else if (order.getFieldName().equalsIgnoreCase("PRI_CODE")) {
 				System.out.println(">>> Reached CreateOrderString with PRI_CODE ");
 				sqlAttribute = " ea.pk.baseEntity.code";
-			}else if (order.getFieldName().equalsIgnoreCase("PRI_UPDATED")) {
+			} else if (order.getFieldName().equalsIgnoreCase("PRI_UPDATED")) {
 				System.out.println(">>> Reached CreateOrderString with PRI_UPDATED ");
 				sqlAttribute = " ea.pk.baseEntity.updated";
-			}else if (order.getFieldName().equalsIgnoreCase("PRI_ID")) {
+			} else if (order.getFieldName().equalsIgnoreCase("PRI_ID")) {
 				System.out.println(">>> Reached CreateOrderString with PRI_ID ");
 				sqlAttribute = " ea.pk.baseEntity.id";
-			}else if (order.getFieldName().equalsIgnoreCase("PRI_NAME")) {
+			} else if (order.getFieldName().equalsIgnoreCase("PRI_NAME")) {
 				System.out.println(">>> Reached CreateOrderString with PRI_NAME ");
 				sqlAttribute = " ea.pk.baseEntity.name";
-			}
-			else {
+			} else {
 				sqlAttribute = attributeCodeMap.get(order.getFieldName());
 			}
 			if (sqlAttribute != null) {
@@ -1818,7 +1816,6 @@ public class BaseEntityService2 {
 		// }
 		return entity.getId();
 	}
-	
 
 	@Transactional
 	public Long updateWithAttributes(BaseEntity entity) {
@@ -2046,7 +2043,7 @@ public class BaseEntityService2 {
 	}
 
 	public BaseEntity findBaseEntityByCode(@NotNull final String baseEntityCode) throws NoResultException {
-		if ("CMP_EMSGROUP".equals(baseEntityCode) ) {
+		if ("CMP_EMSGROUP".equals(baseEntityCode)) {
 			log.info("CMP_EMSGROUP");
 		}
 		return findBaseEntityByCode(baseEntityCode, false);
@@ -2241,7 +2238,7 @@ public class BaseEntityService2 {
 		if (stakeholderCode != null) {
 			stakeholderFilter1 = "EntityEntity ff JOIN be.baseEntityAttributes bff,";
 			stakeholderFilter2 = " and ff.pk.targetCode=:stakeholderCode and ff.pk.source.code=be.code";
-			
+
 		}
 
 		final List<BaseEntity> eeResults;
@@ -3007,10 +3004,10 @@ public class BaseEntityService2 {
 			ask.setMandatory(mandatory);
 		} else {
 			ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory);
-			
+
 			// Now merge ask name if required
 			ask = performMerge(ask);
-			
+
 			ask = upsert(ask);
 		}
 		// create one
@@ -3046,8 +3043,8 @@ public class BaseEntityService2 {
 		if (ask.getName().contains("{{")) {
 			// now merge in data
 			String name = ask.getName();
-			
-			Map<String,Object> templateEntityMap = new HashMap<String,Object>();
+
+			Map<String, Object> templateEntityMap = new HashMap<String, Object>();
 			ContextList contexts = ask.getContextList();
 			for (Context context : contexts.getContextList()) {
 				BaseEntity be = context.getEntity();
@@ -3055,8 +3052,8 @@ public class BaseEntityService2 {
 			}
 			String mergedName = MergeUtil.merge(name, templateEntityMap);
 			ask.setName(mergedName);
-		} 
-			return ask;
+		}
+		return ask;
 
 	}
 
@@ -3724,29 +3721,31 @@ public class BaseEntityService2 {
 	@Transactional
 	public void removeEntityAttribute(final EntityAttribute ea) {
 		try {
-			Query query = getEntityManager().createQuery("delete from EntityAttribute ea where  ea.baseEntityCode=:baseEntityCode and ea.attributeCode=:attributeCode");
-					 query.setParameter("baseEntityCode", ea.getBaseEntityCode());
-					 query.setParameter("attributeCode", ea.getAttributeCode());
-					query.executeUpdate();
-//			BaseEntity source = findBaseEntityByCode(ea.getBaseEntityCode());
-//			source.getBaseEntityAttributes().remove(ea);
-//			source = getEntityManager().merge(source);
-//		//	getEntityManager().remove(ea);
-//			return source;
+			Query query = getEntityManager().createQuery(
+					"delete from EntityAttribute ea where  ea.baseEntityCode=:baseEntityCode and ea.attributeCode=:attributeCode");
+			query.setParameter("baseEntityCode", ea.getBaseEntityCode());
+			query.setParameter("attributeCode", ea.getAttributeCode());
+			query.executeUpdate();
+			// BaseEntity source = findBaseEntityByCode(ea.getBaseEntityCode());
+			// source.getBaseEntityAttributes().remove(ea);
+			// source = getEntityManager().merge(source);
+			// // getEntityManager().remove(ea);
+			// return source;
 		} catch (Exception e) {
 			// rollback
 		}
-//		return null;
+		// return null;
 	}
-	
+
 	@Transactional
 	public void removeEntityAttributes(final String attributeCode) {
 		try {
-			Query query = getEntityManager().createQuery("delete from EntityAttribute ea where  ea.attributeCode=:attributeCode");
-					 query.setParameter("attributeCode", attributeCode);
-					query.executeUpdate();
+			Query query = getEntityManager()
+					.createQuery("delete from EntityAttribute ea where  ea.attributeCode=:attributeCode");
+			query.setParameter("attributeCode", attributeCode);
+			query.executeUpdate();
 		} catch (Exception e) {
-			
+
 		}
 
 	}
@@ -3787,7 +3786,7 @@ public class BaseEntityService2 {
 
 			ee = beSource.addTarget(beTarget, linkAttribute, weight, value);
 			beSource = getEntityManager().merge(beSource);
-			this.writeToDDT(beSource); //This is to ensure the BE in cache has its links updated
+			this.writeToDDT(beSource); // This is to ensure the BE in cache has its links updated
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee.getLink(), null, getCurrentToken());
 
 			sendQEventLinkChangeMessage(msg);
@@ -4320,7 +4319,7 @@ public class BaseEntityService2 {
 	public void pushAttributes() {
 		log.info("Pushing attributes to DDT");
 	}
-	
+
 	public void writeToDDT(final List<BaseEntity> bes) {
 		log.info("Pushing baseentitys to DDT cache");
 		for (BaseEntity be : bes) {
@@ -4328,10 +4327,74 @@ public class BaseEntityService2 {
 		}
 	}
 
-
-	public String getToken()
-	{
+	public String getToken() {
 		return "DUMMY";
+	}
+
+	public BaseEntity addAttributes(BaseEntity be) {
+		for (EntityAttribute entity : be.getBaseEntityAttributes()) {
+			Attribute attribute = null;
+			if (entity.getAttribute() == null) {
+
+				try {
+					attribute = findAttributeByCode(entity.getAttributeCode());
+				} catch (NoResultException e) {
+					// Create it (ideally if user is admin)
+					if (entity.getAttributeCode().startsWith("PRI_IS_")) {
+						attribute = new AttributeBoolean(entity.getAttributeCode(),
+								StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+					} else {
+
+						if (entity.getValueInteger() != null) {
+
+							attribute = new AttributeInteger(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+						} else if (entity.getValueDateTime() != null) {
+
+							attribute = new AttributeDateTime(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+						}
+						if (entity.getValueLong() != null) {
+
+							attribute = new AttributeLong(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+						}
+						if (entity.getValueTime() != null) {
+
+							attribute = new AttributeTime(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+						}
+						if (entity.getValueMoney() != null) {
+
+							attribute = new AttributeMoney(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+						}
+						if (entity.getValueDouble() != null) {
+
+							attribute = new AttributeDouble(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+						}
+						if (entity.getValueBoolean() != null) {
+
+							attribute = new AttributeBoolean(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+						}
+						if (entity.getValueDate() != null) {
+
+							attribute = new AttributeDate(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+						} else
+
+							attribute = new AttributeText(entity.getAttributeCode(),
+									StringUtils.capitalize(entity.getAttributeCode().substring(4).toLowerCase()));
+					}
+					insert(attribute);
+					attribute = findAttributeByCode(entity.getAttributeCode());
+				}
+				entity.setAttribute(attribute);
+			}
+		}
+		return be;
 	}
 
 }
