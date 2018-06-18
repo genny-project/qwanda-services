@@ -256,6 +256,7 @@ public class BaseEntityService2 {
 		String sourceStakeholderCode = searchBE.getValue("SCH_SOURCE_STAKEHOLDER_CODE", null);
 		String linkCode = searchBE.getValue("SCH_LINK_CODE", null);
 		String linkValue = searchBE.getValue("SCH_LINK_VALUE", null);
+		Double linkWeight = searchBE.getValue("SCH_LINK_WEIGHT", 0.0);
 		String sourceCode = searchBE.getValue("SCH_SOURCE_CODE", null);
 		String targetCode = searchBE.getValue("SCH_TARGET_CODE", null);
 
@@ -373,7 +374,7 @@ public class BaseEntityService2 {
 		String realmsStr = getRealmsStr(realms);
 
 		String sql = createSearchSQL("count(distinct ea.pk.baseEntity)", stakeholderCode, sourceStakeholderCode,
-				linkCode, linkValue, sourceCode, targetCode, filterStrings, filterStringsQ, "", codeFilter, realmsStr);
+				linkCode, linkValue, linkWeight, sourceCode, targetCode, filterStrings, filterStringsQ, "", codeFilter, realmsStr);
 
 		Query query = null;
 
@@ -393,6 +394,10 @@ public class BaseEntityService2 {
 		if (linkValue != null) {
 			query.setParameter("linkValue", linkValue);
 		}
+		if (linkWeight > 0.0) {
+			query.setParameter("linkWeight", linkWeight);
+		}
+
 		if (stakeholderCode != null) {
 			query.setParameter("stakeholderCode", stakeholderCode);
 		}
@@ -509,6 +514,7 @@ public class BaseEntityService2 {
 		String sourceStakeholderCode = searchBE.getValue("SCH_SOURCE_STAKEHOLDER_CODE", null);
 		String linkCode = searchBE.getValue("SCH_LINK_CODE", null);
 		String linkValue = searchBE.getValue("SCH_LINK_VALUE", null);
+		Double linkWeight = searchBE.getValue("SCH_LINK_WEIGHT", 0.0);
 		String sourceCode = searchBE.getValue("SCH_SOURCE_CODE", null);
 		String targetCode = searchBE.getValue("SCH_TARGET_CODE", null);
 
@@ -691,7 +697,7 @@ public class BaseEntityService2 {
 		orderString = createOrderString(attributeCodeMap, orderList);
 
 		String sql = createSearchSQL("distinct ea.pk.baseEntity", stakeholderCode, sourceStakeholderCode, linkCode,
-				linkValue, sourceCode, targetCode, filterStrings, filterStringsQ, orderString, codeFilter, realmsStr);
+				linkValue, linkWeight, sourceCode, targetCode, filterStrings, filterStringsQ, orderString, codeFilter, realmsStr);
 
 		Query query = null;
 
@@ -719,6 +725,9 @@ public class BaseEntityService2 {
 		}
 		if (linkValue != null) {
 			query.setParameter("linkValue", linkValue);
+		}
+		if (linkWeight > 0.0) {
+			query.setParameter("linkWeight", linkWeight);
 		}
 		if (stakeholderCode != null) {
 			query.setParameter("stakeholderCode", stakeholderCode);
@@ -799,7 +808,7 @@ public class BaseEntityService2 {
 	 * @return
 	 */
 	private String createSearchSQL(String prefix, String stakeholderCode, String sourceStakeholderCode, String linkCode,
-			String linkValue, String sourceCode, String targetCode, String filterStrings, String filterStringsQ,
+			String linkValue, Double linkWeight, String sourceCode, String targetCode, String filterStrings, String filterStringsQ,
 			String orderString, String codeFilter, String realmsStr) {
 		String sql = "select " + prefix + " from EntityAttribute ea "
 				+ ((stakeholderCode != null) ? " ,EntityEntity ff " : "")
@@ -811,6 +820,7 @@ public class BaseEntityService2 {
 				+ filterStrings + " where " + " ea.pk.baseEntity.realm in (" + realmsStr + ")  " + codeFilter
 				+ ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
 				+ ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
+				+ ((linkWeight > 0.0) ? " and ee.link.weight=:linkWeight and " : "") 
 				+ ((sourceCode != null)
 						? " and ee.pk.source.code=:sourceCode and ee.pk.targetCode=ea.pk.baseEntity.code and "
 						: "")
