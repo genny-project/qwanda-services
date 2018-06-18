@@ -1383,6 +1383,21 @@ public class BaseEntityService2 {
 			}
 			try {
 				try {
+					Optional<EntityAttribute> optExisting = beTarget
+							.findEntityAttribute(answer.getAttributeCode());
+					Object old = null;
+					
+					if (optExisting.isPresent()) {
+						EntityAttribute existing = optExisting.get();
+						old = existing.getValue();
+						if (existing.getReadonly()) {
+							// do not save!
+							log.error("Trying to save an answer to a readonly entityattribute! "+existing);
+							continue;
+						}
+					}
+
+					
 					// check that the codes exist
 					// attribute = findAttributeByCode(answer.getAttributeCode());
 					attribute = answer.getAttribute();
@@ -1396,6 +1411,7 @@ public class BaseEntityService2 {
 						}
 					}
 
+					
 					// answer.setAttribute(attribute);
 					if (answer.getChangeEvent()) {
 						msg.getBe().addAnswer(answer);
@@ -1415,9 +1431,7 @@ public class BaseEntityService2 {
 
 						AnswerLink answerLink = null;
 						try {
-							Optional<EntityAttribute> optExisting = beTarget
-									.findEntityAttribute(answer.getAttributeCode());
-							Object old = optExisting.isPresent() ? optExisting.get().getValue() : null;
+							
 							answerLink = beTarget.addAnswer(beSource, answer, answer.getWeight()); // TODo replace
 																									// with
 																									// soucr
@@ -1431,6 +1445,7 @@ public class BaseEntityService2 {
 								sendAttributeChangeEvent = true;
 							}
 							if (optExisting.isPresent()) {
+								
 								Object newOne = answerLink.getValue();
 								if (newOne != null) {
 									if ((old == null) || (old.hashCode() != (newOne.hashCode()))) {
@@ -1564,6 +1579,21 @@ public class BaseEntityService2 {
 				beSource = findBaseEntityByCode(answer.getSourceCode());
 				attribute = findAttributeByCode(answer.getAttributeCode());
 
+				Optional<EntityAttribute> optExisting = beTarget
+						.findEntityAttribute(answer.getAttributeCode());
+				Object old = null;
+				
+				if (optExisting.isPresent()) {
+					EntityAttribute existing = optExisting.get();
+					old = existing.getValue();
+					if (existing.getReadonly()) {
+						// do not save!
+						log.error("Trying to save an answer to a readonly entityattribute! "+existing);
+						return -1L;
+					}
+				}
+
+				
 				if (answer.getAskId() != null) {
 					ask = findAskById(answer.getAskId());
 					if (!((answer.getSourceCode().equals(ask.getSourceCode()))
@@ -1589,8 +1619,6 @@ public class BaseEntityService2 {
 
 					AnswerLink answerLink = null;
 					try {
-						Optional<EntityAttribute> optExisting = beTarget.findEntityAttribute(answer.getAttributeCode());
-						Object old = optExisting.isPresent() ? optExisting.get().getValue() : null;
 						answerLink = beTarget.addAnswer(beSource, answer, answer.getWeight()); // TODo replace
 																								// with
 																								// soucr

@@ -319,6 +319,8 @@ public class BatchLoading {
           String targetCode = ((String) queQues.get("targetCode"));
           String weightStr = ((String) queQues.get("weight"));
           String mandatoryStr = ((String) queQues.get("mandatory"));
+ 
+          
           Double weight = 0.0;
           try {
 			weight = Double.valueOf(weightStr);
@@ -326,6 +328,7 @@ public class BatchLoading {
 			weight = 0.0;
 		}
           Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
+
           Question sbe = null;
           Question tbe = null;
 
@@ -333,7 +336,17 @@ public class BatchLoading {
             sbe = service.findQuestionByCode(parentCode);
             tbe = service.findQuestionByCode(targetCode);
             try {
+                String oneshotStr = (String)  queQues.get("oneshot");
+                Boolean oneshot = false;
+                if (oneshotStr == null) {
+                	// Set the oneshot to be that of the targetquestion
+                	oneshot = tbe.getOneshot();
+                } else {
+                 oneshot = ("TRUE".equalsIgnoreCase(oneshotStr));
+                }
+            	
 				QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+				qq.setOneshot(oneshot);
 				QuestionQuestion existing = null;
 				try {
 					existing = service.findQuestionQuestionByCode(parentCode, targetCode);
@@ -346,6 +359,7 @@ public class BatchLoading {
 					qq = service.upsert(qq);
 				} catch (Exception e) {
 					existing.setMandatory(qq.getMandatory());
+					existing.setOneshot(qq.getOneshot());
 					existing.setWeight(qq.getWeight());
 					qq = service.upsert(existing);
 				} 
@@ -414,9 +428,12 @@ public class BatchLoading {
       String name = (String) questions.get("name");
       String attrCode = (String) questions.get("attribute_code");
       String html = (String) questions.get("html");
+      String oneshotStr = (String) questions.get("oneshot");
+      Boolean oneshot = oneshotStr == null ? false: ("TRUE".equalsIgnoreCase(oneshotStr));
       Attribute attr;
       attr = service.findAttributeByCode(attrCode);
-      final Question q = new Question(code, name, attr);
+      Question q = new Question(code, name, attr);
+      q.setOneshot(oneshot);
       q.setHtml(html);
       Question existing = service.findQuestionByCode(code);
       if (existing == null) {
