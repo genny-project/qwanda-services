@@ -119,13 +119,13 @@ public class BaseEntityService2 {
 	EntityManager em;
 
 	List<String> allowedConditions = Arrays.asList("=", "<", ">", "<=", ">=", "LIKE", "!=", "<>", "&+", "&0");
+	List<String> allowedLinkWeightConditions = Arrays.asList("=", "<", ">", "<=", ">=");
 
 	public List<BaseEntity> findBySearchBE2(@NotNull final String hql) {
 		List<BaseEntity> results = null;
 
 		Query query = null;
 		Set<String> attributeCodes = new HashSet<String>(Arrays.asList("PRI_FIRSTNAME", "PRI_LASTNAME"));
-		String attributeCode = "PRI_FIRSTNAME";
 		Filter filter = getEntityManager().unwrap(Session.class).enableFilter("filterAttribute");
 		filter.setParameterList("attributeCodes", attributeCodes);
 		// getEntityManager().unwrap(Session.class).enableFilter("filterAttribute").setParameter("attributeCodes",
@@ -257,6 +257,8 @@ public class BaseEntityService2 {
 		String linkCode = searchBE.getValue("SCH_LINK_CODE", null);
 		String linkValue = searchBE.getValue("SCH_LINK_VALUE", null);
 		Double linkWeight = searchBE.getValue("SCH_LINK_WEIGHT", 0.0);
+		String linkWeightFilter = searchBE.getValue("SCH_LINK_FILTER", ">");
+
 		String sourceCode = searchBE.getValue("SCH_SOURCE_CODE", null);
 		String targetCode = searchBE.getValue("SCH_TARGET_CODE", null);
 
@@ -264,6 +266,12 @@ public class BaseEntityService2 {
 		String filterStrings = "";
 		String filterStringsQ = "";
 		String codeFilter = "";
+		
+		// Check for bad linkWeight filtering
+		if (!allowedLinkWeightConditions.stream().anyMatch(str -> str.trim().equals(linkWeightFilter))) {
+			log.error("Error! Illegal link Weight condition!(" + linkWeightFilter + ") for user " + getUser());
+			return 0L;
+		}
 
 		Integer filterIndex = 0;
 		final List<Tuple2<String, Object>> valueList = new ArrayList<Tuple2<String, Object>>();
@@ -374,7 +382,7 @@ public class BaseEntityService2 {
 		String realmsStr = getRealmsStr(realms);
 
 		String sql = createSearchSQL("count(distinct ea.pk.baseEntity)", stakeholderCode, sourceStakeholderCode,
-				linkCode, linkValue, linkWeight, sourceCode, targetCode, filterStrings, filterStringsQ, "", codeFilter, realmsStr);
+				linkCode, linkValue, linkWeight, linkWeightFilter, sourceCode, targetCode, filterStrings, filterStringsQ, "", codeFilter, realmsStr);
 
 		Query query = null;
 
@@ -515,6 +523,7 @@ public class BaseEntityService2 {
 		String linkCode = searchBE.getValue("SCH_LINK_CODE", null);
 		String linkValue = searchBE.getValue("SCH_LINK_VALUE", null);
 		Double linkWeight = searchBE.getValue("SCH_LINK_WEIGHT", 0.0);
+		String linkWeightFilter = searchBE.getValue("SCH_LINK_FILTER", ">");
 		String sourceCode = searchBE.getValue("SCH_SOURCE_CODE", null);
 		String targetCode = searchBE.getValue("SCH_TARGET_CODE", null);
 
@@ -523,6 +532,13 @@ public class BaseEntityService2 {
 		String filterStringsQ = "";
 		String orderString = "";
 		String codeFilter = "";
+		
+		// Check for bad linkWeight filtering
+		if (!allowedLinkWeightConditions.stream().anyMatch(str -> str.trim().equals(linkWeightFilter))) {
+			log.error("Error! Illegal link Weight condition!(" + linkWeightFilter + ") for user " + getUser());
+			return results;
+		}
+
 
 		Integer filterIndex = 0;
 		final HashMap<String, String> attributeCodeMap = new HashMap<String, String>();
@@ -697,7 +713,7 @@ public class BaseEntityService2 {
 		orderString = createOrderString(attributeCodeMap, orderList);
 
 		String sql = createSearchSQL("distinct ea.pk.baseEntity", stakeholderCode, sourceStakeholderCode, linkCode,
-				linkValue, linkWeight, sourceCode, targetCode, filterStrings, filterStringsQ, orderString, codeFilter, realmsStr);
+				linkValue, linkWeight, linkWeightFilter,sourceCode, targetCode, filterStrings, filterStringsQ, orderString, codeFilter, realmsStr);
 
 		Query query = null;
 
@@ -808,7 +824,7 @@ public class BaseEntityService2 {
 	 * @return
 	 */
 	private String createSearchSQL(String prefix, String stakeholderCode, String sourceStakeholderCode, String linkCode,
-			String linkValue, Double linkWeight, String sourceCode, String targetCode, String filterStrings, String filterStringsQ,
+			String linkValue, Double linkWeight, String linkWeightFilter, String sourceCode, String targetCode, String filterStrings, String filterStringsQ,
 			String orderString, String codeFilter, String realmsStr) {
 		String sql = "select " + prefix + " from EntityAttribute ea "
 				+ ((stakeholderCode != null) ? " ,EntityEntity ff " : "")
@@ -820,7 +836,7 @@ public class BaseEntityService2 {
 				+ filterStrings + " where " + " ea.pk.baseEntity.realm in (" + realmsStr + ")  " + codeFilter
 				+ ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
 				+ ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
-				+ ((linkWeight > 0.0) ? " and ee.link.weight=:linkWeight and " : "") 
+				+ ((linkWeight > 0.0) ? " and ee.link.weight "+linkWeightFilter+" :linkWeight and " : "") 
 				+ ((sourceCode != null)
 						? " and ee.pk.source.code=:sourceCode and ee.pk.targetCode=ea.pk.baseEntity.code and "
 						: "")
