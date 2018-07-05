@@ -1975,7 +1975,9 @@ public class BaseEntityService2 {
 	public Validation upsert(Validation validation) {
 		try {
 			String code = validation.getCode();
-			Validation val = findValidationByCode(code);
+			Validation val = null;
+			
+			val = findValidationByCode(code);
 			if (val != null) {
 				BeanNotNullFields copyFields = new BeanNotNullFields();
 				copyFields.copyProperties(val, validation);
@@ -2191,7 +2193,8 @@ public class BaseEntityService2 {
 			result = (Validation) getEntityManager().createQuery("SELECT a FROM Validation a where a.code=:code")
 					.setParameter("code", code).getSingleResult();
 		} catch (Exception e) {
-			log.error("Error in finding Validation! " + code);
+			//log.error("Error in finding Validation! " + code);
+			throw new NoResultException("Error in finding Validation! " + code);
 		}
 
 		return result;
