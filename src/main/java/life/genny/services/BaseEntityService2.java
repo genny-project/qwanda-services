@@ -2124,7 +2124,7 @@ public class BaseEntityService2 {
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())// .setParameter("flag", false)
 						.setParameter("realmStr", userRealmStr).getSingleResult();
 			} catch (Exception e) {
-				log.error("Cannot find " + baseEntityCode + " in db ");
+				//log.error("Cannot find " + baseEntityCode + " in db ");
 				throw new NoResultException("Cannot find " + baseEntityCode + " in db ");
 			}
 

@@ -206,11 +206,20 @@ public class BatchLoading {
   public void baseEntitys(Map<String, Object> project) {
     if (project.get("baseEntitys") == null)
       return;
+    ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+    Validator validator = factory.getValidator();
+
     ((HashMap<String, HashMap>) project.get("baseEntitys")).entrySet().stream().forEach(data -> {
       Map<String, Object> baseEntitys = data.getValue();
       String code = ((String) baseEntitys.get("code")).replaceAll("^\"|\"$", "");;
       String name = ((String) baseEntitys.get("name")).replaceAll("^\"|\"$", "");;
       BaseEntity be = new BaseEntity(code, name);
+      
+      Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
+      for (ConstraintViolation<BaseEntity> constraint : constraints) {
+        System.out.println(constraint.getPropertyPath() + " " + constraint.getMessage());
+      }
+
       service.upsert(be);
     });
   }
