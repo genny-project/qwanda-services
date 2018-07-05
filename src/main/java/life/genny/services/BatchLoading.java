@@ -79,7 +79,12 @@ public class BatchLoading {
     Validator validator = factory.getValidator();
     ((HashMap<String, HashMap>) project.get("validations")).entrySet().stream().forEach(data -> {
       Map<String, Object> validations = data.getValue();
-      String regex = ((String) validations.get("regex")).replaceAll("^\"|\"$", "");;
+      String regex = null;
+      
+      regex = ((String) validations.get("regex"));
+      if (regex!=null) {
+    	  regex = regex.replaceAll("^\"|\"$", "");
+      }
       String code = ((String) validations.get("code")).replaceAll("^\"|\"$", "");;
       if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
     	  System.out.println("detected VLD_AU_DRIVER_LICENCE_NO");
