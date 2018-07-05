@@ -50,20 +50,14 @@ public class BatchLoading {
   protected static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-  // @Inject
   private BaseEntityService2 service;
 
   public static int id = 1;
 
-  // private BaseEntityService service;
+
   public BatchLoading(BaseEntityService2 service) {
     this.service = service;
   }
-
-  // protected BaseEntityService service = null;
-  // protected BaseEntityService service1 = null;
-  // protected EntityManagerFactory emf;
-  // protected EntityManager em;
 
   private final String secret = System.getenv("GOOGLE_CLIENT_SECRET");
   private final String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
@@ -87,6 +81,9 @@ public class BatchLoading {
       Map<String, Object> validations = data.getValue();
       String regex = ((String) validations.get("regex")).replaceAll("^\"|\"$", "");;
       String code = ((String) validations.get("code")).replaceAll("^\"|\"$", "");;
+      if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
+    	  System.out.println("detected VLD_AU_DRIVER_LICENCE_NO");
+      }
       String name = ((String) validations.get("name")).replaceAll("^\"|\"$", "");;
       String recursiveStr = ((String) validations.get("recursive"));
       String multiAllowedStr = ((String) validations.get("multi_allowed"));
@@ -97,7 +94,6 @@ public class BatchLoading {
       Validation val = null;
 
       if (code.startsWith(Validation.getDefaultCodePrefix() + "SELECT_")) {
-
         val = new Validation(code, name, groupCodesStr, recursive, multiAllowed);
       } else {
         val = new Validation(code, name, regex);

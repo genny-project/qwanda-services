@@ -1942,7 +1942,7 @@ public class BaseEntityService2 {
 	 * Upserts
 	 */
 
-	@Transactional
+
 	public <T extends CoreEntity> T upsert(T object) {
 
 		try {
@@ -1971,7 +1971,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+
 	public Validation upsert(Validation validation) {
 		try {
 			String code = validation.getCode();
@@ -1997,7 +1997,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+
 	public Attribute upsert(Attribute attr) {
 		try {
 			String code = attr.getCode();
@@ -2018,7 +2018,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+
 	public BaseEntity upsert(BaseEntity be) {
 		try {
 			String code = be.getCode();
@@ -2037,7 +2037,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+
 	public Long upsert(final BaseEntity be, Set<EntityAttribute> ba) {
 		try {
 			// be.setBaseEntityAttributes(null);
