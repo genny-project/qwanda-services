@@ -2012,9 +2012,11 @@ public class BaseEntityService2 {
 		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
 			try {
 				getEntityManager().persist(attr);
+			} catch (javax.validation.ConstraintViolationException ce)	 {
+				log.error("Error in saving attribute due to constraint issue:" + attr + " :" + ce.getLocalizedMessage());
 			} catch (javax.persistence.PersistenceException pe) {
 				log.error("Error in saving attribute :" + attr + " :" + pe.getLocalizedMessage());
-			}
+			} 
 			Long id = attr.getId();
 			return attr;
 		}

@@ -124,6 +124,9 @@ public class BatchLoading {
   public void attributes(Map<String, Object> project, Map<String, DataType> dataTypeMap) {
     if (project.get("attributes") == null)
       return;
+    ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+    Validator validator = factory.getValidator();
+
     ((HashMap<String, HashMap>) project.get("attributes")).entrySet().stream().forEach(data -> {
       try {
         Map<String, Object> attributes = data.getValue();
@@ -150,6 +153,10 @@ public class BatchLoading {
         attr.setHelp(helpStr);
         attr.setPlaceholder(placeholderStr);
         attr.setDefaultValue(defaultValueStr);
+        Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
+        for (ConstraintViolation<Attribute> constraint : constraints) {
+          System.out.println(constraint.getPropertyPath() + " " + constraint.getMessage());
+        }
         service.upsert(attr);
       } catch (Exception e) {
         // TODO Auto-generated catch block
