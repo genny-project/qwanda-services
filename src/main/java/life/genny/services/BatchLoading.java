@@ -382,7 +382,7 @@ public class BatchLoading {
 				} 
 				
 			} catch (NullPointerException e) {
-				log.error("Cannot find QuestionQuestion "+tbe);
+				log.error("Cannot find QuestionQuestion targetCode:"+targetCode+":parentCode:"+parentCode);
 		
 
           }
@@ -627,26 +627,37 @@ public class BatchLoading {
     Integer numOfTries = 3;
     while (numOfTries > 0) {
       try {
+    	  System.out.println("validatios");
         Map<String, Map> validations = sheets.newGetVal();
         genny.put("validations", validations);
+  	  System.out.println("datatypes");
         Map<String, Map> dataTypes = sheets.newGetDType();
         genny.put("dataType", dataTypes);
+  	  System.out.println("attrs");
         Map<String, Map> attrs = sheets.newGetAttr();
         genny.put("attributes", attrs);
+  	  System.out.println("bes");
         Map<String, Map> bes = sheets.newGetBase();
         genny.put("baseEntitys", bes);
+  	  System.out.println("eas");
         Map<String, Map> attr2Bes = sheets.newGetEntAttr();
         genny.put("attibutesEntity", attr2Bes);
+  	  System.out.println("attr link");
         Map<String, Map> attrLink = sheets.newGetAttrLink();
         genny.put("attributeLink", attrLink);
+  	  System.out.println("vee");
         Map<String, Map> bes2Bes = sheets.newGetEntEnt();
         genny.put("basebase", bes2Bes);
+  	  System.out.println("qtns");
         Map<String, Map> gQuestions = sheets.newGetQtn();
         genny.put("questions", gQuestions);
+  	  System.out.println("vQQs");
         Map<String, Map> que2Que = sheets.newGetQueQue();
         genny.put("questionQuestions", que2Que);
+  	  System.out.println("asks");
         Map<String, Map> asks = sheets.newGetAsk();
         genny.put("ask", asks);
+  	  System.out.println("templates");
         Map<String, Map> messages = sheets.getMessageTemplates();
         genny.put("messages", messages);
         break;

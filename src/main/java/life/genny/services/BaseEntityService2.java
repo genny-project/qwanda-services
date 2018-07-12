@@ -2125,7 +2125,10 @@ public class BaseEntityService2 {
 						.setParameter("realmStr", userRealmStr).getSingleResult();
 			} catch (Exception e) {
 				//log.error("Cannot find " + baseEntityCode + " in db ");
-				throw new NoResultException("Cannot find " + baseEntityCode + " in db ");
+				if ("GRP_ALL_CONTACTS".equalsIgnoreCase(baseEntityCode)) {
+					System.out.println("GRP_ADMIN_JOBS");
+				}
+				throw new NoResultException("Cannot find " + baseEntityCode + " in db! ");
 			}
 
 		} else {
@@ -2137,7 +2140,10 @@ public class BaseEntityService2 {
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())
 						.setParameter("realmStr", userRealmStr).getSingleResult();
 			} catch (Exception e) {
-				log.error("Cannot find " + baseEntityCode + " in db ");
+				if ("GRP_ALL_CONTACTS".equalsIgnoreCase(baseEntityCode)) {
+					System.out.println("GRP_ADMIN_JOBS");
+				}
+
 				throw new NoResultException("Cannot find " + baseEntityCode + " in db ");
 			}
 
