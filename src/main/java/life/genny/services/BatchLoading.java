@@ -508,6 +508,11 @@ public class BatchLoading {
   // em.close();
   // }
 
+
+  public static void filterRawsSpreadSheet(String deployCode, HashMap<String, Object> records) {
+    // records.entrySet().stream().allMatch(predicate)
+  }
+
   /**
    * Get the Project named on the last row inheriting or updating records from previous projects
    * names in the Hosting Sheet
@@ -666,8 +671,36 @@ public class BatchLoading {
     return m.matches();
   }
 
+  static Function<Entry<String, Object>, HashMap<String, Object>> recordsFil = table -> {
+    Object recordsFiltered = parseToHashMap(table.getValue()).entrySet().stream()
+        .filter(data -> true).map(rec -> new HashMap<String, Object>() {
+          {
+            put(rec.getKey().toString(), rec.getValue());
+          }
+        })
+        .reduce((first, second) -> {
+          first.putAll(second);
+          return first;
+        })
+        .orElse(new HashMap<String, Object>());
+    return new HashMap<String, Object>() {
+      {
+        put(table.getKey(), recordsFiltered);
+      }
+    };
+  };
+
   public static void main(String... strings) {
-    System.out.println(matchStringFromSequence("", ""));
+    BatchLoading bl = new BatchLoading(null);
+    Map<String, Object> tables = bl.getProject();
+    Map<String, Object> tabl =
+        tables.entrySet().stream().map(recordsFil::apply).reduce((firstMap, secondMap) -> {
+          firstMap.putAll(secondMap);
+          return firstMap;
+        }).get();
+
+    System.out.println(tables.equals(tabl));
+    tabl.entrySet().stream().forEach(System.out::println);
     // String str = "Byron, Andres, Aguirre".trim().toLowerCase();
     //
     // String[] arrStr = getDeployCode().get().split("\\s*(,|\\s)\\s*");
@@ -691,42 +724,44 @@ public class BatchLoading {
   // final static String DEPLOY_CODE = System.getenv("DEPLOY_CODE");
 
   // 25
-  // public static void filterProject() {
-  // BatchLoading bl = new BatchLoading(null);
-  // Map<String, Object> tables = bl.getProject();
-  // Map<String, Object> tablesFiltered = tables.entrySet().stream().map(table -> {
-  // HashMap<String, Object> records = (HashMap<String, Object>) table.getValue();
-  // HashMap<String, Object> recordsFiltered =
-  // (HashMap<String, Object>) records.entrySet().stream().filter(record -> {
-  // HashMap<String, Object> fields = (HashMap<String, Object>) record.getValue();
-  // return fields.entrySet().stream().allMatch(field -> {
-  // String key = field.getKey();
-  // String val = (String) field.getValue();
-  // if (key.equals("deploy_code"))
-  // return (val.equals("") || val.equals(DEPLOY_CODE)) ? true : false;
-  // else
-  // return true;
-  // });
-  // }).map(recordFiltered -> {
-  // return new HashMap<String, Object>() {
-  // {
-  // put(recordFiltered.getKey(), recordFiltered.getValue());
-  // }
-  // };
-  // }).reduce((first, second) -> {
-  // first.putAll(second);
-  // return first;
-  // }).get();
-  // return new HashMap<String, Object>() {
-  // {
-  // put(table.getKey(), recordsFiltered);
-  // }
-  // };
-  // }).reduce((firstMap, secondMap) -> {
-  // firstMap.putAll(secondMap);
-  // return firstMap;
-  // }).get();
-  // }"deploy_code"
+  public static void filterProject() {
+    BatchLoading bl = new BatchLoading(null);
+    Map<String, Object> tables = bl.getProject();
+    Map<String, Object> tablesFiltered = tables.entrySet().stream().map(table -> {
+      HashMap<String, Object> records = (HashMap<String, Object>) table.getValue();
+      HashMap<String, Object> recordsFiltered =
+          (HashMap<String, Object>) records.entrySet().stream().filter(record -> {
+            HashMap<String, Object> fields = (HashMap<String, Object>) record.getValue();
+            return fields.entrySet().stream().allMatch(field -> {
+              String key = field.getKey();
+              String val = (String) field.getValue();
+              if (key.equals("deploy_code"))
+                return (val.equals("") || val.equals(DEPLOY_CODE)) ? true : false;
+              else
+                return true;
+            });
+          }).map(recordFiltered -> {
+            return new HashMap<String, Object>() {
+              {
+                put(recordFiltered.getKey(), recordFiltered.getValue());
+              }
+            };
+          }).reduce((first, second) -> {
+            first.putAll(second);
+            return first;
+          }).get();
+      return new HashMap<String, Object>() {
+        {
+          put(table.getKey(), recordsFiltered);
+        }
+      };
+    }).reduce((firstMap, secondMap) ->
+
+    {
+      firstMap.putAll(secondMap);
+      return firstMap;
+    }).get();
+  }
 
   static BiPredicate<? super Entry<String, Object>, String> isRecordAllowed =
       (field, columnKey) -> {
@@ -738,41 +773,119 @@ public class BatchLoading {
           return true;
       };
 
-  public static void filterProject(String columnKey) {
-    BatchLoading bl = new BatchLoading(null);
-    Map<String, Object> tables = bl.getProject();
-    Set<Entry<String, Object>> j = tables.entrySet();
-    Stream<Map<String, Object>> tablesFiltered = tables.entrySet().stream().map(table -> {
-      HashMap<String, Object> records = (HashMap<String, Object>) table.getValue();
-      Stream<HashMap<String, Object>> recordsFiltered =
-          records.entrySet().stream().filter(record -> {
-            HashMap<String, Object> fields = (HashMap<String, Object>) record.getValue();
-            boolean isAllsatisfied = fields.entrySet().stream()
-                .allMatch(field -> isRecordAllowed.test(field, columnKey));
-            return isAllsatisfied;
-          }).map(recordFiltered -> {
-            return new HashMap<String, Object>() {
-              {
-                put(recordFiltered.getKey(), recordFiltered.getValue());
-              }
-            };
-          });
-      HashMap<String, Object> recordsReduced = recordsFiltered.reduce((first, second) -> {
-        first.putAll(second);
-        return first;
-      }).get();
+  // public void function1(){}
+  // map.entrySet().Stream().map(fuction2)
+  //
+  //// function2 = table -> {
+  // HashMap<String, Object> records = (HashMap<String, Object>) table.getValue();
+  // Stream<HashMap<String, Object>> recordsFiltered =
+  // records.entrySet().stream().filter(record -> {
+  // HashMap<String, Object> fields = (HashMap<String, Object>) record.getValue();
+  // boolean isAllsatisfied = fields.entrySet().stream()
+  // .allMatch(field -> isRecordAllowed.test(field, columnKey));
+  // return isAllsatisfied;
+  // }).map(recordFiltered -> {
+  // return new HashMap<String, Object>() {
+  // {
+  // put(recordFiltered.getKey(), recordFiltered.getValue());
+  // }
+  // };
+  // });
+  // HashMap<String, Object> recordsReduced = recordsFiltered.reduce((first, second) -> {
+  // first.putAll(second);
+  // return first;
+  // }).get();
+  // return new HashMap<String, Object>() {
+  // {
+  // put(table.getKey(), recordsReduced);
+  // }
+  // };
+  // }
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+
+
+  Function<HashMap<String, Object>, Stream> getTable = table -> {
+    HashMap<String, Object> records = (HashMap<String, Object>) table;
+    Stream<HashMap<String, Object>> recordsFiltered = records.entrySet().stream().filter(record -> {
+      HashMap<String, Object> fields = (HashMap<String, Object>) record.getValue();
+      boolean isAllsatisfied =
+          fields.entrySet().stream().allMatch(field -> isRecordAllowed.test(field, null));
+      return isAllsatisfied;
+    }).map(recordFiltered -> {
       return new HashMap<String, Object>() {
         {
-          put(table.getKey(), recordsReduced);
+          put(recordFiltered.getKey(), recordFiltered.getValue());
         }
       };
     });
-    tablesFiltered.reduce((firstMap, secondMap) -> {
-      firstMap.putAll(secondMap);
-      return firstMap;
-    }).get();
+    return null;
+  };
+
+  public static void extractFields(Stream<Object> map) {
+    Stream<Object> m = parseToHashMap(map).entrySet().stream().map(data -> data.getValue());
   }
 
+  static Function<Object, Stream<Object>> reducing = table -> {
+
+    return Stream.of(table);
+  };
+
+  // public static void extractFields(HashMap<String, Object> map) {
+  // BatchLoading bl = new BatchLoading(null);
+  // bl.getProject().entrySet().parallelStream().map(mapper);
+  // }
+  public static HashMap<String, Object> parseToHashMap(Object obj) {
+    return (HashMap<String, Object>) obj;
+  }
+
+  // table -> {
+  // HashMap<String, Object> records = parseToHashMap(table.getValue());
+  // Stream<HashMap<String, Object>> recordsFiltered =
+  // records.entrySet().stream().filter(record -> {
+  // HashMap<String, Object> fields = parseToHashMap(record.getValue());
+  // boolean isAllsatisfied = fields.entrySet().stream()
+  // .allMatch(field -> isRecordAllowed.test(field, columnKey));
+  // return isAllsatisfied;
+  // }).map(recordFiltered -> {
+  // return new HashMap<String, Object>() {
+  // {
+  // put(recordFiltered.getKey(), recordFiltered.getValue());
+  // }
+  // };
+  // });
+  // HashMap<String, Object> recordsReduced = recordsFiltered.reduce((first, second) -> {
+  // first.putAll(second);
+  // return first;
+  // }).get();
+  // return new HashMap<String, Object>() {
+  // {
+  // put(table.getKey(), recordsReduced);
+  // }
+  // };
+  // }
+  // public static void filterProject(String columnKey) {
+  // BatchLoading bl = new BatchLoading(null);
+  // Map<String, Object> tables = bl.getProject();
+  // ltered = tables.values().stream().map(reducing::apply).reduce();
+  // tablesFiltered.reduce((firstMap, secondMap) -> {
+  // firstMap.putAll(secondMap);
+  // return firstMap;
+  // }).get();
+  // }
   /**
    * Call functions named after the classes
    */
