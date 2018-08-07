@@ -186,8 +186,12 @@ public class BatchLoading {
       if (validations != null) {
         final String[] validationListStr = validations.split(",");
         for (final String validationCode : validationListStr) {
-          Validation validation = service.findValidationByCode(validationCode);
-          validationList.getValidationList().add(validation);
+          try {
+			Validation validation = service.findValidationByCode(validationCode);
+			  validationList.getValidationList().add(validation);
+		} catch (NoResultException e) {
+			log.error("Could not load Validation "+validationCode);
+		}
         }
       }
       if (!dataTypeMap.containsKey(code)) {
