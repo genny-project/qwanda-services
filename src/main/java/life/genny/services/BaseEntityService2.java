@@ -1356,7 +1356,9 @@ public class BaseEntityService2 {
 			getEntityManager().persist(entity);
 			String json = JsonUtils.toJson(entity);
 			writeToDDT(entity.getCode(), json);
-
+		} catch (javax.validation.ConstraintViolationException e) {
+			log.error("Cannot save BaseEntity with code "+entity.getCode()+"! "+e.getLocalizedMessage());
+			return -1L;
 		} catch (final ConstraintViolationException e) {
 			// so update otherwise // TODO merge?
 			// getEntityManager().merge(entity);
