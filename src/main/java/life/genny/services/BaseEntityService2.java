@@ -1332,7 +1332,7 @@ public class BaseEntityService2 {
 		return answerLink;
 	}
 
-	@Transactional
+	@Transactional(dontRollbackOn={PersistenceException.class})
 	public Long insert(BaseEntity entity) {
 
 		// get security
