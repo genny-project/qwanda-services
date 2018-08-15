@@ -1175,5 +1175,60 @@ public void questionGroupTest()
 		 System.out.println("The Test Result for isMandatoryCompleted is  ::    "+result);
 	   }
 	 
+	 
+	 @Test
+	 public void removeLinkTest()
+	 {
+		    getEm().getTransaction().begin();
+		    
+
+		    BaseEntity user1 = service.findBaseEntityByCode("PER_USER1");
+		    BaseEntity testGroup = service.findBaseEntityByCode("GRP_TEST");
+		    BaseEntity testGroup2 = service.findBaseEntityByCode("GRP_TEST2");
+		    
+		    try {
+				EntityEntity ee = service.addLink(testGroup.getCode(), user1.getCode(), "LNK_TEST", new Double(3.14), 1.2);
+			
+				assertEquals(ee.getPk().getAttribute().getCode(),"LNK_TEST");
+				
+				// fetch link
+				EntityEntity newEntity = service.findEntityEntity(testGroup.getCode(), user1.getCode(), "LNK_TEST");
+				assertEquals(newEntity.getPk().getAttribute().getCode(),"LNK_TEST");
+				assertEquals(newEntity.getPk().getSource().getCode(),testGroup.getCode());
+				assertEquals(newEntity.getPk().getTargetCode(),user1.getCode());
+				
+			    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<String, String>();
+			//    params.add("pageStart", "0");
+			//    params.add("pageSize", "2");
+
+
+				List<BaseEntity> baseEntitys = service.findChildrenByAttributeLink(testGroup.getCode(), "LNK_TEST", false, 0, 10, 2, params);
+				List<BaseEntity> baseEntitys2 = service.findChildrenByAttributeLink(testGroup2.getCode(), "LNK_TEST", false, 0, 10, 2, params);
+				// Check baseEntitys has testGroup and no testGroup2
+				assertEquals(baseEntitys.contains(user1),true);
+				assertEquals(baseEntitys2.contains(user1),false);
+				
+				
+				// Remove link!
+				
+				service.removeLink(testGroup.getCode(), user1.getCode(), "LNK_TEST");
+				List<BaseEntity> baseEntitysA = service.findChildrenByAttributeLink(testGroup.getCode(), "LNK_TEST", false, 0, 10, 2, params);
+				List<BaseEntity> baseEntitys2A = service.findChildrenByAttributeLink(testGroup2.getCode(), "LNK_TEST", false, 0, 10, 2, params);
+				// Check baseEntitys has testGroup and no testGroup2
+				assertEquals(baseEntitysA.contains(user1),false);
+				assertEquals(baseEntitys2A.contains(user1),false);
+				
+				// now fetch all the links for a target
+				List<Link> links = service.findLinks(user1.getCode(), "LNK_TEST");
+				Integer linkCount = links.size();
+				assertEquals(linkCount==0,true);
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (BadDataException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		    getEm().getTransaction().commit();	 }
 
 }
