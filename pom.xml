@@ -112,6 +112,21 @@
 			<artifactId>validation-api</artifactId>
 			<version>2.0.0.Final</version>
 		</dependency>
+		<dependency>
+		  <groupId>org.jooq</groupId>
+		  <artifactId>jooq</artifactId>
+		  <version>3.11.4</version>
+		</dependency>
+		<dependency>
+			  <groupId>org.jooq</groupId>
+			  <artifactId>jooq-meta</artifactId>
+			  <version>3.11.4</version>
+		</dependency>
+		<dependency>
+			    <groupId>org.jooq</groupId>
+			    <artifactId>jooq-codegen-maven</artifactId>
+			    <version>3.11.4</version>
+		</dependency>
 <!-- https://mvnrepository.com/artifact/org.hibernate.hql/hibernate-hql-parser -->
 <dependency>
     <groupId>org.hibernate.hql</groupId>
@@ -128,6 +143,11 @@
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
 			<version>2.9.1</version>
+		</dependency>
+		<dependency>
+    	<groupId>org.simpleflatmapper</groupId>
+    		<artifactId>sfm-jooq</artifactId>
+   			<version>4.0.1</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
