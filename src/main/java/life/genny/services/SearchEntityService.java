@@ -91,7 +91,7 @@ public class SearchEntityService {
 	protected SearchEntityService() {
 	}
 
-	public List<BaseEntity> findBySearchBE(@NotNull final BaseEntity searchBE) throws SQLException {
+	public List<BaseEntity> findBySearchBE(@NotNull final BaseEntity searchBE) {
 		
 		
 		final DSLContext dslContext = getDSLContext();
@@ -274,10 +274,10 @@ public class SearchEntityService {
 				linkQuery.addConditions(ee.SOURCE_ID.eq(be.getId()));
 				linkQuery.addSelect(ee.TARGETCODE, ee.CREATED, ee.LINK_CODE, ee.CHILDCOLOR, ee.LINKVALUE, ee.PARENTCOLOR, ee.RULE, ee.SOURCE_CODE,
 						ee.TARGET_CODE, ee.LINK_WEIGHT, ee.UPDATED, ee.VALUEBOOLEAN, ee.VALUEDATE, ee.VALUEDATETIME, ee.VALUEDOUBLE, ee.VALUEINTEGER,
-						ee.VALUELONG, DSL.field("bea.MONEY", moneyType), ee.VALUESTRING, ee.VALUETIME, ee.VERSION, ee.WEIGHT, ee.ATTRIBUTE_ID, ee.SOURCE_ID);
+						ee.VALUELONG, DSL.field("ee.MONEY", moneyType), ee.VALUESTRING, ee.VALUETIME, ee.VERSION, ee.WEIGHT, ee.ATTRIBUTE_ID, ee.SOURCE_ID);
+				out.println("LINK QUERY: " + linkQuery.getSQL());
 				List<EntityEntity> linkResults = linkQuery.fetchInto(EntityEntity.class);
 				be.setLinks(new HashSet<EntityEntity>(linkResults));
-				out.println("LINK QUERY: " + linkQuery.getSQL());
 				System.out.println("LINKS SIZE: " + be.getLinks().size());
 				
 				//Attribute Query:
@@ -290,14 +290,14 @@ public class SearchEntityService {
 						bea.READONLY, bea.UPDATED, bea.VALUEBOOLEAN, bea.VALUEDATE, bea.VALUEDATERANGE, bea.VALUEDATETIME,
 						bea.VALUEDOUBLE, bea.VALUEINTEGER, bea.VALUELONG, DSL.field("bea.MONEY", moneyType), bea.VALUESTRING, 
 						bea.VALUETIME, bea.WEIGHT, bea.ATTRIBUTE_ID, bea.BASEENTITY_ID);
+				out.println("ATTRIBUTE QUERY: " + attributeQuery.getSQL());
 				List<EntityAttribute> attrResults = attributeQuery.fetchInto(EntityAttribute.class);
 				be.setBaseEntityAttributes(new HashSet<EntityAttribute>(attrResults));
-				out.println("ATTRIBUTE QUERY: " + attributeQuery.getSQL());
 				out.println("ATTRIBUTE SIZE: " + be.getBaseEntityAttributes().size());
 			}
 			
 		} catch (Exception e) {
-			throw new SQLException("CAN'T EXECUTE JOOQ QUERY :( " + e);
+			out.println("CAN'T EXECUTE JOOQ QUERY :( " + e);
 		} 
 		return results;
 	}
