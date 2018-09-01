@@ -50,6 +50,7 @@ import com.google.common.collect.Range;
 
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.converter.JOOQMoneyConverter;
+import life.genny.qwanda.Link;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.entity.BaseEntity;
@@ -266,20 +267,30 @@ public class SearchEntityService {
 			for (BaseEntity be : results) {
 				be.setIndex(index++);
 				DataType<Money> moneyType = SQLDataType.VARCHAR.asConvertedDataType(new JOOQMoneyConverter());
-				// Link Query:
-				SelectQuery<Record> linkQuery = getDSLContext().selectQuery();
+				// EntityEntity Query:
+				SelectQuery<Record> eeQuery = getDSLContext().selectQuery();
 				test.generated.tables.Attribute attribute = test.generated.tables.Attribute.ATTRIBUTE.as("attribute");
-				linkQuery.addFrom(ee);
-				linkQuery.addJoin(attribute, ee.ATTRIBUTE_ID.eq(attribute.ID));
-				linkQuery.addConditions(ee.SOURCE_ID.eq(be.getId()));
-				linkQuery.addSelect(ee.TARGETCODE, ee.CREATED, ee.LINK_CODE, ee.CHILDCOLOR, ee.LINKVALUE, ee.PARENTCOLOR, ee.RULE, ee.SOURCE_CODE,
-						ee.TARGET_CODE, ee.LINK_WEIGHT, ee.UPDATED, ee.VALUEBOOLEAN, ee.VALUEDATE, ee.VALUEDATETIME, ee.VALUEDOUBLE, ee.VALUEINTEGER,
-						ee.VALUELONG, DSL.field("ee.MONEY", moneyType), ee.VALUESTRING, ee.VALUETIME, ee.VERSION, ee.WEIGHT, ee.ATTRIBUTE_ID, ee.SOURCE_ID);
-				out.println("LINK QUERY: " + linkQuery.getSQL());
-				List<EntityEntity> linkResults = linkQuery.fetchInto(EntityEntity.class);
-				be.setLinks(new HashSet<EntityEntity>(linkResults));
-				System.out.println("LINKS SIZE: " + be.getLinks().size());
-				
+				eeQuery.addFrom(ee);
+				eeQuery.addJoin(attribute, ee.ATTRIBUTE_ID.eq(attribute.ID));
+				eeQuery.addConditions(ee.SOURCE_ID.eq(be.getId()));
+				DataType<Money> type = SQLDataType.VARCHAR.asConvertedDataType(new JOOQMoneyConverter());
+				eeQuery.addSelect(ee.TARGETCODE, ee.CREATED, ee.UPDATED, ee.VALUEBOOLEAN, ee.VALUEDATE, ee.VALUEDATETIME, ee.VALUEDOUBLE, ee.VALUEINTEGER,
+						ee.VALUELONG, DSL.field("ee.MONEY", type), ee.VALUESTRING, ee.VALUETIME, ee.VERSION, ee.WEIGHT, ee.ATTRIBUTE_ID, ee.SOURCE_ID);
+				out.println("ENTITYENTITY QUERY: " + eeQuery.getSQL());
+				List<EntityEntity> entityEntityResults = eeQuery.fetchInto(EntityEntity.class);
+				for(EntityEntity entityEntity : entityEntityResults) {
+					//Link Query:
+					SelectQuery<Record> linkQuery = getDSLContext().selectQuery();
+					linkQuery.addFrom(ee);
+					linkQuery.addJoin(attribute, ee.ATTRIBUTE_ID.eq(attribute.ID));
+					linkQuery.addConditions(ee.SOURCE_ID.eq(be.getId()));
+					linkQuery.addSelect(ee.LINK_CODE, ee.CHILDCOLOR, ee.LINKVALUE, ee.PARENTCOLOR, ee.RULE, ee.SOURCE_CODE,
+							ee.TARGET_CODE, ee.LINK_WEIGHT);
+					out.println("LINK QUERY: " + linkQuery.getSQL());
+					Link link = linkQuery.fetchOne().into(Link.class);
+					entityEntity.setLink(link);
+				}
+				be.setLinks(new HashSet<EntityEntity>(entityEntityResults));
 				//Attribute Query:
 				SelectQuery<Record> attributeQuery = getDSLContext().selectQuery();
 				attributeQuery.addFrom(bea);
