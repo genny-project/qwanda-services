@@ -30,7 +30,7 @@ public class QwandaServicesVersion {
 		   Properties properties = new Properties();
 		    try {
 		    	QwandaServicesVersion qv = new QwandaServicesVersion();
-		    	properties.load(qv.getClass().getResourceAsStream("/git.properties" ));
+		    	properties.load(qv.getClass().getResourceAsStream("/qwanda-services-git.properties" ));
 		     // properties.load(Thread.currentThread().getContextClassLoader().getResource("git.properties")
 		      //    .openStream());
 		    } catch (IOException e) {
