@@ -340,7 +340,8 @@ public class BatchLoading {
           String targetCode = ((String) queQues.get("targetCode"));
           String weightStr = ((String) queQues.get("weight"));
           String mandatoryStr = ((String) queQues.get("mandatory"));
- 
+          String readonlyStr = ((String) queQues.get("readonly"));
+          Boolean readonly = readonlyStr == null ? false: ("TRUE".equalsIgnoreCase(readonlyStr));
           
           Double weight = 0.0;
           try {
@@ -368,6 +369,7 @@ public class BatchLoading {
             	
 				QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
 				qq.setOneshot(oneshot);
+				qq.setReadonly(readonly);
 				QuestionQuestion existing = null;
 				try {
 					existing = service.findQuestionQuestionByCode(parentCode, targetCode);
@@ -382,6 +384,7 @@ public class BatchLoading {
 					existing.setMandatory(qq.getMandatory());
 					existing.setOneshot(qq.getOneshot());
 					existing.setWeight(qq.getWeight());
+					existing.setReadonly(qq.getReadonly());
 					qq = service.upsert(existing);
 				} 
 				
@@ -450,12 +453,17 @@ public class BatchLoading {
       String attrCode = (String) questions.get("attribute_code");
       String html = (String) questions.get("html");
       String oneshotStr = (String) questions.get("oneshot");
+      String readonlyStr = ((String) questions.get("readonly"));
+      String hiddenStr = ((String) questions.get("hidden"));
+ 
       Boolean oneshot = oneshotStr == null ? false: ("TRUE".equalsIgnoreCase(oneshotStr));
+      Boolean readonly = readonlyStr == null ? false: ("TRUE".equalsIgnoreCase(readonlyStr));
       Attribute attr;
       attr = service.findAttributeByCode(attrCode);
       Question q = new Question(code, name, attr);
       q.setOneshot(oneshot);
       q.setHtml(html);
+      q.setReadonly(readonly);
       Question existing = service.findQuestionByCode(code);
       if (existing == null) {
     	  	service.insert(q);
@@ -481,15 +489,20 @@ public class BatchLoading {
       String expectedId = (String) asks.get("expectedId");
       String weightStr = (String) asks.get("weight");
       String mandatoryStr = ((String) asks.get("mandatory"));
+      String readonlyStr = ((String) asks.get("readonly"));
+      String hiddenStr = ((String) asks.get("hidden"));
       final Double weight = Double.valueOf(weightStr);
       if ("QUE_USER_SELECT_ROLE".equals(targetCode)) {
     	  System.out.println("dummy");
       }
       Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
-
+      Boolean readonly = "TRUE".equalsIgnoreCase(readonlyStr);
+      Boolean hidden = "TRUE".equalsIgnoreCase(hiddenStr);
       Question question = service.findQuestionByCode(qCode);
       final Ask ask = new Ask(question, sourceCode, targetCode, mandatory, weight);
       ask.setName(name);
+      ask.setHidden(hidden);
+      ask.setReadonly(readonly);
       service.insert(ask);
     });
   }

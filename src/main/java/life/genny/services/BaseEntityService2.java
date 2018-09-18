@@ -3146,6 +3146,7 @@ public class BaseEntityService2 {
 			final QuestionSourceTarget defaultQST, QuestionSourceTarget[] qstArray, Boolean childQuestionIsMandatory) {
 		List<Ask> asks = new ArrayList<Ask>();
 		Boolean mandatory = rootQuestion.getMandatory() || childQuestionIsMandatory;
+		Boolean readonly = rootQuestion.getReadonly();
 
 		Ask ask = null;
 		// check if this already exists?
@@ -3153,8 +3154,10 @@ public class BaseEntityService2 {
 		if (!((myAsks == null) || (myAsks.isEmpty()))) {
 			ask = myAsks.get(0);
 			ask.setMandatory(mandatory);
+			ask.setReadonly(readonly);
 		} else {
 			ask = new Ask(rootQuestion, defaultQST.getSourceCode(), defaultQST.getTargetCode(), mandatory);
+			ask.setReadonly(readonly);
 			ask = upsert(ask);
 		}
 		// create one
