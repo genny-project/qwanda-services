@@ -2029,6 +2029,7 @@ public class BaseEntityService2 {
 			String code = q.getCode();
 			Question val = findQuestionByCode(code);
 			BeanNotNullFields copyFields = new BeanNotNullFields();
+			if (val == null) throw new NoResultException();
 			copyFields.copyProperties(val, q);
 			val = getEntityManager().merge(val);
 			// BeanUtils.copyProperties(attr, val);
@@ -3786,6 +3787,7 @@ public class BaseEntityService2 {
 			BaseEntity source = findBaseEntityByCode(ee.getLink().getSourceCode());
 			source.getLinks().remove(ee);
 			getEntityManager().merge(source);
+			this.writeToDDT(source);
 			getEntityManager().remove(ee);
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(null, oldLink, getCurrentToken());
 
