@@ -2023,6 +2023,29 @@ public class BaseEntityService2 {
 			return attr;
 		}
 	}
+	
+	public Question upsert(Question q) {
+		try {
+			String code = q.getCode();
+			Question val = findQuestionByCode(code);
+			BeanNotNullFields copyFields = new BeanNotNullFields();
+			if (val == null) throw new NoResultException();
+			copyFields.copyProperties(val, q);
+			val = getEntityManager().merge(val);
+			// BeanUtils.copyProperties(attr, val);
+			return val;
+		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+			try {
+				getEntityManager().persist(q);
+			} catch (javax.validation.ConstraintViolationException ce)	 {
+				log.error("Error in saving question due to constraint issue:" + q + " :" + ce.getLocalizedMessage());
+			} catch (javax.persistence.PersistenceException pe) {
+				log.error("Error in saving question :" + q + " :" + pe.getLocalizedMessage());
+			} 
+			Long id = q.getId();
+			return q;
+		}
+	}
 
 
 	public BaseEntity upsert(BaseEntity be) {
@@ -3764,6 +3787,7 @@ public class BaseEntityService2 {
 			BaseEntity source = findBaseEntityByCode(ee.getLink().getSourceCode());
 			source.getLinks().remove(ee);
 			getEntityManager().merge(source);
+			this.writeToDDT(source);
 			getEntityManager().remove(ee);
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(null, oldLink, getCurrentToken());
 

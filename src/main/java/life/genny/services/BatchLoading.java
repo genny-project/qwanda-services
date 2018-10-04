@@ -455,18 +455,28 @@ public class BatchLoading {
       String oneshotStr = (String) questions.get("oneshot");
       String readonlyStr = ((String) questions.get("readonly"));
       String hiddenStr = ((String) questions.get("hidden"));
+      String mandatoryStr = ((String) questions.get("mandatory"));
  
-      Boolean oneshot = oneshotStr == null ? false: ("TRUE".equalsIgnoreCase(oneshotStr));
-      Boolean readonly = readonlyStr == null ? false: ("TRUE".equalsIgnoreCase(readonlyStr));
+      Boolean oneshot =getBooleanFromString(oneshotStr);
+      Boolean readonly = getBooleanFromString(readonlyStr);
+      Boolean mandatory = getBooleanFromString(mandatoryStr);
       Attribute attr;
       attr = service.findAttributeByCode(attrCode);
       Question q = new Question(code, name, attr);
       q.setOneshot(oneshot);
       q.setHtml(html);
       q.setReadonly(readonly);
+      q.setMandatory(mandatory);
       Question existing = service.findQuestionByCode(code);
       if (existing == null) {
     	  	service.insert(q);
+      } else {
+    	  existing.setName(name);
+    	  existing.setHtml(html);
+    	  existing.setOneshot(oneshot);
+    	  existing.setReadonly(readonly);
+    	  existing.setMandatory(mandatory);
+    	  service.upsert(existing); 
       }
     });
   }
