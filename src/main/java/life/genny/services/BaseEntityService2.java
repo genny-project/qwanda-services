@@ -1573,7 +1573,18 @@ public class BaseEntityService2 {
 
 	
 			if (entityChanged) {
-				beTarget = getEntityManager().merge(beTarget); // if nothing changed then no need to merge beTarget
+				
+				try {
+					if (this.getEntityManager().contains(beTarget)) {
+						log.info("EntityManager contains beTarget ok");
+					} else {
+						log.info("EntityManager DOES NOT contains beTarget ok");
+					}
+					beTarget = getEntityManager().merge(beTarget); // if nothing changed then no need to merge beTarget
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				String json = JsonUtils.toJson(beTarget);
 				writeToDDT(beTarget.getCode(), json); // Update the DDT
 			}
@@ -1770,7 +1781,10 @@ public class BaseEntityService2 {
 	public Long insert(final Attribute attribute) {
 		// always check if baseentity exists through check for unique code
 		try {
-			getEntityManager().persist(attribute);
+			Attribute existing = findAttributeByCode(attribute.getCode());
+			if (existing == null) {
+				getEntityManager().persist(attribute);
+			}
 
 			this.pushAttributes();
 		} catch (final ConstraintViolationException e) {
@@ -2006,6 +2020,9 @@ public class BaseEntityService2 {
 		try {
 			String code = attr.getCode();
 			Attribute val = findAttributeByCode(code);
+			if (val == null) {
+				throw new NoResultException();
+			}
 			BeanNotNullFields copyFields = new BeanNotNullFields();
 			copyFields.copyProperties(val, attr);
 			val = getEntityManager().merge(val);
@@ -2247,13 +2264,13 @@ public class BaseEntityService2 {
 		final String userRealmStr = getRealm();
 		Attribute result = null;
 
-		// try {
+		try {
 		result = (Attribute) getEntityManager()
 				.createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr")
 				.setParameter("code", code.toUpperCase()).setParameter("realmStr", userRealmStr).getSingleResult();
-		// } catch (javax.persistence.NoResultException e) {
-		// log.error("Could not find Attribute: "+code);
-		// }
+		 } catch (javax.persistence.NoResultException e) {
+		 log.error("Could not find Attribute: "+code);
+		 }
 
 		return result;
 	}
