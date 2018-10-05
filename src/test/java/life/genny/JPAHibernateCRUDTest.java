@@ -1032,7 +1032,7 @@ public void questionGroupTest()
 		 BaseEntity source = service.findBaseEntityByCode("PER_USER1");
 		getEm().getTransaction().begin();
 		List<Ask> asks = service.findAsks2(rootQuestion, source,  source,
-				false) ;
+				false, false) ;
 		getEm().getTransaction().commit();
 		
 		System.out.println("Asks:"+asks);
@@ -1082,7 +1082,7 @@ public void questionGroupTest()
 		 BaseEntity source = service.findBaseEntityByCode("PER_USER1");
 		getEm().getTransaction().begin();
 		List<Ask> asks = service.findAsks2(rootQuestion, source,  source,
-				false) ;
+				false, true) ;
 		getEm().getTransaction().commit();
 		
 		System.out.println("Asks:"+asks);
