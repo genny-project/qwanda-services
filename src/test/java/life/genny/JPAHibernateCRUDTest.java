@@ -137,9 +137,9 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
     final Answer answer = gson.fromJson(json, Answer.class);
     log.info("Answer loaded :" + answer);
-    final Long answerId = service.insert(answer);
+    service.insert(answer);
 
-    log.info("answerId=" + answerId);
+
 
     json = "{ " + "\"created\": \"2014-11-01T12:34:57+10:00\"," + "\"value\": \"Console\","
         + "\"expired\": false," + "\"refused\": false," + "\"weight\": 1," + "\"version\": 1,"
@@ -151,9 +151,9 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
     final Answer answer2 = gson.fromJson(json, Answer.class);
     log.info("Answer2 loaded :" + answer2);
-    final Long answerId2 = service.insert(answer2);
+   service.insert(answer2);
 
-    log.info("answerId2=" + answerId2);
+
 
     getEm().getTransaction().commit();
 
@@ -808,9 +808,9 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
     final Answer answer = gson.fromJson(json, Answer.class);
     log.info("Answer loaded :" + answer);
-    final Long answerId = service.insert(answer);
+    service.insert(answer);
 
-    log.info("answerId=" + answerId);
+
 
     BaseEntity user1 = service.findBaseEntityByCode("PER_USER1");
     BaseEntity testGroup = service.findBaseEntityByCode("GRP_TEST");
