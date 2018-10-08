@@ -2055,6 +2055,7 @@ public class BaseEntityService2 {
 					qq.getPk().getTargetCode());
 			existing.setMandatory(qq.getMandatory());
 			existing.setWeight(qq.getWeight());
+			existing.setReadonly(qq.getReadonly());
 			existing = getEntityManager().merge(existing);
 			return existing;
 		} catch (NoResultException e) {
@@ -3131,11 +3132,13 @@ public class BaseEntityService2 {
 	}
 
 	public List<Ask> findAsks(final Question rootQuestion, final BaseEntity source, final BaseEntity target) {
-		return findAsks(rootQuestion, source, target, false);
+		return findAsks(rootQuestion, source, target, false, false);
 	}
-
+    
+	/* Added boolean readonly value to the method which will support to add readonly parameter to the 
+	 * QuestionQuestions/Asks */
 	public List<Ask> findAsks(final Question rootQuestion, final BaseEntity source, final BaseEntity target,
-			Boolean childQuestionIsMandatory) {
+			Boolean childQuestionIsMandatory, Boolean childQuestionIsReadOnly) {
 		List<Ask> asks = new ArrayList<Ask>();
 
 		if (rootQuestion.getAttributeCode().equals(Question.QUESTION_GROUP_ATTRIBUTE_CODE)) {
@@ -3145,7 +3148,7 @@ public class BaseEntityService2 {
 			for (QuestionQuestion qq : qqList) {
 				String qCode = qq.getPk().getTargetCode();
 				Question childQuestion = findQuestionByCode(qCode);
-				asks.addAll(findAsks(childQuestion, source, target, qq.getMandatory()));
+				asks.addAll(findAsks(childQuestion, source, target, qq.getMandatory(), qq.getReadonly()));
 			}
 		} else {
 			// This is an actual leaf question, so we can create an ask ...
@@ -3155,10 +3158,13 @@ public class BaseEntityService2 {
 			if (!((myAsks == null) || (myAsks.isEmpty()))) {
 				ask = myAsks.get(0);
 				ask.setMandatory(rootQuestion.getMandatory() || childQuestionIsMandatory);
+				ask.setReadonly(rootQuestion.getReadonly() || childQuestionIsReadOnly); //setting readonly to asks
 			} else {
 				// create one
 				Boolean mandatory = rootQuestion.getMandatory() || childQuestionIsMandatory;
-				ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory);
+				Boolean readonly = rootQuestion.getReadonly() || childQuestionIsReadOnly;
+				
+				ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory, 0.0, false, false, readonly);
 				ask = upsert(ask); // save
 			}
 			asks.add(ask);
@@ -3168,22 +3174,23 @@ public class BaseEntityService2 {
 	}
 
 	public List<Ask> findAsks2(final Question rootQuestion, final BaseEntity source, final BaseEntity target) {
-		return findAsks2(rootQuestion, source, target, false);
+		return findAsks2(rootQuestion, source, target, false, false);
 	}
 
 	public List<Ask> findAsks2(final Question rootQuestion, final BaseEntity source, final BaseEntity target,
-			Boolean childQuestionIsMandatory) {
+			Boolean childQuestionIsMandatory, Boolean childQuestionIsReadonly) {
 		List<Ask> asks = new ArrayList<Ask>();
 		Boolean mandatory = rootQuestion.getMandatory() || childQuestionIsMandatory;
-
+		Boolean readonly = rootQuestion.getReadonly() || childQuestionIsReadonly;
 		Ask ask = null;
 		// check if this already exists?
 		List<Ask> myAsks = findAsksByQuestion(rootQuestion, source, target);
 		if (!((myAsks == null) || (myAsks.isEmpty()))) {
 			ask = myAsks.get(0);
 			ask.setMandatory(mandatory);
+			ask.setReadonly(readonly);
 		} else {
-			ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory);
+			ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory, 0.0, false, false, readonly);
 
 			// Now merge ask name if required
 			ask = performMerge(ask);
@@ -3202,7 +3209,7 @@ public class BaseEntityService2 {
 				Question childQuestion = findQuestionByCode(qCode);
 				List<Ask> askChildren = null;
 				try {
-					askChildren = findAsks2(childQuestion, source, target, qq.getMandatory());
+					askChildren = findAsks2(childQuestion, source, target, qq.getMandatory(), qq.getReadonly());
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
