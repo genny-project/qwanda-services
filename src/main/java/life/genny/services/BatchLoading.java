@@ -261,6 +261,9 @@ public class BatchLoading {
 		          BaseEntity be = null;
 		          try {
 		            attribute = service.findAttributeByCode(attributeCode);
+		            if (attribute == null) {
+		            	log.error(attributeCode+" is not in the Attribute Table!!!");
+		            } else {
 		            be = service.findBaseEntityByCode(baseEntityCode);
 		            Double weightField = null;
 		            try {
@@ -277,8 +280,11 @@ public class BatchLoading {
 		              e.printStackTrace();
 		            }
 		            service.updateWithAttributes(be);
-		          } catch (final NoResultException e) {
+		            }
 		          }
+		           catch (final NoResultException e) {
+		          }
+		          
 		} catch (Exception e1) {
 			String beCode = "BAD BE CODE";
 			if (baseEntityAttr != null) {

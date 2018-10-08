@@ -1402,13 +1402,10 @@ public class BaseEntityService2 {
 		QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(beSource.getCode(),
 				beTarget.getCode(), safeBe, getCurrentToken());
 		msg.setBe(safeBe);
-		Boolean changeEvent = false;
 		Boolean entityChanged = false;
 
 		for (Answer answer : answers) {
-			if ("LNK_LOAD_LISTS".equalsIgnoreCase(answer.getAttributeCode())) {
-				log.debug("LNK_LOAD_LISTS");
-			}
+			
 			try {
 				try {
 					Optional<EntityAttribute> optExisting = beTarget
@@ -1427,8 +1424,78 @@ public class BaseEntityService2 {
 
 					
 					// check that the codes exist
-					// attribute = findAttributeByCode(answer.getAttributeCode());
-					attribute = answer.getAttribute();
+					attribute = findAttributeByCode(answer.getAttributeCode());
+					if ((attribute == null) && (answer.getAttributeCode().startsWith("SRT_") || answer.getAttributeCode().startsWith("SCH_")))  {
+						attribute = new AttributeText(answer.getAttributeCode(),answer.getAttributeCode());
+						getEntityManager().persist(attribute);
+						
+					}
+					if (attribute == null) {
+							if (answer.getAttributeCode().startsWith("PRI_IS_")) {
+								attribute = new AttributeBoolean(answer.getAttributeCode(),
+										StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
+							} else {
+								if (answer.getDataType()!=null) {
+									switch (answer.getDataType()) {
+									case "java.lang.Integer":
+									case "Integer":
+										attribute = new AttributeInteger(answer.getAttributeCode(),
+												StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
+										break;
+									case "java.time.LocalDateTime":
+									case "LocalDateTime":
+										attribute = new AttributeDateTime(answer.getAttributeCode(),
+												StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
+										break;
+									case "java.lang.Long":
+									case "Long":
+										attribute = new AttributeLong(answer.getAttributeCode(),
+												StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
+										break;
+									case "java.time.LocalTime":
+									case "LocalTime":
+										attribute = new AttributeTime(answer.getAttributeCode(),
+												StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
+										break;
+									case "org.javamoney.moneta.Money":
+									case "Money":
+										attribute = new AttributeMoney(answer.getAttributeCode(),
+												StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
+										break;
+		
+									case "java.lang.Double":
+									case "Double":
+										attribute = new AttributeDouble(answer.getAttributeCode(),
+												StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
+										break;
+		
+									case "java.lang.Boolean":
+										attribute = new AttributeBoolean(answer.getAttributeCode(),
+												StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
+										break;
+		
+									case "java.time.LocalDate":
+										attribute = new AttributeDate(answer.getAttributeCode(),
+												StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
+										break;
+		
+		
+									case "java.lang.String":
+									default:
+										attribute = new AttributeText(answer.getAttributeCode(),
+												StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
+										break;
+		
+									}						
+									} else {
+							attribute = new AttributeText(answer.getAttributeCode(),
+									StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
+							}}
+							insert(attribute);
+						}
+
+					answer.setAttribute(attribute);
+					//attribute = answer.getAttribute();
 					if (answer.getAskId() != null) {
 						ask = findAskById(answer.getAskId());
 						if (!((answer.getSourceCode().equals(ask.getSourceCode()))
@@ -1445,7 +1512,12 @@ public class BaseEntityService2 {
 						msg.getBe().addAnswer(answer);
 						msg.setAnswer(answer);
 					}
-					getEntityManager().persist(answer);
+					try {
+						getEntityManager().persist(answer);
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 
 					// Check if answer represents a link only
 					if (attribute.getDataType().getClassName().startsWith("DTT_LINK_")) {
@@ -1464,6 +1536,7 @@ public class BaseEntityService2 {
 																									// with
 																									// soucr
 							// update(beTarget);
+						
 							if (answer.getAttributeCode().equalsIgnoreCase("PRI_NAME")) {
 								beTarget.setName(answer.getValue());
 							}
@@ -1545,8 +1618,7 @@ public class BaseEntityService2 {
 									msg.getBe().addAttribute(safeOne);
 								}
 
-								changeEvent = true; // flag it
-							}
+								}
 
 						} catch (final Exception e) {
 							// TODO Auto-generated catch block
@@ -1573,7 +1645,19 @@ public class BaseEntityService2 {
 
 	
 			if (entityChanged) {
-				beTarget = getEntityManager().merge(beTarget); // if nothing changed then no need to merge beTarget
+				
+				try {
+//					if (this.getEntityManager().contains(beTarget)) {
+//						log.info("EntityManager contains beTarget ok");
+//					} else {
+//						log.info("EntityManager DOES NOT contains beTarget ok");
+//					}
+					beTarget = getEntityManager().merge(beTarget); // if nothing changed then no need to merge beTarget
+					log.info("Merged "+beTarget);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				String json = JsonUtils.toJson(beTarget);
 				writeToDDT(beTarget.getCode(), json); // Update the DDT
 			}
@@ -1585,192 +1669,200 @@ public class BaseEntityService2 {
 		return 0L;
 	}
 
-	@Transactional
-	public Long insert(Answer answer) {
+//	@Transactional
+	public void insert(Answer answer) {
 
 		log.info("insert(Answer):" + answer.getSourceCode() + ":" + answer.getTargetCode() + ":"
 				+ answer.getAttributeCode() + ":" + StringUtils.abbreviateMiddle(answer.getValue(), "...", 30));
-		// always check if answer exists through check for unique code
-		BaseEntity beTarget = null;
-		BaseEntity beSource = null;
-		Attribute attribute = null;
-		Ask ask = null;
-
-		if (answer.getValue() == null) {
-			return -1L;
-		}
-		try {
-
-			try {
-				// check that the codes exist
-				beTarget = findBaseEntityByCode(answer.getTargetCode());
-				beSource = findBaseEntityByCode(answer.getSourceCode());
-				attribute = findAttributeByCode(answer.getAttributeCode());
-
-				Optional<EntityAttribute> optExisting = beTarget
-						.findEntityAttribute(answer.getAttributeCode());
-				Object old = null;
-				
-				if (optExisting.isPresent()) {
-					EntityAttribute existing = optExisting.get();
-					old = existing.getValue();
-					if (existing.getReadonly()) {
-						// do not save!
-						log.error("Trying to save an answer to a readonly entityattribute! "+existing);
-						return -1L;
-					}
-				}
-
-				
-				if (answer.getAskId() != null) {
-					ask = findAskById(answer.getAskId());
-					if (!((answer.getSourceCode().equals(ask.getSourceCode()))
-							&& (answer.getAttributeCode().equals(ask.getAttributeCode()))
-							&& (answer.getTargetCode().equals(ask.getTargetCode())))) {
-						log.error("Answer codes do not match Ask codes! " + answer);
-						// return -1L; // need to throw error
-					}
-				}
-
-				answer.setAttribute(attribute);
-
-				getEntityManager().persist(answer);
-
-				// Check if answer represents a link only
-				if (attribute.getDataType().getClassName().startsWith("DTT_LINK_")) {
-					// add a link
-					addLink(answer.getValue(), answer.getTargetCode(), attribute.getDataType().getTypeName(), "ANSWER",
-							answer.getWeight());
-				} else {
-
-					// update answerlink
-
-					AnswerLink answerLink = null;
-					try {
-						answerLink = beTarget.addAnswer(beSource, answer, answer.getWeight()); // TODo replace
-																								// with
-																								// soucr
-						// update(beTarget);
-						if (answer.getAttributeCode().equalsIgnoreCase("PRI_NAME")) {
-							beTarget.setName(answer.getValue());
-						}
-						beTarget = getEntityManager().merge(beTarget);
-						String json = JsonUtils.toJson(beTarget);
-						writeToDDT(beTarget.getCode(), json);
-
-						boolean sendAttributeChangeEvent = false;
-						if (!optExisting.isPresent()) {
-							sendAttributeChangeEvent = true;
-						}
-						if (optExisting.isPresent()) {
-							Object newOne = answerLink.getValue();
-							if ((newOne != null) && (old != null)) {
-								if (old.hashCode() != (newOne.hashCode())) {
-									sendAttributeChangeEvent = true;
-								}
-							} else {
-								if ((old != null) && (newOne == null)) {
-									sendAttributeChangeEvent = true;
-								}
-							}
-						}
-						if (sendAttributeChangeEvent && answer.getChangeEvent()) {
-							String oldValue = null;
-							if (old != null) {
-								if (answerLink.getValueMoney() != null) {
-									oldValue = JsonUtils.toJson(optExisting.get().getValue());
-								} else {
-									oldValue = old.toString();
-								}
-							}
-							if (answerLink == null) {
-								log.debug("answerLink is Null");
-							}
-							if (getCurrentToken() == null) {
-								log.debug("getCurrentToken is Null");
-							}
-							if (answerLink.getValue() == null) {
-								log.debug("answerLink.getValue() is Null");
-							}
-							if (answerLink.getTargetCode() == null) {
-								log.debug("answerLink.getTargetCode() is Null");
-							}
-							if (answerLink.getSourceCode() == null) {
-								log.debug("answerLink.getSourceCode() is Null");
-							}
-							// Hack: avoid stack overflow
-							Answer pojo = new Answer(answer.getSourceCode(), answer.getTargetCode(),
-									answer.getAttributeCode(), answer.getValue());
-							pojo.setWeight(answer.getWeight());
-							pojo.setInferred(answer.getInferred());
-							pojo.setExpired(answer.getExpired());
-							pojo.setRefused(answer.getRefused());
-							pojo.setAskId(answer.getAskId());
-
-							QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(pojo,
-									(oldValue), getCurrentToken());
-							Optional<EntityAttribute> optNewEA = beTarget
-									.findEntityAttribute(answer.getAttributeCode());
-
-							// EntityAttribute safeOne = new EntityAttribute(beTarget, attribute,
-							// answer.getWeight(),optNewEA.get().getValue());
-							// EntityAttribute safeOne = deepClone(optNewEA.get()); //new EntityAttribute();
-							EntityAttribute safeOne = new EntityAttribute();
-							safeOne.setAttribute(attribute);
-							safeOne.setAttributeCode(attribute.getCode());
-							safeOne.setAttributeName(attribute.getName());
-							safeOne.setBaseEntityCode(beTarget.getCode());
-							safeOne.setInferred(optNewEA.get().getInferred());
-							safeOne.setInferred(optNewEA.get().getPrivacyFlag());
-
-							safeOne.setValue(optNewEA.get().getValue());
-
-							BaseEntity safeBe = new BaseEntity(beTarget.getCode(), beTarget.getName());
-							Set<EntityAttribute> safeSet = new HashSet<EntityAttribute>();
-							safeSet.add(safeOne);
-							safeBe.setBaseEntityAttributes(safeSet);
-							// Add Links
-							safeBe.setLinks(beTarget.getLinks());
-
-							if (optNewEA.isPresent()) {
-								msg.setEa(safeOne);
-								msg.setBe(safeBe);
-							}
-							sendQEventAttributeValueChangeMessage(msg);
-							updateDDT(beTarget.getCode(), JsonUtils.toJson(beTarget));
-							log.debug("Sent Event Change Msg " + pojo);
-						}
-
-					} catch (final Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-
-			} catch (final EntityExistsException e) {
-				log.debug("Answer Insert EntityExistsException");
-				// so update otherwise // TODO merge?
-				Answer existing = findAnswerById(answer.getId());
-				existing.setRefused(answer.getRefused());
-				existing.setExpired(answer.getExpired());
-				existing.setWeight(answer.getWeight());
-				existing.setValue(answer.getValue());
-				existing = getEntityManager().merge(existing);
-				return existing.getId();
-
-			}
-		} catch (Exception transactionException) {
-			log.error("Transaction Exception in saving Answer" + answer);
-		}
-		log.debug("Saved Answer!");
-		return answer.getId();
+//		// always check if answer exists through check for unique code
+//		BaseEntity beTarget = null;
+//		BaseEntity beSource = null;
+//		Attribute attribute = null;
+//		Ask ask = null;
+//
+//		if (answer.getValue() == null) {
+//			return -1L;
+//		}
+//		try {
+//
+//			try {
+//				// check that the codes exist
+//				beTarget = findBaseEntityByCode(answer.getTargetCode());
+//				beSource = findBaseEntityByCode(answer.getSourceCode());
+//				attribute = findAttributeByCode(answer.getAttributeCode());
+//
+//				Optional<EntityAttribute> optExisting = beTarget
+//						.findEntityAttribute(answer.getAttributeCode());
+//				Object old = null;
+//				
+//				if (optExisting.isPresent()) {
+//					EntityAttribute existing = optExisting.get();
+//					old = existing.getValue();
+//					if (existing.getReadonly()) {
+//						// do not save!
+//						log.error("Trying to save an answer to a readonly entityattribute! "+existing);
+//						return -1L;
+//					}
+//				}
+//
+//				
+//				if (answer.getAskId() != null) {
+//					ask = findAskById(answer.getAskId());
+//					if (!((answer.getSourceCode().equals(ask.getSourceCode()))
+//							&& (answer.getAttributeCode().equals(ask.getAttributeCode()))
+//							&& (answer.getTargetCode().equals(ask.getTargetCode())))) {
+//						log.error("Answer codes do not match Ask codes! " + answer);
+//						// return -1L; // need to throw error
+//					}
+//				}
+//
+//				answer.setAttribute(attribute);
+//
+//				getEntityManager().persist(answer);
+//
+//				// Check if answer represents a link only
+//				if (attribute.getDataType().getClassName().startsWith("DTT_LINK_")) {
+//					// add a link
+//					addLink(answer.getValue(), answer.getTargetCode(), attribute.getDataType().getTypeName(), "ANSWER",
+//							answer.getWeight());
+//				} else {
+//
+//					// update answerlink
+//
+//					AnswerLink answerLink = null;
+//					try {
+//						answerLink = beTarget.addAnswer(beSource, answer, answer.getWeight()); // TODo replace
+//																								// with
+//																								// soucr
+//						// update(beTarget);
+//						if (answer.getAttributeCode().equalsIgnoreCase("PRI_NAME")) {
+//							beTarget.setName(answer.getValue());
+//						}
+//						beTarget = getEntityManager().merge(beTarget);
+//						String json = JsonUtils.toJson(beTarget);
+//						writeToDDT(beTarget.getCode(), json);
+//
+//						boolean sendAttributeChangeEvent = false;
+//						if (!optExisting.isPresent()) {
+//							sendAttributeChangeEvent = true;
+//						}
+//						if (optExisting.isPresent()) {
+//							Object newOne = answerLink.getValue();
+//							if ((newOne != null) && (old != null)) {
+//								if (old.hashCode() != (newOne.hashCode())) {
+//									sendAttributeChangeEvent = true;
+//								}
+//							} else {
+//								if ((old != null) && (newOne == null)) {
+//									sendAttributeChangeEvent = true;
+//								}
+//							}
+//						}
+//						if (sendAttributeChangeEvent && answer.getChangeEvent()) {
+//							String oldValue = null;
+//							if (old != null) {
+//								if (answerLink.getValueMoney() != null) {
+//									oldValue = JsonUtils.toJson(optExisting.get().getValue());
+//								} else {
+//									oldValue = old.toString();
+//								}
+//							}
+//							if (answerLink == null) {
+//								log.debug("answerLink is Null");
+//							}
+//							if (getCurrentToken() == null) {
+//								log.debug("getCurrentToken is Null");
+//							}
+//							if (answerLink.getValue() == null) {
+//								log.debug("answerLink.getValue() is Null");
+//							}
+//							if (answerLink.getTargetCode() == null) {
+//								log.debug("answerLink.getTargetCode() is Null");
+//							}
+//							if (answerLink.getSourceCode() == null) {
+//								log.debug("answerLink.getSourceCode() is Null");
+//							}
+//							// Hack: avoid stack overflow
+//							Answer pojo = new Answer(answer.getSourceCode(), answer.getTargetCode(),
+//									answer.getAttributeCode(), answer.getValue());
+//							pojo.setWeight(answer.getWeight());
+//							pojo.setInferred(answer.getInferred());
+//							pojo.setExpired(answer.getExpired());
+//							pojo.setRefused(answer.getRefused());
+//							pojo.setAskId(answer.getAskId());
+//
+//							QEventAttributeValueChangeMessage msg = new QEventAttributeValueChangeMessage(pojo,
+//									(oldValue), getCurrentToken());
+//							Optional<EntityAttribute> optNewEA = beTarget
+//									.findEntityAttribute(answer.getAttributeCode());
+//
+//							// EntityAttribute safeOne = new EntityAttribute(beTarget, attribute,
+//							// answer.getWeight(),optNewEA.get().getValue());
+//							// EntityAttribute safeOne = deepClone(optNewEA.get()); //new EntityAttribute();
+//							EntityAttribute safeOne = new EntityAttribute();
+//							safeOne.setAttribute(attribute);
+//							safeOne.setAttributeCode(attribute.getCode());
+//							safeOne.setAttributeName(attribute.getName());
+//							safeOne.setBaseEntityCode(beTarget.getCode());
+//							safeOne.setInferred(optNewEA.get().getInferred());
+//							safeOne.setInferred(optNewEA.get().getPrivacyFlag());
+//
+//							safeOne.setValue(optNewEA.get().getValue());
+//
+//							BaseEntity safeBe = new BaseEntity(beTarget.getCode(), beTarget.getName());
+//							Set<EntityAttribute> safeSet = new HashSet<EntityAttribute>();
+//							safeSet.add(safeOne);
+//							safeBe.setBaseEntityAttributes(safeSet);
+//							// Add Links
+//							safeBe.setLinks(beTarget.getLinks());
+//
+//							if (optNewEA.isPresent()) {
+//								msg.setEa(safeOne);
+//								msg.setBe(safeBe);
+//							}
+//							sendQEventAttributeValueChangeMessage(msg);
+//							updateDDT(beTarget.getCode(), JsonUtils.toJson(beTarget));
+//							log.debug("Sent Event Change Msg " + pojo);
+//						}
+//
+//					} catch (final Exception e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+//				}
+//
+//			} catch (final EntityExistsException e) {
+//				log.debug("Answer Insert EntityExistsException");
+//				// so update otherwise // TODO merge?
+//				Answer existing = findAnswerById(answer.getId());
+//				existing.setRefused(answer.getRefused());
+//				existing.setExpired(answer.getExpired());
+//				existing.setWeight(answer.getWeight());
+//				existing.setValue(answer.getValue());
+//				existing = getEntityManager().merge(existing);
+//				return existing.getId();
+//
+//			}
+//		} catch (Exception transactionException) {
+//			log.error("Transaction Exception in saving Answer" + answer);
+//		}
+//		log.debug("Saved Answer!");
+//		return answer.getId();
+		Answer[] answers = new Answer[1];
+		answers[0] = answer;
+		insert(answers);
+		
+		
 	}
 
 	@Transactional
 	public Long insert(final Attribute attribute) {
 		// always check if baseentity exists through check for unique code
 		try {
-			getEntityManager().persist(attribute);
+			Attribute existing = findAttributeByCode(attribute.getCode());
+			if (existing == null) {
+				getEntityManager().persist(attribute);
+			}
 
 			this.pushAttributes();
 		} catch (final ConstraintViolationException e) {
@@ -2007,6 +2099,9 @@ public class BaseEntityService2 {
 		try {
 			String code = attr.getCode();
 			Attribute val = findAttributeByCode(code);
+			if (val == null) {
+				throw new NoResultException();
+			}
 			BeanNotNullFields copyFields = new BeanNotNullFields();
 			copyFields.copyProperties(val, attr);
 			val = getEntityManager().merge(val);
@@ -2127,9 +2222,7 @@ public class BaseEntityService2 {
 	}
 
 	public BaseEntity findBaseEntityByCode(@NotNull final String baseEntityCode) throws NoResultException {
-		if ("CMP_EMSGROUP".equals(baseEntityCode)) {
-			log.info("CMP_EMSGROUP");
-		}
+
 		return findBaseEntityByCode(baseEntityCode, false);
 
 	}
@@ -2150,10 +2243,7 @@ public class BaseEntityService2 {
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())// .setParameter("flag", false)
 						.setParameter("realmStr", userRealmStr).getSingleResult();
 			} catch (Exception e) {
-				//log.error("Cannot find " + baseEntityCode + " in db ");
-				if ("GRP_ALL_CONTACTS".equalsIgnoreCase(baseEntityCode)) {
-					System.out.println("GRP_ADMIN_JOBS");
-				}
+
 				throw new NoResultException("Cannot find " + baseEntityCode + " in db! ");
 			}
 
@@ -2248,13 +2338,13 @@ public class BaseEntityService2 {
 		final String userRealmStr = getRealm();
 		Attribute result = null;
 
-		// try {
+		try {
 		result = (Attribute) getEntityManager()
 				.createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr")
 				.setParameter("code", code.toUpperCase()).setParameter("realmStr", userRealmStr).getSingleResult();
-		// } catch (javax.persistence.NoResultException e) {
-		// log.error("Could not find Attribute: "+code);
-		// }
+		 } catch (javax.persistence.NoResultException e) {
+		 log.warn("Could not find Attribute: "+code);
+		 }
 
 		return result;
 	}
