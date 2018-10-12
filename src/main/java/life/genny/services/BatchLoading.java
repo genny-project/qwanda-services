@@ -1,10 +1,8 @@
 package life.genny.services;
 
 import java.io.File;
-import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -24,7 +23,6 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
 import life.genny.qwanda.Ask;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
@@ -47,8 +45,8 @@ public class BatchLoading {
   /**
    * Stores logger object.
    */
-  protected static final Logger log = org.apache.logging.log4j.LogManager
-      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+  // protected static final Logger log = org.apache.logging.log4j.LogManager
+  // .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
   private BaseEntityService2 service;
 
@@ -243,7 +241,6 @@ public class BatchLoading {
             attributeCode =
                 ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");;
           } catch (Exception e2) {
-            log.error("AttributeCode not found [" + baseEntityAttr + "]");
           }
           String valueString = ((String) baseEntityAttr.get("valueString"));
           if (valueString != null) {
@@ -284,8 +281,6 @@ public class BatchLoading {
             if (baseEntityAttr != null) {
               beCode = (String) baseEntityAttr.get("baseEntityCode");
             }
-            log.error("Error in getting baseEntityAttr  for AttributeCode " + attributeCode
-                + " and beCode=" + beCode);
           }
 
         });
@@ -316,8 +311,6 @@ public class BatchLoading {
         sbe.addTarget(tbe, linkAttribute, weight, valueString);
         service.updateWithAttributes(sbe);
       } catch (final NoResultException e) {
-        log.warn(
-            "CODE NOT PRESENT IN LINKING: " + parentCode + ":" + targetCode + ":" + linkAttribute);
       } catch (final BadDataException e) {
         e.printStackTrace();
       } catch (final NullPointerException e) {
@@ -388,8 +381,6 @@ public class BatchLoading {
               }
 
             } catch (NullPointerException e) {
-              log.error("Cannot find QuestionQuestion targetCode:" + targetCode + ":parentCode:"
-                  + parentCode);
 
 
             }
@@ -646,24 +637,24 @@ public class BatchLoading {
   // // data.stream().forEach(System.out::println);
   // }
 
-  final static String DEPLOY_CODE = null;// System.getenv("DEPLOY_CODE") ;
+  final static String DEPLOY_CODE;// System.getenv("DEPLOY_CODE") ;
 
-  public static Optional<String> getEnvDeployCode() {
-    return Optional.ofNullable(DEPLOY_CODE);
+  static {
+    Optional<String> deployCode = Optional.ofNullable(System.getenv("DEPLOY_CODE"));
+    DEPLOY_CODE = deployCode.orElse("dev,prod");
   }
 
-  public static Stream<String> getDeployCode() {
-    return Stream
-        .of(getEnvDeployCode().map(code -> code.split("\\s*(,|\\s)\\s*")).orElse(new String[] {}));
+
+  public static Stream<String> splitedDeployCode() {
+    return Stream.of(Optional.ofNullable(DEPLOY_CODE).map(code -> code.split("\\s*(,|\\s)\\s*"))
+        .orElse(new String[] {}));
   }
 
   // Match any String from a sequence
-  public static boolean matchStringFromSequence(String seq1, String seq2) {
-    String splitRex = "\\s*(,|\\s)\\s*";
-    String[] arrStr = seq1.split(splitRex);
+  public static boolean matchStringFromSequence(String seq2) {
 
-    String patternRex =
-        "^$|" + getDeployCode().peek(System.out::println).map(data -> ".*(\\b" + data + "\\b).*")
+    String patternRex = "^$|"
+        + splitedDeployCode().peek(System.out::println).map(data -> ".*(\\b" + data + "\\b).*")
             .reduce((first, second) -> first + "|" + second).orElse("");
 
     Pattern p = Pattern.compile(patternRex);// . represents single
@@ -671,36 +662,44 @@ public class BatchLoading {
     return m.matches();
   }
 
-  static Function<Entry<String, Object>, HashMap<String, Object>> recordsFil = table -> {
-    Object recordsFiltered = parseToHashMap(table.getValue()).entrySet().stream()
-        .filter(data -> true).map(rec -> new HashMap<String, Object>() {
-          {
-            put(rec.getKey().toString(), rec.getValue());
-          }
-        })
-        .reduce((first, second) -> {
-          first.putAll(second);
-          return first;
-        })
-        .orElse(new HashMap<String, Object>());
-    return new HashMap<String, Object>() {
-      {
-        put(table.getKey(), recordsFiltered);
-      }
-    };
-  };
+  // static Function<Entry<String, Object>, HashMap<String, Object>> recordsFil = table -> {
+  // Object recordsFiltered = parseToHashMap(table.getValue()).entrySet().stream()
+  // .filter(data -> true).map(rec -> new HashMap<String, Object>() {
+  // {
+  // put(rec.getKey().toString(), rec.getValue());
+  // }
+  // }).reduce((first, second) -> {
+  // first.putAll(second);
+  // return first;
+  // }).orElse(new HashMap<String, Object>());
+  // return new HashMap<String, Object>() {
+  // {
+  // put(table.getKey(), recordsFiltered);
+  // }
+  // };
+  // };
 
-  public static void main(String... strings) {
-    BatchLoading bl = new BatchLoading(null);
-    Map<String, Object> tables = bl.getProject();
-    Map<String, Object> tabl =
-        tables.entrySet().stream().map(recordsFil::apply).reduce((firstMap, secondMap) -> {
-          firstMap.putAll(secondMap);
-          return firstMap;
-        }).get();
+  public static void main(String[] args) {
 
-    System.out.println(tables.equals(tabl));
-    tabl.entrySet().stream().forEach(System.out::println);
+    // String patternRex =
+    // "^$|" + getDeployCode().peek(System.out::println).map(data -> ".*(\\b" + data + "\\b).*")
+    // .reduce((first, second) -> first + "|" + second).orElse("");
+    //
+    // System.out.println(patternRex);
+    // System.out.println(matchStringFromSequence(""));
+
+    // BatchLoading bl = new BatchLoading(null);
+    // Map<String, Object> tables = bl.getProject();
+    // Map<String, Object> tabl =
+    // tables.entrySet().stream().map(recordsFil::apply).reduce((firstMap, secondMap) -> {
+    // firstMap.putAll(secondMap);
+    // return firstMap;
+    // }).get();
+    //
+    // System.out.println(tables.equals(tabl));
+    // tabl.entrySet().stream().forEach(System.out::println);
+
+
     // String str = "Byron, Andres, Aguirre".trim().toLowerCase();
     //
     // String[] arrStr = getDeployCode().get().split("\\s*(,|\\s)\\s*");
@@ -716,7 +715,24 @@ public class BatchLoading {
     // Matcher m = p.matcher("byron ".trim());
     // boolean b = m.matches();
     // System.out.println(b);
+
+    filterProject();
+    // String deployCode = "dev,prod";
+    // filterRowsByDeployCode(deployCode);
+
   }
+
+  public static void filterRowsByDeployCode(String deployCode) {
+    String[] vals = normalize(deployCode);
+
+    filterRows();
+  };
+
+  public static String[] normalize(String deployCode) {
+    return new String[] {};
+  };
+
+  public static void filterRows() {};
 
   /**
    * @param strings
@@ -724,54 +740,97 @@ public class BatchLoading {
   // final static String DEPLOY_CODE = System.getenv("DEPLOY_CODE");
 
   // 25
-  public static void filterProject() {
-    BatchLoading bl = new BatchLoading(null);
-    Map<String, Object> tables = bl.getProject();
-    Map<String, Object> tablesFiltered = tables.entrySet().stream().map(table -> {
-      HashMap<String, Object> records = (HashMap<String, Object>) table.getValue();
-      HashMap<String, Object> recordsFiltered =
-          (HashMap<String, Object>) records.entrySet().stream().filter(record -> {
-            HashMap<String, Object> fields = (HashMap<String, Object>) record.getValue();
-            return fields.entrySet().stream().allMatch(field -> {
-              String key = field.getKey();
-              String val = (String) field.getValue();
-              if (key.equals("deploy_code"))
-                return (val.equals("") || val.equals(DEPLOY_CODE)) ? true : false;
-              else
-                return true;
-            });
-          }).map(recordFiltered -> {
-            return new HashMap<String, Object>() {
-              {
-                put(recordFiltered.getKey(), recordFiltered.getValue());
-              }
-            };
-          }).reduce((first, second) -> {
-            first.putAll(second);
-            return first;
-          }).get();
-      return new HashMap<String, Object>() {
-        {
-          put(table.getKey(), recordsFiltered);
-        }
-      };
-    }).reduce((firstMap, secondMap) ->
 
-    {
-      firstMap.putAll(secondMap);
-      return firstMap;
-    }).get();
+  public static HashMap<String, Object> toMap(Object map) {
+    return (HashMap<String, Object>) map;
   }
 
-  static BiPredicate<? super Entry<String, Object>, String> isRecordAllowed =
-      (field, columnKey) -> {
+  public static Map<String, Object> filterProject() {
+    // Initiate object with spreadsheet id and secret
+    BatchLoading bl = new BatchLoading(null);
+
+    // Get project Spreadsheet with all tables BaseEntity, Attribute, etc.
+    Map<String, Object> tables = bl.getProject();
+
+    // Prepare Stream
+    Stream<Entry<String, Object>> streamTables = tables.entrySet().stream();
+
+    // Object with values filtered by Deploy_Code
+    Map<String, Object> tablesFiltered;
+
+    // Test if filtered values are allowed predicate
+    Predicate<Entry<String, Object>> isAllowed = record -> {
+      Map<String, Object> fields = toMap(record.getValue());
+      return fields.entrySet().stream().allMatch(field -> {
         String key = field.getKey();
         String val = (String) field.getValue();
-        if (key.equals(columnKey))
+        System.out.println(key);
+        if (key.equals("deploy_code")) {
+          return matchStringFromSequence(val) ? true : false;
+        } else
+          return true;
+      });
+    };
+
+    Predicate<Entry<String, Object>> isColumnDeployCode = record -> {
+      Map<String, Object> fields = toMap(record.getValue());
+      return fields.entrySet().stream().allMatch(field -> {
+        String key = field.getKey();
+        String val = (String) field.getValue();
+        if (key.equals("deploy_code"))
           return (val.equals("") || val.equals(DEPLOY_CODE)) ? true : false;
         else
           return true;
-      };
+      });
+    };
+
+
+
+    Function<Entry<String, Object>, Map<String, Object>> allowedRecords = (allowedRecord) -> {
+      Map<String, Object> record = new HashMap<String, Object>();
+      record.put(allowedRecord.getKey(), allowedRecord.getValue());
+      return record;
+    };
+
+    BinaryOperator<Map<String, Object>> putonMap = (first, second) -> {
+      first.putAll(second);
+      return first;
+    };
+
+    BiFunction<Entry<String, Object>, Map<String, Object>, Map<String, Object>> reduced =
+        (table, mapper) -> {
+          return new HashMap<String, Object>() {
+            {
+              put(table.getKey(), mapper);
+            };
+          };
+        };
+
+    Function<Entry<String, Object>, Map<String, Object>> tablesEntry = table -> {
+      Map<String, Object> records = toMap(table.getValue());
+
+      return records.entrySet().stream().filter(isAllowed).map(allowedRecords).reduce(putonMap)
+          .map(val -> reduced.apply(table, val)).get();
+    };
+
+
+    tablesFiltered = streamTables.map(tablesEntry).reduce((firstMap, secondMap) -> {
+      firstMap.putAll(secondMap);
+      return firstMap;
+    }).get();
+
+    return tablesFiltered;
+  }
+
+//  static BiPredicate<? super Entry<String, Object>, String> isRecordAllowed =
+//      (field, columnKey) -> {
+//        String key = field.getKey();
+//        String val = (String) field.getValue();
+//        if (key.equals(columnKey))
+//          return (val.equals("") || val.equals(DEPLOY_CODE)) ? true : false;
+//        else
+//          return true;
+//      };
 
   // public void function1(){}
   // map.entrySet().Stream().map(fuction2)
@@ -818,22 +877,22 @@ public class BatchLoading {
   //
 
 
-  Function<HashMap<String, Object>, Stream> getTable = table -> {
-    HashMap<String, Object> records = (HashMap<String, Object>) table;
-    Stream<HashMap<String, Object>> recordsFiltered = records.entrySet().stream().filter(record -> {
-      HashMap<String, Object> fields = (HashMap<String, Object>) record.getValue();
-      boolean isAllsatisfied =
-          fields.entrySet().stream().allMatch(field -> isRecordAllowed.test(field, null));
-      return isAllsatisfied;
-    }).map(recordFiltered -> {
-      return new HashMap<String, Object>() {
-        {
-          put(recordFiltered.getKey(), recordFiltered.getValue());
-        }
-      };
-    });
-    return null;
-  };
+//  Function<HashMap<String, Object>, Stream> getTable = table -> {
+//    HashMap<String, Object> records = (HashMap<String, Object>) table;
+//    Stream<HashMap<String, Object>> recordsFiltered = records.entrySet().stream().filter(record -> {
+//      HashMap<String, Object> fields = (HashMap<String, Object>) record.getValue();
+//      boolean isAllsatisfied =
+//          fields.entrySet().stream().allMatch(field -> isRecordAllowed.test(field, null));
+//      return isAllsatisfied;
+//    }).map(recordFiltered -> {
+//      return new HashMap<String, Object>() {
+//        {
+//          put(recordFiltered.getKey(), recordFiltered.getValue());
+//        }
+//      };
+//    });
+//    return null;
+//  };
 
   public static void extractFields(Stream<Object> map) {
     Stream<Object> m = parseToHashMap(map).entrySet().stream().map(data -> data.getValue());
@@ -946,7 +1005,6 @@ public class BatchLoading {
         break;
       } catch (Exception ee) { // java.util.NoSuchElementException e |
                                // java.net.SocketTimeoutException ee
-        log.error("Load from Google Doc failed, trying again in 3 sec");
         try {
           Thread.sleep(3000);
         } catch (InterruptedException e1) {
@@ -1014,12 +1072,9 @@ public class BatchLoading {
         genny.put("messages", messages);
         break;
       } catch (Exception e) {
-        log.error("Failed to download Google Docs Configuration ... , will retry , trys left="
-            + numOfTries);
         try {
           Thread.sleep(10000);
         } catch (InterruptedException e1) {
-          log.error("sleep exception..");
         } // sleep for 10 secs
       }
 
@@ -1027,8 +1082,7 @@ public class BatchLoading {
     }
 
     if (numOfTries <= 0)
-      log.error("Failed to download Google Docs Configuration ... given up ...");
-
+      System.out.println();
     return genny;
   }
 
@@ -1120,7 +1174,6 @@ public class BatchLoading {
       templateObj.setToast_template(toastTemplate);
 
       if (StringUtils.isBlank(name)) {
-        log.error("Empty Name");
       } else {
         try {
           QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
@@ -1140,13 +1193,11 @@ public class BatchLoading {
             }
 
           } catch (Exception e) {
-            log.error("Cannot update QDataMSGMessage " + code);
           }
         } catch (NoResultException e1) {
           Long id = service.insert(templateObj);
           System.out.println("message id ::" + id);
         } catch (Exception e) {
-          log.error("Cannot add MessageTemplate");
 
         }
         // try {

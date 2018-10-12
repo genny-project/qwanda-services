@@ -19,7 +19,7 @@
 		<jar.finalName>${project.name}</jar.finalName>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<qwanda-utils.version>1.0.47</qwanda-utils.version>
+		<qwanda-utils.version>1.0.98</qwanda-utils.version>
 
 		<!--java version -->
 		<java-version>1.8</java-version>
@@ -60,10 +60,10 @@
 		<m2e.jpa.activation>false</m2e.jpa.activation>
 
 	</properties>
-
+<!-- 
 	<scm>
 		<url>https://github.com/genny-project/qwanda-utils</url>
-	</scm>
+	</scm> -->
 
 	<ciManagement>
 		<system>jenkins</system>
