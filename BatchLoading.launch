@@ -7,7 +7,7 @@
 <listEntry value="1"/>
 </listAttribute>
 <mapAttribute key="org.eclipse.debug.core.environmentVariables">
-<mapEntry key="DEPLOY_CODE" value="dev prod alwy anish byron"/>
+<mapEntry key="DEPLOY_CODE_VALUES" value="dev prod alwy anish jay"/>
 </mapAttribute>
 <booleanAttribute key="org.eclipse.debug.ui.ATTR_APPEND_TO_FILE" value="true"/>
 <stringAttribute key="org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE" value="/Users/helios/projects/genny/qwanda-services/logs"/>

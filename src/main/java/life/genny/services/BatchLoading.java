@@ -68,6 +68,51 @@ public class BatchLoading {
 
   public static Map<String, Object> savedProjectData;
 
+  
+  
+  public void swha(Map<String, Object> project) {
+    if (project.get("validations") == null)
+      return;
+    ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+    Validator validator = factory.getValidator();
+    
+    ((HashMap<String, HashMap>) project.get("validations")).entrySet().stream().forEach(data -> {
+      Map<String, Object> validations = data.getValue();
+      String regex = null;
+
+      regex = ((String) validations.get("regex"));
+      if (regex != null) {
+        regex = regex.replaceAll("^\"|\"$", "");
+      }
+      String code = ((String) validations.get("code")).replaceAll("^\"|\"$", "");;
+      if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
+        System.out.println("detected VLD_AU_DRIVER_LICENCE_NO");
+      }
+      String name = ((String) validations.get("name")).replaceAll("^\"|\"$", "");;
+      String recursiveStr = ((String) validations.get("recursive"));
+      String multiAllowedStr = ((String) validations.get("multi_allowed"));
+      String groupCodesStr = ((String) validations.get("group_codes"));
+      Boolean recursive = getBooleanFromString(recursiveStr);
+      Boolean multiAllowed = getBooleanFromString(multiAllowedStr);
+
+      Validation val = null;
+
+      if (code.startsWith(Validation.getDefaultCodePrefix() + "SELECT_")) {
+        val = new Validation(code, name, groupCodesStr, recursive, multiAllowed);
+      } else {
+        val = new Validation(code, name, regex);
+
+      }
+      System.out.print("code " + code + ",name:" + name + ",val:" + val + ", grp="
+          + (groupCodesStr != null ? groupCodesStr : "X"));
+
+      Set<ConstraintViolation<Validation>> constraints = validator.validate(val);
+      for (ConstraintViolation<Validation> constraint : constraints) {
+        System.out.println(constraint.getPropertyPath() + " " + constraint.getMessage());
+      }
+      service.upsert(val);
+    });
+  }
   /**
    * Upsert Validation to database
    * 
@@ -488,18 +533,6 @@ public class BatchLoading {
     });
   }
 
-
-  // public void main(String... args) {
-  // emf = Persistence.createEntityManagerFactory("mysql");
-  // em = emf.createEntityManager();
-  // service = new BaseEntityService(em);
-  // em.getTransaction().begin();
-  // persistProject();
-  // em.getTransaction().commit();
-  // em.close();
-  // }
-
-
   public static void filterRawsSpreadSheet(String deployCode, HashMap<String, Object> records) {
     // records.entrySet().stream().allMatch(predicate)
   }
@@ -536,421 +569,13 @@ public class BatchLoading {
     return lastProject;
   }
 
-  // public static void main(String...strings) {
-  // Stream<Integer> streamIterated = Stream.iterate(40, n -> n + 2).limit(20);
-  // IntStream intStream = IntStream.range(1, 3);
-  // LongStream longStream = LongStream.rangeClosed(1, 3);
-  // IntStream streamOfChars = "abc".chars();
-  // Stream<String> streamOfString =
-  // Pattern.compile(", ").splitAsStream("a, b, c");
-  // streamOfString.forEach(System.out::println);
-  //
-  // // Stream<String> stream =
-  // // Stream.of("a", "b", "c").filter(element -> element.contains("b"));
-  // // Optional<String> anyElement = stream.findAny();
-  //
-  // List<String> elements =
-  // Stream.of("a", "b", "c").filter(element -> element.contains("b"))
-  // .collect(Collectors.toList());
-  // Optional<String> anyElement = elements.stream().findAny();
-  // Optional<String> firstElement = elements.stream().findFirst();
-  //
-  // Stream<String> onceModifiedStream =
-  // Stream.of("abcd", "bbcd", "cbcd").skip(1);
-  // }
 
-  // public static void main(String... strings) {
-  // BatchLoading bl = new BatchLoading(null);
-  // Map<String, Object> tables = bl.getProject();
-  //
-  // System.out.println();
-  // System.out.println();
-  // System.out.println();
-  // System.out.println();
-  //
-  // /* Extract all tables from the spreadsheets */
-  // Map<String, Object> project = tables.entrySet().stream().map(table -> {
-  // // System.out.println(tables);
-  // //System.out.println("------------table--------------" + table.getKey());
-  // Map<String, Object> records = (HashMap) table.getValue();
-  // /* Extracts all rows from the table */
-  // Map<String, Object> recordsFiltered = records.entrySet().stream().map(record -> {
-  // //System.out.println("------------record--------------" + record.getKey());
-  // /* Extracts data from the rows */
-  // Map<String, Object> fields = (HashMap) record.getValue();
-  // Map<String, Object> recordFiltered = fields.entrySet().stream().filter(field ->{
-  // String key = field.getKey();
-  // String val = (String)field.getValue();
-  // return (key.equals("deploy_code") && val.equals("") && !val.equals(DEPLOY_CODE));
-  // }).map(pair ->{
-  // Map<String, Object> mapPair = new HashMap <String, Object>();
-  // mapPair.put(pair.getKey(), pair.getValue());
-  // return mapPair;
-  // }).reduce((first, second) ->{
-  // first.putAll(second);
-  // return first;
-  // }).get();
-  // Map<String, Object> superPair = new HashMap <String, Object>();
-  // superPair.put(record.getKey(), recordFiltered);
-  // return superPair;
-  // }).reduce((first, second) ->{
-  // first.putAll(second);
-  // return first;
-  // }).get();;
-  // Map<String,Object> newTables = new HashMap<String, Object>();
-  // newTables.put(table.getKey(), recordsFiltered);
-  // return newTables;
-  // }).reduce((first, second) ->{
-  // first.putAll(second);
-  // return first;
-  // }).get();
-  //
-  // System.out.println(project);
-  // System.out.println();
-  // System.out.println((project.equals(tables)));
-  // System.out.println();
-  // System.out.println((tables));
-  //
-  // // field.getKey().equals("deploy_code") && !field.getValue().equals("")
-  // // && !field.getValue().equals(DEPLOY_CODE);
-  //
-  // // data.stream().map(pair -> {
-  // // HashMap<String, Object> subPair = (HashMap) pair.get("baseEntitys");
-  // // subPair.keySet().forEach(act -> {
-  // // HashMap<String, Object> subData = (HashMap) subPair.get(act);
-  // // if (subData.get("deploy_code") == "")
-  // // System.out.println("false");
-  // // else
-  // // subPair.remove(act);
-  // // });
-  // // //System.out.println(subPair+"-----");
-  // // return subPair;
-  // // }).reduce((one,two) ->{
-  // // System.out.println(one+"---");
-  // // System.out.println(two+"+++");
-  // // return null;
-  // // }).get();//;;
-  // // }).reduce((one,two) ->{
-  // // return new HashMap<String,Object>().put(kk, value)
-  // // });
-  //
-  // // data.stream().forEach(System.out::println);
-  // }
-
-  final static String DEPLOY_CODE;// System.getenv("DEPLOY_CODE") ;
-
-  static {
-    Optional<String> deployCode = Optional.ofNullable(System.getenv("DEPLOY_CODE"));
-    DEPLOY_CODE = deployCode.orElse("dev,prod");
-  }
-
-
-  public static Stream<String> splitedDeployCode() {
-    return Stream.of(Optional.ofNullable(DEPLOY_CODE).map(code -> code.split("\\s*(,|\\s)\\s*"))
-        .orElse(new String[] {}));
-  }
-
-  // Match any String from a sequence
-  public static boolean matchStringFromSequence(String seq2) {
-
-    String patternRex = "^$|"
-        + splitedDeployCode().peek(System.out::println).map(data -> ".*(\\b" + data + "\\b).*")
-            .reduce((first, second) -> first + "|" + second).orElse("");
-
-    Pattern p = Pattern.compile(patternRex);// . represents single
-    Matcher m = p.matcher(seq2.trim());
-    return m.matches();
-  }
-
-  // static Function<Entry<String, Object>, HashMap<String, Object>> recordsFil = table -> {
-  // Object recordsFiltered = parseToHashMap(table.getValue()).entrySet().stream()
-  // .filter(data -> true).map(rec -> new HashMap<String, Object>() {
-  // {
-  // put(rec.getKey().toString(), rec.getValue());
-  // }
-  // }).reduce((first, second) -> {
-  // first.putAll(second);
-  // return first;
-  // }).orElse(new HashMap<String, Object>());
-  // return new HashMap<String, Object>() {
-  // {
-  // put(table.getKey(), recordsFiltered);
-  // }
-  // };
-  // };
-
-  public static void main(String[] args) {
-
-    // String patternRex =
-    // "^$|" + getDeployCode().peek(System.out::println).map(data -> ".*(\\b" + data + "\\b).*")
-    // .reduce((first, second) -> first + "|" + second).orElse("");
-    //
-    // System.out.println(patternRex);
-    // System.out.println(matchStringFromSequence(""));
-
-    // BatchLoading bl = new BatchLoading(null);
-    // Map<String, Object> tables = bl.getProject();
-    // Map<String, Object> tabl =
-    // tables.entrySet().stream().map(recordsFil::apply).reduce((firstMap, secondMap) -> {
-    // firstMap.putAll(secondMap);
-    // return firstMap;
-    // }).get();
-    //
-    // System.out.println(tables.equals(tabl));
-    // tabl.entrySet().stream().forEach(System.out::println);
-
-
-    // String str = "Byron, Andres, Aguirre".trim().toLowerCase();
-    //
-    // String[] arrStr = getDeployCode().get().split("\\s*(,|\\s)\\s*");
-    //
-    // System.out.println(arrStr.length);
-    //
-    // String st = "^$|" + Arrays.asList(arrStr).stream().map(data -> ".*(\\b" + data + "\\b).*")
-    // .reduce((first, second) -> first + "|" + second).get();
-    //
-    // Pattern p = Pattern.compile(st);// . represents single
-    // System.out.println("Stream from string: " + st);
-    // // character
-    // Matcher m = p.matcher("byron ".trim());
-    // boolean b = m.matches();
-    // System.out.println(b);
-
-    filterProject();
-    // String deployCode = "dev,prod";
-    // filterRowsByDeployCode(deployCode);
-
-  }
-
-  public static void filterRowsByDeployCode(String deployCode) {
-    String[] vals = normalize(deployCode);
-
-    filterRows();
-  };
-
-  public static String[] normalize(String deployCode) {
-    return new String[] {};
-  };
-
-  public static void filterRows() {};
-
-  /**
-   * @param strings
-   */
-  // final static String DEPLOY_CODE = System.getenv("DEPLOY_CODE");
-
-  // 25
-
-  public static HashMap<String, Object> toMap(Object map) {
-    return (HashMap<String, Object>) map;
-  }
-
-  public static Map<String, Object> filterProject() {
-    // Initiate object with spreadsheet id and secret
-    BatchLoading bl = new BatchLoading(null);
-
-    // Get project Spreadsheet with all tables BaseEntity, Attribute, etc.
-    Map<String, Object> tables = bl.getProject();
-
-    // Prepare Stream
-    Stream<Entry<String, Object>> streamTables = tables.entrySet().stream();
-
-    // Object with values filtered by Deploy_Code
-    Map<String, Object> tablesFiltered;
-
-    // Test if filtered values are allowed predicate
-    Predicate<Entry<String, Object>> isAllowed = record -> {
-      Map<String, Object> fields = toMap(record.getValue());
-      return fields.entrySet().stream().allMatch(field -> {
-        String key = field.getKey();
-        String val = (String) field.getValue();
-        System.out.println(key);
-        if (key.equals("deploy_code")) {
-          return matchStringFromSequence(val) ? true : false;
-        } else
-          return true;
-      });
-    };
-
-    Predicate<Entry<String, Object>> isColumnDeployCode = record -> {
-      Map<String, Object> fields = toMap(record.getValue());
-      return fields.entrySet().stream().allMatch(field -> {
-        String key = field.getKey();
-        String val = (String) field.getValue();
-        if (key.equals("deploy_code"))
-          return (val.equals("") || val.equals(DEPLOY_CODE)) ? true : false;
-        else
-          return true;
-      });
-    };
-
-
-
-    Function<Entry<String, Object>, Map<String, Object>> allowedRecords = (allowedRecord) -> {
-      Map<String, Object> record = new HashMap<String, Object>();
-      record.put(allowedRecord.getKey(), allowedRecord.getValue());
-      return record;
-    };
-
-    BinaryOperator<Map<String, Object>> putonMap = (first, second) -> {
-      first.putAll(second);
-      return first;
-    };
-
-    BiFunction<Entry<String, Object>, Map<String, Object>, Map<String, Object>> reduced =
-        (table, mapper) -> {
-          return new HashMap<String, Object>() {
-            {
-              put(table.getKey(), mapper);
-            };
-          };
-        };
-
-    Function<Entry<String, Object>, Map<String, Object>> tablesEntry = table -> {
-      Map<String, Object> records = toMap(table.getValue());
-
-      return records.entrySet().stream().filter(isAllowed).map(allowedRecords).reduce(putonMap)
-          .map(val -> reduced.apply(table, val)).get();
-    };
-
-
-    tablesFiltered = streamTables.map(tablesEntry).reduce((firstMap, secondMap) -> {
-      firstMap.putAll(secondMap);
-      return firstMap;
-    }).get();
-
-    return tablesFiltered;
-  }
-
-//  static BiPredicate<? super Entry<String, Object>, String> isRecordAllowed =
-//      (field, columnKey) -> {
-//        String key = field.getKey();
-//        String val = (String) field.getValue();
-//        if (key.equals(columnKey))
-//          return (val.equals("") || val.equals(DEPLOY_CODE)) ? true : false;
-//        else
-//          return true;
-//      };
-
-  // public void function1(){}
-  // map.entrySet().Stream().map(fuction2)
-  //
-  //// function2 = table -> {
-  // HashMap<String, Object> records = (HashMap<String, Object>) table.getValue();
-  // Stream<HashMap<String, Object>> recordsFiltered =
-  // records.entrySet().stream().filter(record -> {
-  // HashMap<String, Object> fields = (HashMap<String, Object>) record.getValue();
-  // boolean isAllsatisfied = fields.entrySet().stream()
-  // .allMatch(field -> isRecordAllowed.test(field, columnKey));
-  // return isAllsatisfied;
-  // }).map(recordFiltered -> {
-  // return new HashMap<String, Object>() {
-  // {
-  // put(recordFiltered.getKey(), recordFiltered.getValue());
-  // }
-  // };
-  // });
-  // HashMap<String, Object> recordsReduced = recordsFiltered.reduce((first, second) -> {
-  // first.putAll(second);
-  // return first;
-  // }).get();
-  // return new HashMap<String, Object>() {
-  // {
-  // put(table.getKey(), recordsReduced);
-  // }
-  // };
-  // }
-  //
-  //
-  //
-  //
-  //
-  //
-  //
-  //
-  //
-  //
-  //
-  //
-  //
-  //
-  //
-
-
-//  Function<HashMap<String, Object>, Stream> getTable = table -> {
-//    HashMap<String, Object> records = (HashMap<String, Object>) table;
-//    Stream<HashMap<String, Object>> recordsFiltered = records.entrySet().stream().filter(record -> {
-//      HashMap<String, Object> fields = (HashMap<String, Object>) record.getValue();
-//      boolean isAllsatisfied =
-//          fields.entrySet().stream().allMatch(field -> isRecordAllowed.test(field, null));
-//      return isAllsatisfied;
-//    }).map(recordFiltered -> {
-//      return new HashMap<String, Object>() {
-//        {
-//          put(recordFiltered.getKey(), recordFiltered.getValue());
-//        }
-//      };
-//    });
-//    return null;
-//  };
-
-  public static void extractFields(Stream<Object> map) {
-    Stream<Object> m = parseToHashMap(map).entrySet().stream().map(data -> data.getValue());
-  }
-
-  static Function<Object, Stream<Object>> reducing = table -> {
-
-    return Stream.of(table);
-  };
-
-  // public static void extractFields(HashMap<String, Object> map) {
-  // BatchLoading bl = new BatchLoading(null);
-  // bl.getProject().entrySet().parallelStream().map(mapper);
-  // }
-  public static HashMap<String, Object> parseToHashMap(Object obj) {
-    return (HashMap<String, Object>) obj;
-  }
-
-  // table -> {
-  // HashMap<String, Object> records = parseToHashMap(table.getValue());
-  // Stream<HashMap<String, Object>> recordsFiltered =
-  // records.entrySet().stream().filter(record -> {
-  // HashMap<String, Object> fields = parseToHashMap(record.getValue());
-  // boolean isAllsatisfied = fields.entrySet().stream()
-  // .allMatch(field -> isRecordAllowed.test(field, columnKey));
-  // return isAllsatisfied;
-  // }).map(recordFiltered -> {
-  // return new HashMap<String, Object>() {
-  // {
-  // put(recordFiltered.getKey(), recordFiltered.getValue());
-  // }
-  // };
-  // });
-  // HashMap<String, Object> recordsReduced = recordsFiltered.reduce((first, second) -> {
-  // first.putAll(second);
-  // return first;
-  // }).get();
-  // return new HashMap<String, Object>() {
-  // {
-  // put(table.getKey(), recordsReduced);
-  // }
-  // };
-  // }
-  // public static void filterProject(String columnKey) {
-  // BatchLoading bl = new BatchLoading(null);
-  // Map<String, Object> tables = bl.getProject();
-  // ltered = tables.values().stream().map(reducing::apply).reduce();
-  // tablesFiltered.reduce((firstMap, secondMap) -> {
-  // firstMap.putAll(secondMap);
-  // return firstMap;
-  // }).get();
-  // }
   /**
    * Call functions named after the classes
    */
   public void persistProject() {
     System.out.println("Persisting Project in BatchLoading");
-    Map<String, Object> lastProject = getProject();
+    Map<String, Object> lastProject = getallFilteredtables();
     savedProjectData = lastProject;
     System.out.println("+++++++++ About to load Questions +++++++++++++");
     validations(lastProject);
@@ -1230,6 +855,137 @@ public class BatchLoading {
     }
     return false;
 
+  }
+
+
+
+  public static void main(String[] args) {
+    BatchLoading bl = new BatchLoading(null);
+     Map<String, Object> getallFilteredtables = bl.getallFilteredtables();
+     System.out.println(getallFilteredtables.equals(bl.tables));
+     bl.tables.entrySet().forEach(System.out::println);
+     System.out.println();
+     System.out.println();
+     getallFilteredtables.entrySet().forEach(System.out::println);
+    // BatchLoading bl = new BatchLoading(null);
+    //
+//     System.out.println(bl.matchStringFromSequence("byron,andres"));
+//    String splitPattern = "\\s*(,|\\s)\\s*";
+//    splitFromPattern(DEPLOY_CODE_VALUES, splitPattern).forEach(System.out::println);
+  }
+
+  public static HashMap<String, Object> toMap(Object map) {
+    return (HashMap<String, Object>) map;
+  }
+
+  final static String DEPLOY_CODE_VALUES;
+  final static String DEPLOY_CODE = "deploy_code";
+
+  static {
+    Optional<String> deployCode = Optional.ofNullable(System.getenv("DEPLOY_CODE_VALUES"));
+    DEPLOY_CODE_VALUES = deployCode.orElse("dev");
+  }
+
+  // DEPLOY_CODE_VALUES
+  //
+  public static Stream<String> splitFromPattern(String val, String pattern) {
+    return Stream
+        .of(Optional.ofNullable(val).map(code -> code.split(pattern)).orElse(new String[] {}));
+  }
+
+
+  // Match any String from a sequence
+  public static boolean matchStringFromSequence(String seq) {
+    String splitPattern = "\\s*(,|\\s)\\s*";
+    String emptyStringPattern = "^$|";
+    Function<String, String> wordMatch = word -> ".*(\\b" + word + "\\b).*";
+
+    String wordsPattern = splitFromPattern(DEPLOY_CODE_VALUES, splitPattern)
+        .map(wordMatch)
+        .reduce((first, second) -> first + "|" + second)
+        .orElse("");
+
+    String emptyAndWordsPattern = emptyStringPattern + wordsPattern;
+
+    System.out.println(emptyAndWordsPattern);
+    Pattern p = Pattern.compile(emptyAndWordsPattern);// . represents single
+    Matcher m = p.matcher(seq.trim());
+    return m.matches();
+  }
+
+  // Get project Spreadsheet with all tables BaseEntity, Attribute, etc.
+  Map<String, Object> tables;// = getProject();
+
+  // Prepare Stream
+  Stream<Entry<String, Object>> streamTables;// = tables.entrySet().stream();
+
+  // Tables with Objects/records/rows filtered by values in column deploy_code from spreadsheet.
+  Map<String, Object> allFilteredtables;
+
+  // This is where records/rows are accepted or rejected depending on the DEPLOY_CODE_VALUES and
+  // deploy_code column values from spreadsheet.
+  Predicate<Entry<String, Object>> isAllowed = record -> {
+    Map<String, Object> fields = toMap(record.getValue());
+    return fields.entrySet().stream().allMatch(field -> {
+      String key = field.getKey();
+      String val = (String) field.getValue();
+      if (key.equals(DEPLOY_CODE)) {
+        return matchStringFromSequence(val) ? true : false;
+      } else
+        return true;
+    });
+  };
+
+  // Function intended to be use in an intermediate operation and returning a single map.
+  Function<Entry<String, Object>, Map<String, Object>> putOnMap = (allowedRecord) -> {
+    Map<String, Object> record = new HashMap<String, Object>();
+    record.put(allowedRecord.getKey(), allowedRecord.getValue());
+    return record;
+  };
+
+  // Function intended to be use in an intermediate operation and returning an aggregation of
+  // single maps.
+  BinaryOperator<Map<String, Object>> aggregateAll = (first, second) -> {
+    first.putAll(second);
+    return first;
+  };
+
+  // Function intended to be use in an intermediate operation on the scope of a variable
+  // containing the name of the table from spreadsheet.
+  BiFunction<Entry<String, Object>, Map<String, Object>, Map<String, Object>> reconstructTableMap =
+      (table, mapper) -> {
+        return new HashMap<String, Object>() {
+          {
+            put(table.getKey(), mapper);
+          };
+        };
+      };
+
+
+  Function<Entry<String, Object>, Map<String, Object>> getFilteredTable = table -> {
+    Map<String, Object> records = toMap(table.getValue());
+
+    return records.entrySet().stream()
+        .filter(isAllowed)
+        .map(putOnMap)
+        .reduce(aggregateAll)
+        .map(val -> reconstructTableMap.apply(table, val))
+        .get();
+  };
+
+  public Map<String, Object> getallFilteredtables() {
+    tables = getProject();
+    streamTables = tables.entrySet().stream();
+
+    allFilteredtables = streamTables
+        .map(getFilteredTable)
+        .reduce((firstMap, secondMap) -> {
+          firstMap.putAll(secondMap);
+          return firstMap;
+        })
+        .get();
+
+    return allFilteredtables;
   }
 
 
