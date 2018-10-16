@@ -60,9 +60,11 @@ import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.entity.Person;
+import life.genny.qwanda.entity.SearchEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QDataAskMessage;
 import life.genny.qwanda.message.QDataBaseEntityMessage;
+import life.genny.qwanda.message.QSearchEntityMessage;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakService;
 import life.genny.qwandautils.MergeUtil;
@@ -73,7 +75,27 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   private static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-//	@Test
+  @Test
+   public void qsearchEntityMessageTest()
+   {
+	   QSearchEntityMessage qsm = new QSearchEntityMessage.Builder("SBE_SEARCH_TEST","Search Test")
+			   .pageStart(0)
+			   .pageSize(10)
+			   .sort("PRI_CREATED","Created",SearchEntity.Sort.DESC)
+	//		   .sourceCode("GRP_ROOT")
+			   .searchOr(new SearchEntity("SBE_TEST1","Test1")
+					   .addFilter("PRI_CODE",SearchEntity.StringFilter.LIKE,"GRP_%"))
+			   .searchOr(new SearchEntity("SBE_TEST2","Test2")
+					   .addFilter("PRI_CODE",SearchEntity.StringFilter.LIKE,"PER_USER%"))
+			   .build();
+	   
+	   List<BaseEntity> results = service.findBySearchBE(qsm);
+	   log.info(results);
+	   
+	   
+   }
+  
+	//@Test
 	public void searchBETest() {
 
 		BaseEntity searchBE = new BaseEntity("SER_TEST_SEARCH", "Search test");

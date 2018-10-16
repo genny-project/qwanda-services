@@ -93,6 +93,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.message.QEventLinkChangeMessage;
+import life.genny.qwanda.message.QSearchEntityMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.JsonUtils;
@@ -262,10 +263,6 @@ public class BaseEntityService2 {
 		String sourceCode = searchBE.getValue("SCH_SOURCE_CODE", null);
 		String targetCode = searchBE.getValue("SCH_TARGET_CODE", null);
 
-		// Construct the filters for the attributes
-		String filterStrings = "";
-		String filterStringsQ = "";
-		String codeFilter = "";
 		
 		// Check for bad linkWeight filtering
 		if (!allowedLinkWeightConditions.stream().anyMatch(str -> str.trim().equals(linkWeightFilter))) {
@@ -273,108 +270,9 @@ public class BaseEntityService2 {
 			return 0L;
 		}
 
-		Integer filterIndex = 0;
-		final List<Tuple2<String, Object>> valueList = new ArrayList<Tuple2<String, Object>>();
 
-		for (EntityAttribute ea : searchBE.getBaseEntityAttributes()) {
-			if (ea.getAttributeCode().startsWith("SCH_")) {
-				continue;
-			} else if (ea.getAttributeCode().startsWith("SRT_")) {
-				continue;
-			} else if (ea.getAttributeCode().startsWith("COL_")) {
-				continue;
-			} else {
-				String priAttributeCode = ea.getAttributeCode();
-
-				String condition = ea.getAttributeName();
-
-				if (priAttributeCode.equalsIgnoreCase("PRI_CODE")) {
-					if (ea.getAttributeName() == null) {
-						codeFilter += " and ea.pk.baseEntity.code=:v" + filterIndex + " ";
-					} else {
-						codeFilter += " and ea.pk.baseEntity.code " + condition + " :v" + filterIndex + " ";
-					}
-					valueList.add(Tuple.of("v" + filterIndex, ea.getValueString()));
-					filterIndex++;
-				} else if (priAttributeCode.equalsIgnoreCase("PRI_CREATED")) {
-					if (ea.getAttributeName() == null) {
-						codeFilter += " and ea.pk.baseEntity.created=:v" + filterIndex + " ";
-					} else {
-						codeFilter += " and ea.pk.baseEntity.created " + condition + " :v" + filterIndex + " ";
-					}
-					valueList.add(Tuple.of("v" + filterIndex, ea.getValueDateTime()));
-					filterIndex++;
-				} else {
-					String attributeCodeEA = "ea" + filterIndex;
-					filterStrings += ",EntityAttribute " + attributeCodeEA;
-					filterStringsQ += " and " + attributeCodeEA + ".pk.baseEntity.id=ea.pk.baseEntity.id and "
-							+ attributeCodeEA + ".pk.attribute.code='" + priAttributeCode + "' ";
-					if ((ea.getPk() == null) || ea.getPk().getAttribute() == null) {
-						Attribute attribute = this.findAttributeByCode(priAttributeCode);
-						ea.getPk().setAttribute(attribute);
-					}
-					switch (ea.getPk().getAttribute().getDataType().getClassName()) {
-					case "java.lang.Integer":
-					case "Integer":
-						filterStringsQ = updateFilterStringsQ(filterStringsQ, filterIndex, ea, condition,
-								attributeCodeEA, "Integer");
-						valueList.add(Tuple.of("v" + filterIndex, ea.getValueInteger()));
-						break;
-					case "java.lang.Long":
-					case "Long":
-						filterStringsQ = updateFilterStringsQ(filterStringsQ, filterIndex, ea, condition,
-								attributeCodeEA, "Long");
-						valueList.add(Tuple.of("v" + filterIndex, ea.getValueLong()));
-						break;
-					case "java.lang.Double":
-					case "Double":
-						filterStringsQ = updateFilterStringsQ(filterStringsQ, filterIndex, ea, condition,
-								attributeCodeEA, "Double");
-						valueList.add(Tuple.of("v" + filterIndex, ea.getValueDouble()));
-						break;
-					case "range.LocalDate":
-						Range<LocalDate> rangeLocalDate = ea.getValueDateRange();
-						filterStringsQ += getHQL(rangeLocalDate, attributeCodeEA, "valueDate", filterIndex, valueList);
-						break;
-					case "java.lang.Boolean":
-					case "Boolean":
-						filterStringsQ += " and " + attributeCodeEA + ".valueBoolean=:v" + filterIndex + " ";
-						valueList.add(Tuple.of("v" + filterIndex, ea.getValueBoolean()));
-						break;
-					case "java.time.LocalDate":
-					case "LocalDate":
-						filterStringsQ = updateFilterStringsQ(filterStringsQ, filterIndex, ea, condition,
-								attributeCodeEA, "Date");
-						valueList.add(Tuple.of("v" + filterIndex, ea.getValueDate()));
-						break;
-					case "java.time.LocalDateTime":
-					case "LocalDateTime":
-						filterStringsQ = updateFilterStringsQ(filterStringsQ, filterIndex, ea, condition,
-								attributeCodeEA, "DateTime");
-						valueList.add(Tuple.of("v" + filterIndex, ea.getValueDateTime()));
-						break;
-					case "java.time.LocalTime":
-					case "LocalTime":
-						filterStringsQ = updateFilterStringsQ(filterStringsQ, filterIndex, ea, condition,
-								attributeCodeEA, "Time");
-						valueList.add(Tuple.of("v" + filterIndex, ea.getValueTime()));
-						break;
-					// case "org.javamoney.moneta.Money":
-					// return (T) getValueMoney();
-					case "java.lang.String":
-					case "String":
-					default:
-						filterStringsQ = updateFilterStringsQ(filterStringsQ, filterIndex, ea, condition,
-								attributeCodeEA, "String");
-						valueList.add(Tuple.of("v" + filterIndex, ea.getValueString()));
-					}
-					filterIndex++;
-
-				}
-			}
-		}
-
-		filterStringsQ = fixFilterStringsQ(filterStringsQ, filterIndex);
+		SearchSettings ss = this.buildQuerySettings(searchBE, 0);
+		
 
 		Set<String> realms = new HashSet<String>();
 		realms.add(userRealmStr);
@@ -382,7 +280,7 @@ public class BaseEntityService2 {
 		String realmsStr = getRealmsStr(realms);
 
 		String sql = createSearchSQL("count(distinct ea.pk.baseEntity)", stakeholderCode, sourceStakeholderCode,
-				linkCode, linkValue, linkWeight, linkWeightFilter, sourceCode, targetCode, filterStrings, filterStringsQ, "", codeFilter, realmsStr);
+				linkCode, linkValue, linkWeight, linkWeightFilter, sourceCode, targetCode, ss.filterStrings, ss.filterStringsQ, "", ss.codeFilter, realmsStr);
 
 		Query query = null;
 
@@ -413,7 +311,7 @@ public class BaseEntityService2 {
 			query.setParameter("sourceStakeholderCode", sourceStakeholderCode);
 		}
 		//
-		for (Tuple2<String, Object> value : valueList) {
+		for (Tuple2<String, Object> value : ss.valueList) {
 			log.debug("Value: " + value._1 + " =: " + value._2);
 			if (value._2 instanceof Boolean) {
 				Boolean result = (Boolean) value._2;
@@ -495,6 +393,391 @@ public class BaseEntityService2 {
 		return ret;
 	}
 
+	
+	public Long findBySearchBECount(@NotNull final QSearchEntityMessage searchBE) {
+		Long count = 0L;
+		final String userRealmStr = getRealm();
+
+		Integer pageStart = searchBE.getParent().getValue("SCH_PAGE_START", 0);
+		Integer pageSize = searchBE.getParent().getValue("SCH_PAGE_SIZE", 100);
+		String stakeholderCode = searchBE.getParent().getValue("SCH_STAKEHOLDER_CODE", null);
+		String sourceStakeholderCode = searchBE.getParent().getValue("SCH_SOURCE_STAKEHOLDER_CODE", null);
+		String linkCode = searchBE.getParent().getValue("SCH_LINK_CODE", null);
+		String linkValue = searchBE.getParent().getValue("SCH_LINK_VALUE", null);
+		Double linkWeight = searchBE.getParent().getValue("SCH_LINK_WEIGHT", 0.0);
+		String linkWeightFilter = searchBE.getParent().getValue("SCH_LINK_FILTER", ">");
+		String sourceCode = searchBE.getParent().getValue("SCH_SOURCE_CODE", null);
+		String targetCode = searchBE.getParent().getValue("SCH_TARGET_CODE", null);
+
+		
+
+		Integer filterIndex = 0;
+
+		SearchEntity se = searchBE.getParent();
+
+		SearchSettings ss = buildQuerySettings(se,filterIndex);
+		filterIndex = ss.filterIndex;
+		List<SearchSettings> filters = new ArrayList<SearchSettings>();
+		
+		for (BaseEntity filter : searchBE.getItems()) {
+			SearchSettings myFilter = (buildQuerySettings(filter,filterIndex));
+			filters.add(myFilter);
+			filterIndex = myFilter.filterIndex; // update the filterIndex to keep up to date across all the 'Ors'
+		}
+
+		Set<String> realms = new HashSet<String>();
+		realms.add(userRealmStr);
+		realms.add("genny");
+		String realmsStr = getRealmsStr(realms);
+
+		ss.orderString = createOrderString(ss.attributeCodeMap, ss.orderList);
+		String sql = createSearchSQL("count(distinct ea.pk.baseEntity)", stakeholderCode, sourceStakeholderCode,
+				linkCode, linkValue, linkWeight, linkWeightFilter, sourceCode, targetCode, ss.filterStrings, ss.filterStringsQ, "", ss.codeFilter, realmsStr);
+
+		Query query = null;
+
+		query = getEntityManager().createQuery(sql);
+
+		// query.setParameter("realms", realms); This would not work
+
+		if (sourceCode != null) {
+			query.setParameter("sourceCode", sourceCode);
+		}
+		if (targetCode != null) {
+			query.setParameter("targetCode", targetCode);
+		}
+		if (linkCode != null) {
+			query.setParameter("linkCode", linkCode);
+		}
+		if (linkValue != null) {
+			query.setParameter("linkValue", linkValue);
+		}
+		if (linkWeight > 0.0) {
+			query.setParameter("linkWeight", linkWeight);
+		}
+
+		if (stakeholderCode != null) {
+			query.setParameter("stakeholderCode", stakeholderCode);
+		}
+		if (sourceStakeholderCode != null) {
+			query.setParameter("sourceStakeholderCode", sourceStakeholderCode);
+		}
+		//
+		for (SearchSettings filter : filters) {
+		for (Tuple2<String, Object> value : filter.valueList) {
+			log.debug("Value: " + value._1 + " =: " + value._2);
+			if (value._2 instanceof Boolean) {
+				Boolean result = (Boolean) value._2;
+				query.setParameter(value._1, result);
+			} else if (value._2 instanceof LocalDateTime) {
+				LocalDateTime result = (LocalDateTime) value._2;
+				query.setParameter(value._1, result);
+			} else if (value._2 instanceof LocalDate) {
+				LocalDate result = (LocalDate) value._2;
+				query.setParameter(value._1, result);
+			} else if (value._2 instanceof LocalTime) {
+				LocalTime result = (LocalTime) value._2;
+				query.setParameter(value._1, result);
+			} else {
+				query.setParameter(value._1, value._2);
+			}
+		}
+		}
+		Object count1 = query.getSingleResult();
+		System.out.println("The Count Object is :: " + count1.toString());
+		count = (Long) count1;
+		// count = (Long)query.getSingleResult();
+
+		return count;
+	}
+	public List<BaseEntity> findBySearchBE(@NotNull final QSearchEntityMessage searchBE) {
+		List<BaseEntity> results = new ArrayList<BaseEntity>();
+		final String userRealmStr = getRealm();
+
+		Integer pageStart = searchBE.getParent().getValue("SCH_PAGE_START", 0);
+		Integer pageSize = searchBE.getParent().getValue("SCH_PAGE_SIZE", 100);
+		String stakeholderCode = searchBE.getParent().getValue("SCH_STAKEHOLDER_CODE", null);
+		String sourceStakeholderCode = searchBE.getParent().getValue("SCH_SOURCE_STAKEHOLDER_CODE", null);
+		String linkCode = searchBE.getParent().getValue("SCH_LINK_CODE", null);
+		String linkValue = searchBE.getParent().getValue("SCH_LINK_VALUE", null);
+		Double linkWeight = searchBE.getParent().getValue("SCH_LINK_WEIGHT", 0.0);
+		String linkWeightFilter = searchBE.getParent().getValue("SCH_LINK_FILTER", ">");
+		String sourceCode = searchBE.getParent().getValue("SCH_SOURCE_CODE", null);
+		String targetCode = searchBE.getParent().getValue("SCH_TARGET_CODE", null);
+
+		
+		// Check for bad linkWeight filtering
+		if (!allowedLinkWeightConditions.stream().anyMatch(str -> str.trim().equals(linkWeightFilter))) {
+			log.error("Error! Illegal link Weight condition!(" + linkWeightFilter + ") for user " + getUser());
+			return results;
+		}
+
+
+		Integer filterIndex = 0;
+
+		SearchEntity se = searchBE.getParent();
+
+		SearchSettings ss = buildQuerySettings(se,filterIndex);
+		filterIndex = ss.filterIndex;
+		List<SearchSettings> filters = new ArrayList<SearchSettings>();
+		
+		for (BaseEntity filter : searchBE.getItems()) {
+			SearchSettings myFilter = (buildQuerySettings(filter,filterIndex));
+			filters.add(myFilter);
+			filterIndex = myFilter.filterIndex; // update the filterIndex to keep up to date across all the 'Ors'
+		}
+
+		Set<String> realms = new HashSet<String>();
+		realms.add(userRealmStr);
+		realms.add("genny");
+		String realmsStr = getRealmsStr(realms);
+
+		ss.orderString = createOrderString(ss.attributeCodeMap, ss.orderList);
+
+		String sql = createSearchSQL("distinct ea.pk.baseEntity", stakeholderCode, sourceStakeholderCode, linkCode,
+				linkValue, linkWeight, linkWeightFilter,sourceCode, targetCode, ss.filterStrings, ss.filterStringsQ, ss.orderString, filters, realmsStr);
+
+		
+		Query query = null;
+
+		// Limit column attributes returned using Hibernate filter
+		// If empty then return everything
+		if (!ss.attributeCodes.isEmpty()) {
+			Filter filter = getEntityManager().unwrap(Session.class).enableFilter("filterAttribute");
+			filter.setParameterList("attributeCodes", ss.attributeCodes);
+		}
+
+		query = getEntityManager().createQuery(sql);
+
+		query.setFirstResult(pageStart).setMaxResults(pageSize);
+
+		// query.setParameter("realms", realms); This would not work
+
+		if (sourceCode != null) {
+			query.setParameter("sourceCode", sourceCode);
+		}
+		if (targetCode != null) {
+			query.setParameter("targetCode", targetCode);
+		}
+		if (linkCode != null) {
+			query.setParameter("linkCode", linkCode);
+		}
+		if (linkValue != null) {
+			query.setParameter("linkValue", linkValue);
+		}
+		if (linkWeight > 0.0) {
+			query.setParameter("linkWeight", linkWeight);
+		}
+		if (stakeholderCode != null) {
+			query.setParameter("stakeholderCode", stakeholderCode);
+		}
+		if (sourceStakeholderCode != null) {
+			query.setParameter("sourceStakeholderCode", sourceStakeholderCode);
+		}
+		//
+		for (SearchSettings filter : filters) {
+		for (Tuple2<String, Object> value : filter.valueList) {
+			log.debug("Value: " + value._1 + " =: " + value._2);
+			if (value._2 instanceof Boolean) {
+				Boolean result = (Boolean) value._2;
+				query.setParameter(value._1, result);
+			} else if (value._2 instanceof LocalDateTime) {
+				LocalDateTime result = (LocalDateTime) value._2;
+				query.setParameter(value._1, result);
+			} else if (value._2 instanceof LocalDate) {
+				LocalDate result = (LocalDate) value._2;
+				query.setParameter(value._1, result);
+			} else if (value._2 instanceof LocalTime) {
+				LocalTime result = (LocalTime) value._2;
+				query.setParameter(value._1, result);
+			} else {
+				query.setParameter(value._1, value._2);
+			}
+		}
+		}
+		results = query.getResultList();
+
+		// Set simple sort index for frontend to use
+		Integer index = 0;
+		for (BaseEntity be : results) {
+			be.setIndex(index++);
+		}
+		return results;		
+		
+	}
+
+	/**
+	 * @param se
+	 * @param ss
+	 * @throws NoResultException
+	 * @throws IllegalArgumentException
+	 */
+	private SearchSettings buildQuerySettings(BaseEntity se, Integer filterIndex)
+			throws NoResultException, IllegalArgumentException {
+		
+		SearchSettings ss = new SearchSettings();
+		ss.filterIndex = filterIndex;
+
+		
+		for (EntityAttribute ea : se.getBaseEntityAttributes()) {
+			if (ea.getAttributeCode().startsWith("SCH_")) {
+				continue;
+			} else if (ea.getAttributeCode().startsWith("SRT_")) {
+				String sortAttributeCode = ea.getAttributeCode().substring("SRT_".length());
+				if (ea.getWeight() == null) {
+					ea.setWeight(1000.0); // If no weight is given setting it to be in the last of the sort
+				}
+				ss.orderList.add(new Order(sortAttributeCode, ea.getValueString().toUpperCase(), ea.getWeight())); // weight
+
+				if (!(sortAttributeCode.equalsIgnoreCase("PRI_CODE")
+						|| (sortAttributeCode.equalsIgnoreCase("PRI_CREATED"))
+						|| (sortAttributeCode.equalsIgnoreCase("PRI_UPDATED"))
+						|| (sortAttributeCode.equalsIgnoreCase("PRI_ID"))
+						|| (sortAttributeCode.equalsIgnoreCase("PRI_NAME")))) {
+					// specifies
+					// the sort
+					// order
+					String attributeCodeEA = "ea" + ss.filterIndex;
+					ss.filterStrings += ",EntityAttribute " + attributeCodeEA;
+					ss.filterStringsQ += " and " + attributeCodeEA + ".pk.baseEntity.id=ea.pk.baseEntity.id and "
+							+ attributeCodeEA + ".pk.attribute.code='" + sortAttributeCode + "' ";
+					if ((ea.getPk() == null) || ea.getPk().getAttribute() == null) {
+						Attribute attribute = this.findAttributeByCode(sortAttributeCode);
+						ea.getPk().setAttribute(attribute);
+					}
+					String sortType = "valueString";
+					sortType = getSortType(ea);
+					ss.attributeCodeMap.put(sortAttributeCode, attributeCodeEA + "." + sortType);
+					ss.filterIndex++;
+				}
+			} else if (ea.getAttributeCode().startsWith("COL_")) {
+				String columnAttributeCode = ea.getAttributeCode().substring("COL_".length());
+				if (!columnAttributeCode.equalsIgnoreCase("code")) {
+					ss.columnList.add(new Column(columnAttributeCode, ea.getAttributeName(), ea.getWeight()));
+					ss.attributeCodes.add(columnAttributeCode);
+				}
+			} else {
+				String priAttributeCode = ea.getAttributeCode();
+
+				// Check no nasty SQL injection
+				// Need named procedures
+				// Quick and dirty ; check
+				String condition = ea.getAttributeName();
+				if (condition != null) {
+					final String conditionTest = condition.trim();
+					if (!allowedConditions.stream().anyMatch(str -> str.trim().equals(conditionTest))) {
+						throw new IllegalArgumentException("Illegal condition!(" + conditionTest + ") [" + ea.getAttributeCode()
+						                                              								+ "] for user " + getUser());
+					}
+				}
+				String valueString = ea.getValueString();
+				if (valueString != null) {
+					if (valueString.contains(";")) {
+						throw new IllegalArgumentException("Error! Illegal condition!(" + valueString + ") [" + ea.getAttributeCode()
+						+ "] for user " + getUser());
+					}
+				}
+
+				if (priAttributeCode.equalsIgnoreCase("PRI_CODE")) {
+					if (ea.getAttributeName() == null) {
+						ss.codeFilter += " and ea.pk.baseEntity.code=:v" + ss.filterIndex + " ";
+					} else {
+						ss.codeFilter += " and ea.pk.baseEntity.code " + condition + " :v" + ss.filterIndex + " ";
+					}
+					ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueString()));
+					ss.filterIndex++;
+				} else if (priAttributeCode.equalsIgnoreCase("PRI_CREATED")) {
+					if (ea.getAttributeName() == null) {
+						ss.codeFilter += " and ea.pk.baseEntity.created=:v" + ss.filterIndex + " ";
+					} else {
+						ss.codeFilter += " and ea.pk.baseEntity.created " + condition + " :v" + ss.filterIndex + " ";
+					}
+					ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueDateTime()));
+					ss.filterIndex++;
+				} else {
+					String attributeCodeEA = "ea" + ss.filterIndex;
+					ss.filterStrings += ",EntityAttribute " + attributeCodeEA;
+					ss.filterStringsQ += " and " + attributeCodeEA + ".pk.baseEntity.id=ea.pk.baseEntity.id and "
+							+ attributeCodeEA + ".pk.attribute.code='" + priAttributeCode + "' ";
+					if ((ea.getPk() == null) || ea.getPk().getAttribute() == null) {
+						Attribute attribute = this.findAttributeByCode(priAttributeCode);
+						ea.getPk().setAttribute(attribute);
+					}
+					switch (ea.getPk().getAttribute().getDataType().getClassName()) {
+					case "java.lang.Integer":
+					case "Integer":
+						ss.filterStringsQ = updateFilterStringsQ(ss.filterStringsQ, ss.filterIndex, ea, condition,
+								attributeCodeEA, "Integer");
+						ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueInteger()));
+						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueInteger");
+						break;
+					case "java.lang.Long":
+					case "Long":
+						ss.filterStringsQ = updateFilterStringsQ(ss.filterStringsQ, ss.filterIndex, ea, condition,
+								attributeCodeEA, "Long");
+						ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueLong()));
+						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueLong");
+						break;
+					case "java.lang.Double":
+					case "Double":
+						ss.filterStringsQ = updateFilterStringsQ(ss.filterStringsQ, ss.filterIndex, ea, condition,
+								attributeCodeEA, "Double");
+						ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueDouble()));
+						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDouble");
+						break;
+					case "range.LocalDate":
+						Range<LocalDate> rangeLocalDate = ea.getValueDateRange();
+						ss.filterStringsQ += getHQL(rangeLocalDate, attributeCodeEA, "valueDate", ss.filterIndex, ss.valueList);
+						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
+						break;
+					case "java.lang.Boolean":
+					case "Boolean":
+						ss.filterStringsQ += " and " + attributeCodeEA + ".valueBoolean=:v" + ss.filterIndex + " ";
+						ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueBoolean()));
+						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueBoolean");
+						break;
+					case "java.time.LocalDate":
+					case "LocalDate":
+						ss.filterStringsQ = updateFilterStringsQ(ss.filterStringsQ, ss.filterIndex, ea, condition,
+								attributeCodeEA, "Date");
+						ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueDate()));
+						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
+						break;
+					case "java.time.LocalDateTime":
+					case "LocalDateTime":
+						ss.filterStringsQ = updateFilterStringsQ(ss.filterStringsQ, ss.filterIndex, ea, condition,
+								attributeCodeEA, "DateTime");
+						ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueDateTime()));
+						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
+						break;
+					case "java.time.LocalTime":
+					case "LocalTime":
+						ss.filterStringsQ = updateFilterStringsQ(ss.filterStringsQ, ss.filterIndex, ea, condition,
+								attributeCodeEA, "Time");
+						ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueTime()));
+						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueTime");
+						break;
+					// case "org.javamoney.moneta.Money":
+					// return (T) getValueMoney();
+					case "java.lang.String":
+					case "String":
+					default:
+						ss.filterStringsQ = updateFilterStringsQ(ss.filterStringsQ, ss.filterIndex, ea, condition,
+								attributeCodeEA, "String");
+						ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueString()));
+						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueString");
+					}
+					ss.filterIndex++;
+
+				}
+			}
+		}
+
+		ss.filterStringsQ = fixFilterStringsQ(ss.filterStringsQ, ss.filterIndex);
+		
+		return ss;
+	}
+	
 	public List<BaseEntity> findBySearchBE(@NotNull final BaseEntity searchBE) {
 		// select distinct ea.pk.baseEntity from EntityAttribute ea , EntityAttribute eb
 		// where
@@ -870,6 +1153,76 @@ public class BaseEntityService2 {
 		return sql;
 	}
 
+	/**
+	 * @param stakeholderCode
+	 * @param sourceStakeholderCode
+	 * @param linkCode
+	 * @param linkValue
+	 * @param sourceCode
+	 * @param targetCode
+	 * @param filterStrings
+	 * @param filterStringsQ
+	 * @param orderString
+	 * @param codeFilter
+	 * @param realmsStr
+	 * @return
+	 */
+	private String createSearchSQL(String prefix, String stakeholderCode, String sourceStakeholderCode, String linkCode,
+			String linkValue, Double linkWeight, String linkWeightFilter, String sourceCode, String targetCode, String filterStrings, String filterStringsQ,
+			String orderString, List<SearchSettings> filters, String realmsStr) {
+		String sql = "select " + prefix + " from EntityAttribute ea "
+				+ ((stakeholderCode != null) ? " ,EntityEntity ff " : "")
+				+ ((sourceStakeholderCode != null) ? " ,EntityEntity gg " : "")
+				// + " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
+				+ (((sourceCode != null) || (targetCode != null) || (linkCode != null) || (linkValue != null))
+						? " ,EntityEntity ee  "
+						: "")
+				+ filterStrings + " where " + " ea.pk.baseEntity.realm in (" + realmsStr + ") "; 
+				if (!filters.isEmpty()) {
+					sql += "and (";
+					for (SearchSettings filter : filters) {
+						String codeFilter = StringUtils.removeStart(filter.codeFilter, " and ");
+						sql += "("+codeFilter+") or ";
+					}
+					sql = StringUtils.removeEnd(sql, "or ");
+					sql += " ) ";
+				}
+				
+				sql += ((linkCode != null) ? " and ee.link.attributeCode=:linkCode and " : "")
+				+ ((linkValue != null) ? " and ee.link.linkValue=:linkValue and " : "")
+				+ ((linkWeight > 0.0) ? " and ee.link.weight "+linkWeightFilter+" :linkWeight and " : "") 
+				+ ((sourceCode != null)
+						? " and ee.pk.source.code=:sourceCode and ee.pk.targetCode=ea.pk.baseEntity.code and "
+						: "")
+				+ ((targetCode != null)
+						? " and ee.pk.targetCode=:targetCode and ee.pk.source.code=ea.pk.baseEntity.code and "
+						: "")
+				+ ((stakeholderCode != null)
+						? " and ((ff.pk.targetCode=:stakeholderCode and ff.pk.source.code=ea.pk.baseEntity.code) or (ff.pk.source.code=:stakeholderCode and ff.pk.targetCode=ea.pk.baseEntity.code)  ) "
+						: "")
+				+ ((sourceStakeholderCode != null)
+						? " and ((gg.pk.targetCode=:sourceStakeholderCode and gg.pk.source.code=ee.pk.source.code) or (gg.pk.targetCode=:sourceStakeholderCode and gg.pk.targetCode=ee.pk.source.code)  ) "
+						: "")
+				+ filterStringsQ + orderString;
+
+		// Ugly
+		if (StringUtils.isBlank(orderString)) {
+			sql = sql.trim();
+			if (sql.endsWith("and")) {
+				sql = sql.substring(0, sql.length() - 3);
+			}
+		} else {
+			sql = sql.trim();
+			sql = sql.replaceAll("and  order", " order"); // omg this is ugly
+
+		}
+
+		sql = sql.replaceAll("and  and", "and"); // even more ugly...
+
+		log.info("SQL =[" + sql + "]");
+
+		return sql;
+	}
 	/**
 	 * @param filterStringsQ
 	 * @param filterIndex
