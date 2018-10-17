@@ -1,27 +1,27 @@
 package life.genny.services;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import life.genny.qwanda.Ask;
@@ -37,7 +37,6 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySheets;
-import life.genny.services.BaseEntityService2;
 
 /**
  * @author helios
@@ -861,6 +860,138 @@ public class BatchLoading {
     return false;
 
   }
+  
+  
+
+  public static void main(String[] args) {
+//    BatchLoading bl = new BatchLoading(null);
+//     Map<String, Object> getallFilteredtables = bl.getallFilteredtables();
+//     System.out.println(getallFilteredtables.equals(bl.tables));
+//     bl.tables.entrySet().forEach(System.out::println);
+//     System.out.println();
+//     System.out.println();
+//     getallFilteredtables.entrySet().forEach(System.out::println);
+    // BatchLoading bl = new BatchLoading(null);
+    //
+     System.out.println(hasIntersectionFromWordSequence("byron,andres","andres"));
+//    String splitPattern = "\\s*(,|\\s)\\s*";
+//    splitFromPattern(DEPLOY_CODE_VALUES, splitPattern).forEach(System.out::println);
+  }
+
+  public static HashMap<String, Object> toMap(Object map) {
+    return (HashMap<String, Object>) map;
+  }
+
+  final static String DEPLOY_CODE_VALUES;
+  final static String DEPLOY_CODE = "deploy_code";
+
+  static {
+    Optional<String> deployCode = Optional.ofNullable(System.getenv("DEPLOY_CODE_VALUES"));
+    DEPLOY_CODE_VALUES = deployCode.orElse("dev");
+  }
+
+  // DEPLOY_CODE_VALUES
+  //
+  public static Stream<String> splitFromPattern(String val, String pattern) {
+    return Stream
+        .of(Optional.ofNullable(val).map(code -> code.split(pattern)).orElse(new String[] {}));
+  }
+
+
+  // Match any String from a sequence
+  public static boolean hasIntersectionFromWordSequence(String seq1,String seq2) {
+    String splitPattern = "\\s*(,|\\s)\\s*";
+    String emptyStringPattern = "^$|";
+    Function<String, String> wordMatch = word -> ".*(\\b" + word + "\\b).*";
+
+    String wordsPattern = splitFromPattern(seq2, splitPattern)
+        .map(wordMatch)
+        .reduce((first, second) -> first + "|" + second)
+        .orElse("");
+
+    String emptyAndWordsPattern = emptyStringPattern + wordsPattern;
+
+    System.out.println(emptyAndWordsPattern);
+    Pattern p = Pattern.compile(emptyAndWordsPattern);// . represents single
+    Matcher m = p.matcher(seq1.trim());
+    return m.matches();
+  }
+
+  // Get project Spreadsheet with all tables BaseEntity, Attribute, etc.
+  Map<String, Object> tables;// = getProject();
+
+  // Prepare Stream
+  Stream<Entry<String, Object>> streamTables;// = tables.entrySet().stream();
+
+  // Tables with Objects/records/rows filtered by values in column deploy_code from spreadsheet.
+  Map<String, Object> allFilteredtables;
+
+  // This is where records/rows are accepted or rejected depending on the DEPLOY_CODE_VALUES and
+  // deploy_code column values from spreadsheet.
+  Predicate<Entry<String, Object>> isAllowed = record -> {
+    Map<String, Object> fields = toMap(record.getValue());
+    return fields.entrySet().stream().allMatch(field -> {
+      String key = field.getKey();
+      String val = (String) field.getValue();
+      if (key.equals(DEPLOY_CODE)) {
+        return hasIntersectionFromWordSequence(val,DEPLOY_CODE_VALUES) ? true : false;
+      } else
+        return true;
+    });
+  };
+
+  // Function intended to be use in an intermediate operation and returning a single map.
+  Function<Entry<String, Object>, Map<String, Object>> putOnMap = (allowedRecord) -> {
+    Map<String, Object> record = new HashMap<String, Object>();
+    record.put(allowedRecord.getKey(), allowedRecord.getValue());
+    return record;
+  };
+
+  // Function intended to be use in an intermediate operation and returning an aggregation of
+  // single maps.
+  BinaryOperator<Map<String, Object>> aggregateAll = (first, second) -> {
+    first.putAll(second);
+    return first;
+  };
+
+  // Function intended to be use in an intermediate operation on the scope of a variable
+  // containing the name of the table from spreadsheet.
+  BiFunction<Entry<String, Object>, Map<String, Object>, Map<String, Object>> reconstructTableMap =
+      (table, mapper) -> {
+        return new HashMap<String, Object>() {
+          {
+            put(table.getKey(), mapper);
+          };
+        };
+      };
+
+
+  public Function<Entry<String, Object>, Map<String, Object>> getFilteredTable = table -> {
+    Map<String, Object> records = toMap(table.getValue());
+
+    return records.entrySet().stream()
+        .filter(isAllowed)
+        .map(putOnMap)
+        .reduce(aggregateAll)
+        .map(val -> reconstructTableMap.apply(table, val))
+        .get();
+  };
+
+  public Map<String, Object> getallFilteredtables() {
+    tables = getProject();
+    streamTables = tables.entrySet().stream();
+
+    allFilteredtables = streamTables
+        .map(getFilteredTable)
+        .reduce((firstMap, secondMap) -> {
+          firstMap.putAll(secondMap);
+          return firstMap;
+        })
+        .get();
+
+    return allFilteredtables;
+  }
+
 
 
 }
