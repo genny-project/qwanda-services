@@ -860,16 +860,16 @@ public class BatchLoading {
 
 
   public static void main(String[] args) {
-    BatchLoading bl = new BatchLoading(null);
-     Map<String, Object> getallFilteredtables = bl.getallFilteredtables();
-     System.out.println(getallFilteredtables.equals(bl.tables));
-     bl.tables.entrySet().forEach(System.out::println);
-     System.out.println();
-     System.out.println();
-     getallFilteredtables.entrySet().forEach(System.out::println);
+//    BatchLoading bl = new BatchLoading(null);
+//     Map<String, Object> getallFilteredtables = bl.getallFilteredtables();
+//     System.out.println(getallFilteredtables.equals(bl.tables));
+//     bl.tables.entrySet().forEach(System.out::println);
+//     System.out.println();
+//     System.out.println();
+//     getallFilteredtables.entrySet().forEach(System.out::println);
     // BatchLoading bl = new BatchLoading(null);
     //
-//     System.out.println(bl.matchStringFromSequence("byron,andres"));
+     System.out.println(hasIntersectionFromWordSequence("byron,andres","andres"));
 //    String splitPattern = "\\s*(,|\\s)\\s*";
 //    splitFromPattern(DEPLOY_CODE_VALUES, splitPattern).forEach(System.out::println);
   }
@@ -895,12 +895,12 @@ public class BatchLoading {
 
 
   // Match any String from a sequence
-  public static boolean matchStringFromSequence(String seq) {
+  public static boolean hasIntersectionFromWordSequence(String seq1,String seq2) {
     String splitPattern = "\\s*(,|\\s)\\s*";
     String emptyStringPattern = "^$|";
     Function<String, String> wordMatch = word -> ".*(\\b" + word + "\\b).*";
 
-    String wordsPattern = splitFromPattern(DEPLOY_CODE_VALUES, splitPattern)
+    String wordsPattern = splitFromPattern(seq2, splitPattern)
         .map(wordMatch)
         .reduce((first, second) -> first + "|" + second)
         .orElse("");
@@ -909,7 +909,7 @@ public class BatchLoading {
 
     System.out.println(emptyAndWordsPattern);
     Pattern p = Pattern.compile(emptyAndWordsPattern);// . represents single
-    Matcher m = p.matcher(seq.trim());
+    Matcher m = p.matcher(seq1.trim());
     return m.matches();
   }
 
@@ -930,7 +930,7 @@ public class BatchLoading {
       String key = field.getKey();
       String val = (String) field.getValue();
       if (key.equals(DEPLOY_CODE)) {
-        return matchStringFromSequence(val) ? true : false;
+        return hasIntersectionFromWordSequence(val,DEPLOY_CODE_VALUES) ? true : false;
       } else
         return true;
     });
@@ -962,7 +962,7 @@ public class BatchLoading {
       };
 
 
-  Function<Entry<String, Object>, Map<String, Object>> getFilteredTable = table -> {
+  public Function<Entry<String, Object>, Map<String, Object>> getFilteredTable = table -> {
     Map<String, Object> records = toMap(table.getValue());
 
     return records.entrySet().stream()
