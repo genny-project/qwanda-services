@@ -32,6 +32,7 @@ import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
@@ -243,19 +244,19 @@ public class BatchLoading {
           Map<String, Object> baseEntityAttr = data.getValue();
           String attributeCode = null;
              try {
-				attributeCode =  ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");;
+				attributeCode =  ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");
 			} catch (Exception e2) {
 				log.error("AttributeCode not found ["+baseEntityAttr+"]");
 			}
           String valueString = ((String) baseEntityAttr.get("valueString"));
           if (valueString != null) {
-            valueString = valueString.replaceAll("^\"|\"$", "");;
+            valueString = valueString.replaceAll("^\"|\"$", "");
           }
           String baseEntityCode = null;
           
           try {
 			baseEntityCode = 
-			      ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");;
+			      ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");
 		          String weight = (String) baseEntityAttr.get("weight");
 		          String privacyStr = (String) baseEntityAttr.get("privacy");
 		          Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
@@ -264,6 +265,7 @@ public class BatchLoading {
 		          try {
 		            attribute = service.findAttributeByCode(attributeCode);
 		            if (attribute == null) {
+		              log.error("BASE ENTITY CODE: " + baseEntityCode);
 		            	log.error(attributeCode+" is not in the Attribute Table!!!");
 		            } else {
 		            be = service.findBaseEntityByCode(baseEntityCode);
@@ -320,9 +322,20 @@ public class BatchLoading {
       try {
         sbe = service.findBaseEntityByCode(parentCode);
         tbe = service.findBaseEntityByCode(targetCode);
-        if(!isSynchronise) {
-          sbe.addTarget(tbe, linkAttribute, weight, valueString);
+        if(isSynchronise) {
+          try {
+            EntityEntity ee = service.findEntityEntity(parentCode, targetCode, linkCode);
+            ee.setWeight(weight);
+            ee.setValueString(valueString);
+            service.updateEntityEntity(ee);
+          } catch (final NoResultException e) {
+            EntityEntity ee = new EntityEntity(sbe, tbe, linkAttribute, weight);
+            ee.setValueString(valueString);
+            service.insertEntityEntity(ee);
+          }
+          return;
         }
+        sbe.addTarget(tbe, linkAttribute, weight, valueString);
         service.updateWithAttributes(sbe);
       } catch (final NoResultException e) {
     	  log.warn("CODE NOT PRESENT IN LINKING: "+parentCode+" : "+targetCode+" : "+linkAttribute);
