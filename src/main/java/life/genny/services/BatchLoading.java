@@ -53,6 +53,9 @@ public class BatchLoading {
   private BaseEntityService2 service;
 
   public static int id = 1;
+  
+  private static boolean isSynchronise;
+  private static String table;
 
 
   public BatchLoading(BaseEntityService2 service) {
@@ -159,7 +162,6 @@ public class BatchLoading {
         }
         service.upsert(attr);
       } catch (Exception e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
     });
@@ -318,10 +320,12 @@ public class BatchLoading {
       try {
         sbe = service.findBaseEntityByCode(parentCode);
         tbe = service.findBaseEntityByCode(targetCode);
-        sbe.addTarget(tbe, linkAttribute, weight, valueString);
+        if(!isSynchronise) {
+          sbe.addTarget(tbe, linkAttribute, weight, valueString);
+        }
         service.updateWithAttributes(sbe);
       } catch (final NoResultException e) {
-    	  log.warn("CODE NOT PRESENT IN LINKING: "+parentCode+":"+targetCode+":"+linkAttribute);
+    	  log.warn("CODE NOT PRESENT IN LINKING: "+parentCode+" : "+targetCode+" : "+linkAttribute);
       } catch (final BadDataException e) {
         e.printStackTrace();
       } catch (final NullPointerException e) {
@@ -524,16 +528,6 @@ public class BatchLoading {
   }
 
 
-  // public void main(String... args) {
-  // emf = Persistence.createEntityManagerFactory("mysql");
-  // em = emf.createEntityManager();
-  // service = new BaseEntityService(em);
-  // em.getTransaction().begin();
-  // persistProject();
-  // em.getTransaction().commit();
-  // em.close();
-  // }
-
   /**
    * Get the Project named on the last row inheriting or updating records from previous projects
    * names in the Hosting Sheet
@@ -549,18 +543,13 @@ public class BatchLoading {
     } else {
       for (int count = 0; count < projects.size(); count++) {
         int subsequentIndex = count + 1;
-        System.out.println("23434 =" + projects.size());
         if (subsequentIndex == projects.size())
           break;
 
         if (lastProject == null) {
-       //   System.out.println("234SDFSD34");
           lastProject = upsertProjectMapProps(projects.get(count), projects.get(subsequentIndex));
-          System.out.println("23434");
         } else {
-      //    System.out.println("23wDSFSDFDSFSDFs4");
           lastProject = upsertProjectMapProps(lastProject, projects.get(subsequentIndex));
-          System.out.println("23ws4");
         }
       }
     }
@@ -570,8 +559,57 @@ public class BatchLoading {
   /**
    * Call functions named after the classes
    */
-  public void persistProject() {
+  public void persistProject(boolean isSynchronise, String table) {
     System.out.println("Persisting Project in BatchLoading");
+    BatchLoading.isSynchronise = isSynchronise;
+    BatchLoading.table = table;
+    if(isSynchronise) {
+      Map<String, Object> finalProject = getProject();
+      switch(table) {
+        case "validation":
+          savedProjectData.put("validations", finalProject);
+          validations(finalProject);
+          break;
+        case "attribute":
+          savedProjectData.put("attributes", finalProject);
+          Map<String, DataType> dataTypes = dataType(finalProject);
+          attributes(finalProject, dataTypes);
+          break;
+        case "baseentity": 
+          savedProjectData.put("baseEntitys", finalProject);
+          baseEntitys(finalProject);
+          break;
+        case "entityattribute":
+          savedProjectData.put("attibutesEntity", finalProject);
+          baseEntityAttributes(finalProject);
+          break;
+        case "attributelink":
+          savedProjectData.put("attributeLink", finalProject);
+          Map<String, DataType> linkDataTypes = dataType(finalProject);
+          attributeLinks(finalProject, linkDataTypes);
+          break;
+        case "entityentity":
+          savedProjectData.put("basebase", finalProject);
+          entityEntitys(finalProject);
+          break;
+        case "question":
+          savedProjectData.put("questions", finalProject);
+          questions(finalProject);
+          break;
+        case "questionquestion":
+          savedProjectData.put("questionQuestions", finalProject);
+          questionQuestions(finalProject);
+          break;
+        case "message":
+          savedProjectData.put("messages", finalProject);
+          messageTemplates(finalProject);
+          break;
+        default:
+          System.out.println("Error in table name. Please check.");
+      }
+      System.out.println("########## SYNCHRONISED GOOGLE SHEET #############");
+      return;
+    }
     Map<String, Object> lastProject = getProject();
     savedProjectData = lastProject;
     System.out.println("+++++++++ AbouDSDSDSDSDSDSDSDSDSDSSDSDSDt to load Questions +++++++++++++");
@@ -660,7 +698,54 @@ public class BatchLoading {
     Integer numOfTries = 3;
     while (numOfTries > 0) {
       try {
-    	  System.out.println("validatios");
+        if(isSynchronise) {
+          System.out.println("Table to synchronise: " + table);
+          switch(table) {
+            case "validation":
+              Map<String, Map> validations = sheets.newGetVal();
+              genny.put("validations", validations);
+              break;
+            case "attribute":
+              Map<String, Map> dataTypes = sheets.newGetDType();
+              genny.put("dataType", dataTypes);
+              Map<String, Map> attrs = sheets.newGetAttr();
+              genny.put("attributes", attrs);
+              break;
+            case "baseentity": 
+              Map<String, Map> bes = sheets.newGetBase();
+              genny.put("baseEntitys", bes);
+              break;
+            case "entityattribute":
+              Map<String, Map> attr2Bes = sheets.newGetEntAttr();
+              genny.put("attibutesEntity", attr2Bes);
+              break;
+            case "attributelink":
+              Map<String, Map> attrLink = sheets.newGetAttrLink();
+              genny.put("attributeLink", attrLink);
+              break;
+            case "entityentity":
+              Map<String, Map> bes2Bes = sheets.newGetEntEnt();
+              genny.put("basebase", bes2Bes);
+              break;
+            case "question":
+              Map<String, Map> gQuestions = sheets.newGetQtn();
+              genny.put("questions", gQuestions);
+              break;
+            case "questionquestion":
+              Map<String, Map> que2Que = sheets.newGetQueQue();
+              genny.put("questionQuestions", que2Que);
+              break;
+            case "message":
+              Map<String, Map> messages = sheets.getMessageTemplates();
+              genny.put("messages", messages);
+              break;
+            default:
+              System.out.println("Error in table name. Please check.");
+          }
+          return genny;
+        }
+        
+      System.out.println("validatios");
         Map<String, Map> validations = sheets.newGetVal();
         genny.put("validations", validations);
   	  System.out.println("datatypes");
@@ -725,19 +810,6 @@ public class BatchLoading {
   @SuppressWarnings({"unchecked", "unused"})
   public Map<String, Object> upsertProjectMapProps(Map<String, Object> superProject,
       Map<String, Object> subProject) {
-    // superProject.entrySet().stream().forEach(map -> {
-    // final Map<String, Object> objects = (Map<String, Object>) superProject.get(map.getKey());
-    // if (superProject.get(map.getKey()) == null) {
-    // System.out.println("\n\n\n"+map.getKey()+"\n\n\n");
-    // superProject.put(map.getKey(), subProject.get(map.getKey()));
-    // }
-    // });
-    // subProject.entrySet().stream().forEach(map -> {
-    // final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());
-    // if (subProject.get(map.getKey()) == null) {
-    // subProject.put(map.getKey(), superProject.get(map.getKey()));
-    // }
-    // });
     superProject.entrySet().stream().forEach(map -> {
       if (subProject.get(map.getKey()) == null && superProject.get(map.getKey()) != null) {
         subProject.put(map.getKey(), superProject.get(map.getKey()));
@@ -830,17 +902,6 @@ public class BatchLoading {
 			log.error("Cannot add MessageTemplate");
 	
 		}
-//    	  		try {
-//					QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
-//					try {
-//						service.update(templateObj);
-//					} catch (Exception e) {
-//						log.error("Cannot update QDataMSGMessage "+code);
-//					}
-//				} catch (Exception e) {
-//					  Long id = service.insert(templateObj);
-//		    		  System.out.println("id::" + id + " Code:" + code + " :" + subject);
-//				}
        }
     });
   }
@@ -861,6 +922,5 @@ public class BatchLoading {
     return false;
 
   }
-
 
 }
