@@ -4,12 +4,18 @@
 		<Console name="CONSOLE" target="SYSTEM_OUT">
 			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
 		</Console>
+		<File name="FILE" fileName="/users/jayavaniswaminathan/projects/genny/qwanda-services/hibernate.log">
+      		<PatternLayout pattern="%d{yyyy-MMM-dd HH:mm:ss a} [%t] %-5level %logger{36} - %msg%n" />
+   		</File>
+		
 	</Appenders>
 	<Loggers>
-		<Root level="error">
-			<AppenderRef ref="CONSOLE" />
+		<logger name="org.hibernate" level="ALL">
+			<AppenderRef ref="FILE" />
+		</logger>
+		<Root level="DEBUG">
+			<AppenderRef ref="FILE" />
 		</Root>
-		<logger name="life.genny" level="TRACE" />
-
+		<logger name="life.genny" level="INFO" />
 	</Loggers>
 </Configuration>
