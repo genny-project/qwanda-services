@@ -3664,65 +3664,88 @@ public class BaseEntityService2 {
 		}
 
 		throw new NoResultException("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode + " not found");
-
-
 	}
+	
+	public EntityAttribute findEntityAttribute(final String baseEntityCode, final String attributeCode)
+        throws NoResultException {
+
+    // find the BaseEntity
+    BaseEntity source = this.findBaseEntityByCode(baseEntityCode);
+
+    for (EntityAttribute ea : source.getBaseEntityAttributes()) {
+        if ((ea.getAttributeCode().equals(attributeCode))
+                && (ea.getBaseEntityCode().equals(baseEntityCode))) {
+            return ea;
+        }
+    }
+
+    throw new NoResultException("EntityAttribute " + baseEntityCode + ":" + attributeCode + " not found");
+
+
+}
 
 	@Transactional
 	public void removeEntityEntity(final EntityEntity ee) {
-	  System.out.println("INside removeEntityEntity method");
 		try {
 			Link oldLink = ee.getLink();
 			BaseEntity source = findBaseEntityByCode(ee.getLink().getSourceCode());
 			source.getLinks().remove(ee);
 			getEntityManager().merge(source);
 			this.writeToDDT(source);
-			getEntityManager().remove(ee);
+            getEntityManager().remove(ee);
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(null, oldLink, getCurrentToken());
-
 			sendQEventLinkChangeMessage(msg);
 			log.debug("Sent Event Link Change Msg " + msg);
-
 		} catch (Exception e) {
-			// rollback
+		  e.printStackTrace();
 		}
 	}
 	
 	@Transactional
-    public void removeQuestionQuestion(final QuestionQuestion qq) {
+    public void removeQuestionQuestion(final String parentCode, final String targetCode) {
+	    QuestionQuestion qq = null;
         try {
-            getEntityManager().remove(qq);
-
+          qq = findQuestionQuestionByCode(parentCode, targetCode);
+          removeQuestionQuestion(qq);
         } catch (Exception e) {
-            // rollback
+          log.error("QuestionQuestion " + parentCode + ":" + targetCode  + " not found");
         }
     }
-
-	public void removeEntityAttribute(final String baseEntityCode, final String attributeCode) {
-		BaseEntity be = this.findBaseEntityByCode(baseEntityCode);
-
-		List<EntityAttribute> results = getEntityManager().createQuery(
-				"SELECT ea FROM EntityAttribute ea where ea.pk.baseEntity.code=:baseEntityCode and ea.attributeCode=:attributeCode")
-				.setParameter("baseEntityCode", baseEntityCode).setParameter("attributeCode", attributeCode)
-				.getResultList();
-
-		for (EntityAttribute ea : results) {
-			removeEntityAttribute(ea);
-		}
-	}
+	
+	@Transactional
+    public void removeQuestionQuestion(final QuestionQuestion qq) {
+	  try {
+        Question question = findQuestionByCode(qq.getPk().getSourceCode());
+        question.getChildQuestions().remove(qq);
+        getEntityManager().merge(question);
+        getEntityManager().remove(qq);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
 
 	@Transactional
-	public void removeEntityAttribute(final EntityAttribute ea) {
+	public void removeEntityAttribute(final String baseEntityCode, final String attributeCode) {
+		EntityAttribute ea = null;
 		try {
-		  Query query = getEntityManager().createQuery(
-              "delete from EntityAttribute ea where  ea.baseEntityCode=:baseEntityCode and ea.attributeCode=:attributeCode");
-      query.setParameter("baseEntityCode", ea.getBaseEntityCode());
-      query.setParameter("attributeCode", ea.getAttributeCode());
-      int deletedCount = query.executeUpdate();
-      System.out.println("Number of rows deleted: " + deletedCount);
+		  ea = findEntityAttribute(baseEntityCode, attributeCode); 
+	      removeEntityAttribute(ea); 
 		} catch (Exception e) {
-			// rollback
+		    e.printStackTrace();
 		}
+	}
+	
+	@Transactional
+	public void removeEntityAttribute(final EntityAttribute ea) {
+	  try {
+        BaseEntity source = findBaseEntityByCode(ea.getBaseEntityCode());
+        source.getBaseEntityAttributes().remove(ea);
+        getEntityManager().merge(source);
+        this.writeToDDT(source);
+        getEntityManager().remove(ea);
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
 	}
 
 	@Transactional
@@ -3733,7 +3756,7 @@ public class BaseEntityService2 {
 			query.setParameter("attributeCode", attributeCode);
 			query.executeUpdate();
 		} catch (Exception e) {
-
+		    e.printStackTrace();
 		}
 
 	}
@@ -3784,6 +3807,7 @@ public class BaseEntityService2 {
 		return ee;
 	}
 
+	@Transactional
 	public void removeLink(final Link link) {
 		EntityEntity ee = null;
 
@@ -3800,8 +3824,8 @@ public class BaseEntityService2 {
 		}
 	}
 
+	@Transactional
 	public void removeLink(final String sourceCode, final String targetCode, final String linkCode) {
-	  System.out.println("INside removeLink method");
 		EntityEntity ee = null;
 
 		try {
