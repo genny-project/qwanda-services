@@ -569,7 +569,7 @@ public class BatchLoading {
   /**
    * Call functions named after the classes
    */
-  public Map<String, Object> persistProject(boolean isSynchronise, String table) {
+  public Map<String, Object> persistProject(boolean isSynchronise, String table, boolean isDelete) {
     System.out.println("Persisting Project in BatchLoading");
     BatchLoading.isSynchronise = isSynchronise;
     BatchLoading.table = table;
@@ -578,32 +578,60 @@ public class BatchLoading {
       switch(table) {
         case "validation":
           validations(finalProject);
+          if(!isDelete) {
+            savedProjectData.put("validations", finalProject.get("validations"));
+          }
           break;
         case "attribute":
           Map<String, DataType> dataTypes = dataType(finalProject);
           attributes(finalProject, dataTypes);
+          if(!isDelete) {
+            savedProjectData.put("attributes", finalProject.get("attributes"));
+          }
           break;
         case "baseentity": 
           baseEntitys(finalProject);
+          if(!isDelete) {
+            savedProjectData.put("baseEntitys", finalProject.get("baseEntitys"));
+          }
           break;
         case "entityattribute":
           baseEntityAttributes(finalProject);
+          if(!isDelete) {
+            savedProjectData.put("attibutesEntity", finalProject.get("attibutesEntity"));
+          }
           break;
         case "attributelink":
           Map<String, DataType> linkDataTypes = dataType(finalProject);
           attributeLinks(finalProject, linkDataTypes);
+          if(!isDelete) {
+            savedProjectData.put("attributeLink", finalProject.get("attributeLink"));
+          }
           break;
         case "entityentity":
           entityEntitys(finalProject);
+          if(!isDelete) {
+            savedProjectData.put("basebase", finalProject.get("basebase"));
+          }
           break;
         case "question":
           questions(finalProject);
+          if(!isDelete) {
+            savedProjectData.put("questions", finalProject.get("questions"));
+          }
+          
           break;
         case "questionquestion":
           questionQuestions(finalProject);
+          if(!isDelete) {
+            savedProjectData.put("questionQuestions", finalProject.get("questionQuestions"));
+          }
           break;
         case "message":
           messageTemplates(finalProject);
+          if(!isDelete) {
+            savedProjectData.put("messages", finalProject.get("messages"));
+          }
           break;
         default:
           System.out.println("Error in table name. Please check.");
