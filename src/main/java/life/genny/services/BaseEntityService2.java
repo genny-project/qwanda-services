@@ -916,7 +916,15 @@ public class BaseEntityService2 {
 						Attribute attribute = this.findAttributeByCode(priAttributeCode);
 						ea.getPk().setAttribute(attribute);
 					}
-					switch (ea.getPk().getAttribute().getDataType().getClassName()) {
+					String className = null;
+					
+					try {
+						className  = ea.getPk().getAttribute().getDataType().getClassName();
+					} catch (Exception e) {
+						log.error("Attribute does not exist in Search query");
+						return results;
+					}
+					switch (className) {
 					case "java.lang.Integer":
 					case "Integer":
 						filterStringsQ = updateFilterStringsQ(filterStringsQ, filterIndex, ea, condition,
