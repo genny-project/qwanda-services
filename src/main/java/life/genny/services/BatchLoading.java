@@ -575,6 +575,7 @@ public class BatchLoading {
     BatchLoading.isSynchronise = isSynchronise;
     BatchLoading.table = table;
     if(isSynchronise) {
+      System.out.println("Table to synchronise: " + table);
       Map<String, Object> finalProject = getProject();
       if(!isDelete) {
         switch(table) {
@@ -619,8 +620,8 @@ public class BatchLoading {
           default:
             System.out.println("Error in table name. Please check.");
         }
+        System.out.println("########## SYNCHRONISED GOOGLE SHEET #############");
       }
-      System.out.println("########## SYNCHRONISED GOOGLE SHEET #############");
       return finalProject;
     }
     Map<String, Object> lastProject = getProject();
@@ -713,7 +714,6 @@ public class BatchLoading {
     while (numOfTries > 0) {
       try {
         if(isSynchronise) {
-          System.out.println("Table to synchronise: " + table);
           switch(table) {
             case "validation":
               Map<String, Map> validations = sheets.newGetVal();
