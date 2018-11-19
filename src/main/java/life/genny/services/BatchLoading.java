@@ -1,14 +1,7 @@
 package life.genny.services;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,15 +67,16 @@ public class BatchLoading {
    * @param project
    */
   public void validations(Map<String, Object> project) {
-    if (project.get("validations") == null)
+    if (project.get("validations") == null) {
       return;
+    }
     ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
     ((HashMap<String, HashMap>) project.get("validations")).entrySet().stream().forEach(data -> {
       Map<String, Object> validations = data.getValue();
       String regex = null;
       
-      regex = ((String) validations.get("regex"));
+      regex = (String) validations.get("regex");
       if (regex!=null) {
     	  regex = regex.replaceAll("^\"|\"$", "");
       }
@@ -91,9 +85,9 @@ public class BatchLoading {
     	  System.out.println("detected VLD_AU_DRIVER_LICENCE_NO");
       }
       String name = ((String) validations.get("name")).replaceAll("^\"|\"$", "");;
-      String recursiveStr = ((String) validations.get("recursive"));
-      String multiAllowedStr = ((String) validations.get("multi_allowed"));
-      String groupCodesStr = ((String) validations.get("group_codes"));
+      String recursiveStr = (String) validations.get("recursive");
+      String multiAllowedStr = (String) validations.get("multi_allowed");
+      String groupCodesStr = (String) validations.get("group_codes");
       Boolean recursive = getBooleanFromString(recursiveStr);
       Boolean multiAllowed = getBooleanFromString(multiAllowedStr);
 
@@ -123,8 +117,9 @@ public class BatchLoading {
    * @param dataTypeMap
    */
   public void attributes(Map<String, Object> project, Map<String, DataType> dataTypeMap) {
-    if (project.get("attributes") == null)
+    if (project.get("attributes") == null) {
       return;
+    }
     ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
 
@@ -136,7 +131,7 @@ public class BatchLoading {
         String name = ((String) attributes.get("name")).replaceAll("^\"|\"$", "");;
         DataType dataTypeRecord = dataTypeMap.get(dataType);
         ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
-        String privacyStr = ((String) attributes.get("privacy"));
+        String privacyStr = (String) attributes.get("privacy");
         if (privacyStr != null) {
         		privacyStr = privacyStr.toUpperCase();
         }
@@ -144,10 +139,10 @@ public class BatchLoading {
         if (privacy) {
         		System.out.println("Attribute "+code+" has default privacy");
         }
-        String descriptionStr = ((String) attributes.get("description"));
-        String helpStr = ((String) attributes.get("help"));
-        String placeholderStr = ((String) attributes.get("placeholder"));
-        String defaultValueStr = ((String) attributes.get("defaultValue"));
+        String descriptionStr = (String) attributes.get("description");
+        String helpStr = (String) attributes.get("help");
+        String placeholderStr = (String) attributes.get("placeholder");
+        String defaultValueStr = (String) attributes.get("defaultValue");
         Attribute attr = new Attribute(code, name, dataTypeRecord);
         attr.setDefaultPrivacyFlag(privacy);
         attr.setDescription(descriptionStr);
@@ -172,15 +167,16 @@ public class BatchLoading {
    * @return
    */
   public Map<String, DataType> dataType(Map<String, Object> project) {
-    if (project.get("dataType") == null)
+    if (project.get("dataType") == null) {
       return null;
-    final Map<String, DataType> dataTypeMap = new HashMap<String, DataType>();
+    }
+    final Map<String, DataType> dataTypeMap = new HashMap<>();
     ((HashMap<String, HashMap>) project.get("dataType")).entrySet().stream().forEach(data -> {
       Map<String, Object> dataType = data.getValue();
-      String validations = ((String) dataType.get("validations"));
+      String validations = (String) dataType.get("validations");
       String code = ((String) dataType.get("code")).replaceAll("^\"|\"$", "");;
       String name = ((String) dataType.get("name")).replaceAll("^\"|\"$", "");;
-      String inputmask = ((String) dataType.get("inputmask"));
+      String inputmask = (String) dataType.get("inputmask");
       final ValidationList validationList = new ValidationList();
       validationList.setValidationList(new ArrayList<Validation>());
       if (validations != null) {
@@ -208,8 +204,9 @@ public class BatchLoading {
    * @param project
    */
   public void baseEntitys(Map<String, Object> project) {
-    if (project.get("baseEntitys") == null)
+    if (project.get("baseEntitys") == null) {
       return;
+    }
     ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
 
@@ -234,8 +231,9 @@ public class BatchLoading {
    * @param project
    */
   public void baseEntityAttributes(Map<String, Object> project) {
-    if (project.get("attibutesEntity") == null)
+    if (project.get("attibutesEntity") == null) {
       return;
+    }
     ((HashMap<String, HashMap>) project.get("attibutesEntity")).entrySet().stream()
         .forEach(data -> {
           Map<String, Object> baseEntityAttr = data.getValue();
@@ -245,7 +243,7 @@ public class BatchLoading {
 			} catch (Exception e2) {
 				log.error("AttributeCode not found ["+baseEntityAttr+"]");
 			}
-          String valueString = ((String) baseEntityAttr.get("valueString"));
+          String valueString = (String) baseEntityAttr.get("valueString");
           if (valueString != null) {
             valueString = valueString.replaceAll("^\"|\"$", "");
           }
@@ -303,15 +301,16 @@ public class BatchLoading {
    * @param project
    */
   public void entityEntitys(Map<String, Object> project) {
-    if (project.get("basebase") == null)
+    if (project.get("basebase") == null) {
       return;
+    }
     ((HashMap<String, HashMap>) project.get("basebase")).entrySet().stream().forEach(data -> {
       Map<String, Object> entEnts = data.getValue();
-      String linkCode = ((String) entEnts.get("linkCode"));
-      String parentCode = ((String) entEnts.get("parentCode"));
-      String targetCode = ((String) entEnts.get("targetCode"));
-      String weightStr = ((String) entEnts.get("weight"));
-      String valueString = ((String) entEnts.get("valueString"));
+      String linkCode = (String) entEnts.get("linkCode");
+      String parentCode = (String) entEnts.get("parentCode");
+      String targetCode = (String) entEnts.get("targetCode");
+      String weightStr = (String) entEnts.get("weight");
+      String valueString = (String) entEnts.get("valueString");
       final Double weight = Double.valueOf(weightStr);
       BaseEntity sbe = null;
       BaseEntity tbe = null;
@@ -351,17 +350,18 @@ public class BatchLoading {
    */
   @Transactional
   public void questionQuestions(Map<String, Object> project) {
-    if (project.get("questionQuestions") == null)
+    if (project.get("questionQuestions") == null) {
       return;
+    }
     ((HashMap<String, HashMap>) project.get("questionQuestions")).entrySet().stream()
         .forEach(data -> {
           Map<String, Object> queQues = data.getValue();
-          String parentCode = ((String) queQues.get("parentCode"));
-          String targetCode = ((String) queQues.get("targetCode"));
-          String weightStr = ((String) queQues.get("weight"));
-          String mandatoryStr = ((String) queQues.get("mandatory"));
-          String readonlyStr = ((String) queQues.get("readonly"));
-          Boolean readonly = readonlyStr == null ? false: ("TRUE".equalsIgnoreCase(readonlyStr));
+          String parentCode = (String) queQues.get("parentCode");
+          String targetCode = (String) queQues.get("targetCode");
+          String weightStr = (String) queQues.get("weight");
+          String mandatoryStr = (String) queQues.get("mandatory");
+          String readonlyStr = (String) queQues.get("readonly");
+          Boolean readonly = readonlyStr == null ? false: "TRUE".equalsIgnoreCase(readonlyStr);
           
           Double weight = 0.0;
           try {
@@ -384,7 +384,7 @@ public class BatchLoading {
                 	// Set the oneshot to be that of the targetquestion
                 	oneshot = tbe.getOneshot();
                 } else {
-                 oneshot = ("TRUE".equalsIgnoreCase(oneshotStr));
+                 oneshot = "TRUE".equalsIgnoreCase(oneshotStr);
                 }
             	
 				QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
@@ -438,7 +438,7 @@ public class BatchLoading {
 		   String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");;
 		     DataType dataTypeRecord = dataTypeMap.get(dataType);
 		     ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
-		     String privacyStr = ((String) attributeLink.get("privacy"));
+		     String privacyStr = (String) attributeLink.get("privacy");
 		     Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 
 		     linkAttribute = new AttributeLink(code, name);
@@ -447,7 +447,7 @@ public class BatchLoading {
 		     service.upsert(linkAttribute);
 	} catch (Exception e) {
 		  String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");;
-		     String privacyStr = ((String) attributeLink.get("privacy"));
+		     String privacyStr = (String) attributeLink.get("privacy");
 		     Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 
 		      linkAttribute = new AttributeLink(code, name);
@@ -473,9 +473,9 @@ public class BatchLoading {
       String attrCode = (String) questions.get("attribute_code");
       String html = (String) questions.get("html");
       String oneshotStr = (String) questions.get("oneshot");
-      String readonlyStr = ((String) questions.get("readonly"));
-      String hiddenStr = ((String) questions.get("hidden"));
-      String mandatoryStr = ((String) questions.get("mandatory"));
+      String readonlyStr = (String) questions.get("readonly");
+      String hiddenStr = (String) questions.get("hidden");
+      String mandatoryStr = (String) questions.get("mandatory");
  
       Boolean oneshot =getBooleanFromString(oneshotStr);
       Boolean readonly = getBooleanFromString(readonlyStr);
@@ -518,9 +518,9 @@ public class BatchLoading {
       String name = (String) asks.get("name");
       String expectedId = (String) asks.get("expectedId");
       String weightStr = (String) asks.get("weight");
-      String mandatoryStr = ((String) asks.get("mandatory"));
-      String readonlyStr = ((String) asks.get("readonly"));
-      String hiddenStr = ((String) asks.get("hidden"));
+      String mandatoryStr = (String) asks.get("mandatory");
+      String readonlyStr = (String) asks.get("readonly");
+      String hiddenStr = (String) asks.get("hidden");
       final Double weight = Double.valueOf(weightStr);
       if ("QUE_USER_SELECT_ROLE".equals(targetCode)) {
     	  System.out.println("dummy");
@@ -553,8 +553,9 @@ public class BatchLoading {
     } else {
       for (int count = 0; count < projects.size(); count++) {
         int subsequentIndex = count + 1;
-        if (subsequentIndex == projects.size())
+        if (subsequentIndex == projects.size()) {
           break;
+        }
 
         if (lastProject == null) {
           lastProject = upsertProjectMapProps(projects.get(count), projects.get(subsequentIndex));
@@ -575,66 +576,49 @@ public class BatchLoading {
     BatchLoading.table = table;
     if(isSynchronise) {
       Map<String, Object> finalProject = getProject();
-      switch(table) {
-        case "validation":
-          validations(finalProject);
-          if(!isDelete) {
+      if(!isDelete) {
+        switch(table) {
+          case "validation":
+            validations(finalProject);
             savedProjectData.put("validations", finalProject.get("validations"));
-          }
-          break;
-        case "attribute":
-          Map<String, DataType> dataTypes = dataType(finalProject);
-          attributes(finalProject, dataTypes);
-          if(!isDelete) {
+            break;
+          case "attribute":
+            Map<String, DataType> dataTypes = dataType(finalProject);
+            attributes(finalProject, dataTypes);
             savedProjectData.put("attributes", finalProject.get("attributes"));
-          }
-          break;
-        case "baseentity": 
-          baseEntitys(finalProject);
-          if(!isDelete) {
+            break;
+          case "baseentity": 
+            baseEntitys(finalProject);
             savedProjectData.put("baseEntitys", finalProject.get("baseEntitys"));
-          }
-          break;
-        case "entityattribute":
-          baseEntityAttributes(finalProject);
-          if(!isDelete) {
+            break;
+          case "entityattribute":
+            baseEntityAttributes(finalProject);
             savedProjectData.put("attibutesEntity", finalProject.get("attibutesEntity"));
-          }
-          break;
-        case "attributelink":
-          Map<String, DataType> linkDataTypes = dataType(finalProject);
-          attributeLinks(finalProject, linkDataTypes);
-          if(!isDelete) {
+            break;
+          case "attributelink":
+            Map<String, DataType> linkDataTypes = dataType(finalProject);
+            attributeLinks(finalProject, linkDataTypes);
             savedProjectData.put("attributeLink", finalProject.get("attributeLink"));
-          }
-          break;
-        case "entityentity":
-          entityEntitys(finalProject);
-          if(!isDelete) {
+            break;
+          case "entityentity":
+            entityEntitys(finalProject);
             savedProjectData.put("basebase", finalProject.get("basebase"));
-          }
-          break;
-        case "question":
-          questions(finalProject);
-          if(!isDelete) {
+            break;
+          case "question":
+            questions(finalProject);
             savedProjectData.put("questions", finalProject.get("questions"));
-          }
-          
-          break;
-        case "questionquestion":
-          questionQuestions(finalProject);
-          if(!isDelete) {
+            break;
+          case "questionquestion":
+            questionQuestions(finalProject);
             savedProjectData.put("questionQuestions", finalProject.get("questionQuestions"));
-          }
-          break;
-        case "message":
-          messageTemplates(finalProject);
-          if(!isDelete) {
+            break;
+          case "message":
+            messageTemplates(finalProject);
             savedProjectData.put("messages", finalProject.get("messages"));
-          }
-          break;
-        default:
-          System.out.println("Error in table name. Please check.");
+            break;
+          default:
+            System.out.println("Error in table name. Please check.");
+        }
       }
       System.out.println("########## SYNCHRONISED GOOGLE SHEET #############");
       return finalProject;
@@ -672,7 +656,7 @@ public class BatchLoading {
       String sheetID = (String) data.get("sheetID");
       String name = (String) data.get("name");
       String module = (String) data.get("module");
-      final List<Map<String, Object>> map = new ArrayList<Map<String, Object>>();
+      final List<Map<String, Object>> map = new ArrayList<>();
       System.out.printf("%-80s%s%n", "Loading Project \033[31;1m" + name
           + "\033[0m and module \033[31;1m" + module + "\033[0m please wait...", "\uD83D\uDE31\t");
       Map<String, Object> fields = project(sheetID);
@@ -723,7 +707,7 @@ public class BatchLoading {
    * @return
    */
   public Map<String, Object> project(final String projectType) {
-    final Map<String, Object> genny = new HashMap<String, Object>();
+    final Map<String, Object> genny = new HashMap<>();
     sheets.setSheetId(projectType);
     Integer numOfTries = 3;
     while (numOfTries > 0) {
@@ -822,8 +806,9 @@ public class BatchLoading {
       numOfTries--;
     }
 
-    if (numOfTries <= 0)
+    if (numOfTries <= 0) {
       log.error("Failed to download Google Docs Configuration ... given up ...");
+    }
 
     return genny;
   }
@@ -852,11 +837,11 @@ public class BatchLoading {
     });
     subProject.entrySet().stream().forEach(map -> {
       final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());
-      if (objects != null)
+      if (objects != null) {
         objects.entrySet().stream().forEach(obj -> {
           if (((Map<String, Object>) superProject.get(map.getKey()))
               .<HashMap<String, Object>>get(obj.getKey()) != null) {
-            Map<String, Object> mapp = ((Map<String, Object>) obj.getValue());
+            Map<String, Object> mapp = (Map<String, Object>) obj.getValue();
             Map<String, Object> mapp2 = ((Map<String, HashMap>) superProject.get(map.getKey()))
                 .<HashMap<String, Object>>get(obj.getKey());
             mapp.entrySet().stream().forEach(data -> {
@@ -869,6 +854,7 @@ public class BatchLoading {
                 .<HashMap<String, Object>>put(obj.getKey(), obj.getValue());
           }
         });
+      }
     });
     return superProject;
   }
@@ -942,11 +928,11 @@ public class BatchLoading {
       return false;
     }
 
-    if (("TRUE".equalsIgnoreCase(booleanString.toUpperCase()))
-        || ("YES".equalsIgnoreCase(booleanString.toUpperCase()))
-        || ("T".equalsIgnoreCase(booleanString.toUpperCase()))
-        || ("Y".equalsIgnoreCase(booleanString.toUpperCase()))
-        || ("1".equalsIgnoreCase(booleanString))) {
+    if ("TRUE".equalsIgnoreCase(booleanString.toUpperCase())
+        || "YES".equalsIgnoreCase(booleanString.toUpperCase())
+        || "T".equalsIgnoreCase(booleanString.toUpperCase())
+        || "Y".equalsIgnoreCase(booleanString.toUpperCase())
+        || "1".equalsIgnoreCase(booleanString)) {
       return true;
     }
     return false;
