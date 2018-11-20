@@ -46,6 +46,8 @@ public class BatchLoading {
   public static int id = 1;
   
   private static boolean isSynchronise;
+  
+
   private static String table;
 
 
@@ -489,6 +491,14 @@ public class BatchLoading {
       q.setMandatory(mandatory);
       Question existing = service.findQuestionByCode(code);
       if (existing == null) {
+        if(isSynchronise()) {
+          Question val = service.findQuestionByCode(q.getCode(), "hidden");
+          if(val != null) {
+            val.setRealm("genny");
+            service.updateRealm(val);
+            return;
+          }
+        }
     	  	service.insert(q);
       } else {
     	  existing.setName(name);
@@ -912,8 +922,24 @@ public class BatchLoading {
 				log.error("Cannot update QDataMSGMessage " + code);
 			}
 				} catch (NoResultException e1) {
-					Long id = service.insert(templateObj);
-					System.out.println("message id ::" + id);
+				  try {
+				    if(BatchLoading.isSynchronise()) {
+				      QBaseMSGMessageTemplate val = service.findTemplateByCode(templateObj.getCode(), "hidden");
+		                if(val != null) {
+		                  val.setRealm("genny");
+		                  service.updateRealm(val);
+		                  return;
+		                }
+		              }
+				    Long id = service.insert(templateObj);
+                    System.out.println("message id ::" + id);
+				  } catch (javax.validation.ConstraintViolationException ce)     {
+	                log.error("Error in saving message due to constraint issue:" + templateObj + " :" + ce.getLocalizedMessage());
+	                log.info("Trying to update realm from hidden to genny");
+	                templateObj.setRealm("genny");
+	                service.updateRealm(templateObj);
+	            }
+					
 				} catch (Exception e) {
 			log.error("Cannot add MessageTemplate");
 	
@@ -937,6 +963,10 @@ public class BatchLoading {
     }
     return false;
 
+  }
+  
+  public static boolean isSynchronise() {
+    return isSynchronise;
   }
 
 }
