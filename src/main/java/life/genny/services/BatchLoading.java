@@ -1,27 +1,18 @@
 package life.genny.services;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import life.genny.qwanda.Ask;
@@ -37,7 +28,6 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySheets;
-import life.genny.services.BaseEntityService2;
 
 /**
  * @author helios
@@ -59,13 +49,19 @@ public class BatchLoading {
     this.service = service;
   }
 
-  private final String secret = System.getenv("GOOGLE_CLIENT_SECRET");
-  private final String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
-  File credentialPath =
+  private final static String secret = System.getenv("GOOGLE_CLIENT_SECRET");
+  private final static String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
+  static File credentialPath =
       new File(System.getProperty("user.home"), ".genny/sheets.googleapis.com-java-quickstart");
-  public GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
+  public static GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
 
   public static Map<String, Object> savedProjectData;
+  
+  public static final String REALM = updateRealm();
+  
+  public static final String DEFAULT_REALM = "genny";
+  
+  List<String> projectList = new ArrayList<>();
 
   /**
    * Upsert Validation to database
@@ -73,26 +69,27 @@ public class BatchLoading {
    * @param project
    */
   public void validations(Map<String, Object> project) {
-    if (project.get("validations") == null)
+    if (project.get("validations") == null) {
       return;
+    }
     ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
     ((HashMap<String, HashMap>) project.get("validations")).entrySet().stream().forEach(data -> {
       Map<String, Object> validations = data.getValue();
       String regex = null;
       
-      regex = ((String) validations.get("regex"));
+      regex = (String) validations.get("regex");
       if (regex!=null) {
-    	  regex = regex.replaceAll("^\"|\"$", "");
+          regex = regex.replaceAll("^\"|\"$", "");
       }
       String code = ((String) validations.get("code")).replaceAll("^\"|\"$", "");;
       if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
-    	  System.out.println("detected VLD_AU_DRIVER_LICENCE_NO");
+          System.out.println("detected VLD_AU_DRIVER_LICENCE_NO");
       }
       String name = ((String) validations.get("name")).replaceAll("^\"|\"$", "");;
-      String recursiveStr = ((String) validations.get("recursive"));
-      String multiAllowedStr = ((String) validations.get("multi_allowed"));
-      String groupCodesStr = ((String) validations.get("group_codes"));
+      String recursiveStr = (String) validations.get("recursive");
+      String multiAllowedStr = (String) validations.get("multi_allowed");
+      String groupCodesStr = (String) validations.get("group_codes");
       Boolean recursive = getBooleanFromString(recursiveStr);
       Boolean multiAllowed = getBooleanFromString(multiAllowedStr);
 
@@ -104,6 +101,7 @@ public class BatchLoading {
         val = new Validation(code, name, regex);
 
       }
+      val.setRealm(REALM);
       System.out.print("code " + code + ",name:" + name + ",val:" + val + ", grp="
           + (groupCodesStr != null ? groupCodesStr : "X"));
 
@@ -122,8 +120,9 @@ public class BatchLoading {
    * @param dataTypeMap
    */
   public void attributes(Map<String, Object> project, Map<String, DataType> dataTypeMap) {
-    if (project.get("attributes") == null)
+    if (project.get("attributes") == null) {
       return;
+    }
     ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
 
@@ -135,31 +134,31 @@ public class BatchLoading {
         String name = ((String) attributes.get("name")).replaceAll("^\"|\"$", "");;
         DataType dataTypeRecord = dataTypeMap.get(dataType);
         ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
-        String privacyStr = ((String) attributes.get("privacy"));
+        String privacyStr = (String) attributes.get("privacy");
         if (privacyStr != null) {
-        		privacyStr = privacyStr.toUpperCase();
+                privacyStr = privacyStr.toUpperCase();
         }
         Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
         if (privacy) {
-        		System.out.println("Attribute "+code+" has default privacy");
+                System.out.println("Attribute "+code+" has default privacy");
         }
-        String descriptionStr = ((String) attributes.get("description"));
-        String helpStr = ((String) attributes.get("help"));
-        String placeholderStr = ((String) attributes.get("placeholder"));
-        String defaultValueStr = ((String) attributes.get("defaultValue"));
+        String descriptionStr = (String) attributes.get("description");
+        String helpStr = (String) attributes.get("help");
+        String placeholderStr = (String) attributes.get("placeholder");
+        String defaultValueStr = (String) attributes.get("defaultValue");
         Attribute attr = new Attribute(code, name, dataTypeRecord);
         attr.setDefaultPrivacyFlag(privacy);
         attr.setDescription(descriptionStr);
         attr.setHelp(helpStr);
         attr.setPlaceholder(placeholderStr);
         attr.setDefaultValue(defaultValueStr);
+        attr.setRealm(REALM);
         Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
         for (ConstraintViolation<Attribute> constraint : constraints) {
           System.out.println(constraint.getPropertyPath() + " " + constraint.getMessage());
         }
         service.upsert(attr);
       } catch (Exception e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
     });
@@ -172,26 +171,27 @@ public class BatchLoading {
    * @return
    */
   public Map<String, DataType> dataType(Map<String, Object> project) {
-    if (project.get("dataType") == null)
+    if (project.get("dataType") == null) {
       return null;
-    final Map<String, DataType> dataTypeMap = new HashMap<String, DataType>();
+    }
+    final Map<String, DataType> dataTypeMap = new HashMap<>();
     ((HashMap<String, HashMap>) project.get("dataType")).entrySet().stream().forEach(data -> {
       Map<String, Object> dataType = data.getValue();
-      String validations = ((String) dataType.get("validations"));
+      String validations = (String) dataType.get("validations");
       String code = ((String) dataType.get("code")).replaceAll("^\"|\"$", "");;
       String name = ((String) dataType.get("name")).replaceAll("^\"|\"$", "");;
-      String inputmask = ((String) dataType.get("inputmask"));
+      String inputmask = (String) dataType.get("inputmask");
       final ValidationList validationList = new ValidationList();
       validationList.setValidationList(new ArrayList<Validation>());
       if (validations != null) {
         final String[] validationListStr = validations.split(",");
         for (final String validationCode : validationListStr) {
           try {
-			Validation validation = service.findValidationByCode(validationCode);
-			  validationList.getValidationList().add(validation);
-		} catch (NoResultException e) {
-			log.error("Could not load Validation "+validationCode);
-		}
+            Validation validation = service.findValidationByCode(validationCode);
+              validationList.getValidationList().add(validation);
+        } catch (NoResultException e) {
+            log.error("Could not load Validation "+validationCode);
+        }
         }
       }
       if (!dataTypeMap.containsKey(code)) {
@@ -208,8 +208,9 @@ public class BatchLoading {
    * @param project
    */
   public void baseEntitys(Map<String, Object> project) {
-    if (project.get("baseEntitys") == null)
+    if (project.get("baseEntitys") == null) {
       return;
+    }
     ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
 
@@ -218,7 +219,7 @@ public class BatchLoading {
       String code = ((String) baseEntitys.get("code")).replaceAll("^\"|\"$", "");;
       String name = ((String) baseEntitys.get("name")).replaceAll("^\"|\"$", "");;
       BaseEntity be = new BaseEntity(code, name);
-      
+      be.setRealm(REALM);
       Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
       for (ConstraintViolation<BaseEntity> constraint : constraints) {
         System.out.println(constraint.getPropertyPath() + " " + constraint.getMessage());
@@ -234,64 +235,66 @@ public class BatchLoading {
    * @param project
    */
   public void baseEntityAttributes(Map<String, Object> project) {
-    if (project.get("attibutesEntity") == null)
+    if (project.get("attibutesEntity") == null) {
       return;
+    }
     ((HashMap<String, HashMap>) project.get("attibutesEntity")).entrySet().stream()
         .forEach(data -> {
           Map<String, Object> baseEntityAttr = data.getValue();
           String attributeCode = null;
              try {
-				attributeCode =  ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");;
-			} catch (Exception e2) {
-				log.error("AttributeCode not found ["+baseEntityAttr+"]");
-			}
-          String valueString = ((String) baseEntityAttr.get("valueString"));
+                attributeCode =  ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");;
+            } catch (Exception e2) {
+                log.error("AttributeCode not found ["+baseEntityAttr+"]");
+            }
+          String valueString = (String) baseEntityAttr.get("valueString");
           if (valueString != null) {
             valueString = valueString.replaceAll("^\"|\"$", "");;
           }
           String baseEntityCode = null;
           
           try {
-			baseEntityCode = 
-			      ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");;
-		          String weight = (String) baseEntityAttr.get("weight");
-		          String privacyStr = (String) baseEntityAttr.get("privacy");
-		          Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
-		          Attribute attribute = null;
-		          BaseEntity be = null;
-		          try {
-		            attribute = service.findAttributeByCode(attributeCode);
-		            if (attribute == null) {
-		            	log.error(attributeCode+" is not in the Attribute Table!!!");
-		            } else {
-		            be = service.findBaseEntityByCode(baseEntityCode);
-		            Double weightField = null;
-		            try {
-		              weightField = Double.valueOf(weight);
-		            } catch (java.lang.NumberFormatException ee) {
-		              weightField = 0.0;
-		            }
-		            try {
-		              EntityAttribute ea = be.addAttribute(attribute, weightField, valueString);
-		              if (privacy || attribute.getDefaultPrivacyFlag()) {
-		            	  	ea.setPrivacyFlag(true);
-		              }
-		            } catch (final BadDataException e) {
-		              e.printStackTrace();
-		            }
-		            service.updateWithAttributes(be);
-		            }
-		          }
-		           catch (final NoResultException e) {
-		          }
-		          
-		} catch (Exception e1) {
-			String beCode = "BAD BE CODE";
-			if (baseEntityAttr != null) {
-				beCode = (String) baseEntityAttr.get("baseEntityCode");
-			}
-			log.error("Error in getting baseEntityAttr  for AttributeCode "+attributeCode+ " and beCode="+beCode);
-		}
+            baseEntityCode = 
+                  ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");;
+                  String weight = (String) baseEntityAttr.get("weight");
+                  String privacyStr = (String) baseEntityAttr.get("privacy");
+                  Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+                  Attribute attribute = null;
+                  BaseEntity be = null;
+                  try {
+                    attribute = service.findAttributeByCode(attributeCode);
+                    if (attribute == null) {
+                        log.error(attributeCode+" is not in the Attribute Table!!!");
+                    } else {
+                    be = service.findBaseEntityByCode(baseEntityCode);
+                    be.setRealm(REALM);
+                    Double weightField = null;
+                    try {
+                      weightField = Double.valueOf(weight);
+                    } catch (java.lang.NumberFormatException ee) {
+                      weightField = 0.0;
+                    }
+                    try {
+                      EntityAttribute ea = be.addAttribute(attribute, weightField, valueString);
+                      if (privacy || attribute.getDefaultPrivacyFlag()) {
+                            ea.setPrivacyFlag(true);
+                      }
+                    } catch (final BadDataException e) {
+                      e.printStackTrace();
+                    }
+                    service.updateWithAttributes(be);
+                    }
+                  }
+                   catch (final NoResultException e) {
+                  }
+                  
+        } catch (Exception e1) {
+            String beCode = "BAD BE CODE";
+            if (baseEntityAttr != null) {
+                beCode = (String) baseEntityAttr.get("baseEntityCode");
+            }
+            log.error("Error in getting baseEntityAttr  for AttributeCode "+attributeCode+ " and beCode="+beCode);
+        }
 
         });
   }
@@ -302,15 +305,16 @@ public class BatchLoading {
    * @param project
    */
   public void entityEntitys(Map<String, Object> project) {
-    if (project.get("basebase") == null)
+    if (project.get("basebase") == null) {
       return;
+    }
     ((HashMap<String, HashMap>) project.get("basebase")).entrySet().stream().forEach(data -> {
       Map<String, Object> entEnts = data.getValue();
-      String linkCode = ((String) entEnts.get("linkCode"));
-      String parentCode = ((String) entEnts.get("parentCode"));
-      String targetCode = ((String) entEnts.get("targetCode"));
-      String weightStr = ((String) entEnts.get("weight"));
-      String valueString = ((String) entEnts.get("valueString"));
+      String linkCode = (String) entEnts.get("linkCode");
+      String parentCode = (String) entEnts.get("parentCode");
+      String targetCode = (String) entEnts.get("targetCode");
+      String weightStr = (String) entEnts.get("weight");
+      String valueString = (String) entEnts.get("valueString");
       final Double weight = Double.valueOf(weightStr);
       BaseEntity sbe = null;
       BaseEntity tbe = null;
@@ -319,9 +323,10 @@ public class BatchLoading {
         sbe = service.findBaseEntityByCode(parentCode);
         tbe = service.findBaseEntityByCode(targetCode);
         sbe.addTarget(tbe, linkAttribute, weight, valueString);
+        sbe.setRealm(REALM);
         service.updateWithAttributes(sbe);
       } catch (final NoResultException e) {
-    	  log.warn("CODE NOT PRESENT IN LINKING: "+parentCode+":"+targetCode+":"+linkAttribute);
+          log.warn("CODE NOT PRESENT IN LINKING: "+parentCode+":"+targetCode+":"+linkAttribute);
       } catch (final BadDataException e) {
         e.printStackTrace();
       } catch (final NullPointerException e) {
@@ -337,24 +342,25 @@ public class BatchLoading {
    */
   @Transactional
   public void questionQuestions(Map<String, Object> project) {
-    if (project.get("questionQuestions") == null)
+    if (project.get("questionQuestions") == null) {
       return;
+    }
     ((HashMap<String, HashMap>) project.get("questionQuestions")).entrySet().stream()
         .forEach(data -> {
           Map<String, Object> queQues = data.getValue();
-          String parentCode = ((String) queQues.get("parentCode"));
-          String targetCode = ((String) queQues.get("targetCode"));
-          String weightStr = ((String) queQues.get("weight"));
-          String mandatoryStr = ((String) queQues.get("mandatory"));
-          String readonlyStr = ((String) queQues.get("readonly"));
-          Boolean readonly = readonlyStr == null ? false: ("TRUE".equalsIgnoreCase(readonlyStr));
+          String parentCode = (String) queQues.get("parentCode");
+          String targetCode = (String) queQues.get("targetCode");
+          String weightStr = (String) queQues.get("weight");
+          String mandatoryStr = (String) queQues.get("mandatory");
+          String readonlyStr = (String) queQues.get("readonly");
+          Boolean readonly = readonlyStr == null ? false: "TRUE".equalsIgnoreCase(readonlyStr);
           
           Double weight = 0.0;
           try {
-			weight = Double.valueOf(weightStr);
-		} catch (NumberFormatException e1) {
-			weight = 0.0;
-		}
+            weight = Double.valueOf(weightStr);
+        } catch (NumberFormatException e1) {
+            weight = 0.0;
+        }
           Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
 
           Question sbe = null;
@@ -367,36 +373,36 @@ public class BatchLoading {
                 String oneshotStr = (String)  queQues.get("oneshot");
                 Boolean oneshot = false;
                 if (oneshotStr == null) {
-                	// Set the oneshot to be that of the targetquestion
-                	oneshot = tbe.getOneshot();
+                    // Set the oneshot to be that of the targetquestion
+                    oneshot = tbe.getOneshot();
                 } else {
-                 oneshot = ("TRUE".equalsIgnoreCase(oneshotStr));
+                 oneshot = "TRUE".equalsIgnoreCase(oneshotStr);
                 }
-            	
-				QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
-				qq.setOneshot(oneshot);
-				qq.setReadonly(readonly);
-				QuestionQuestion existing = null;
-				try {
-					existing = service.findQuestionQuestionByCode(parentCode, targetCode);
-					if (existing == null) {
-						qq = service.upsert(qq);
-					} else {
-						service.upsert(qq);
-					}
-				} catch (NoResultException e1) {
-					qq = service.upsert(qq);
-				} catch (Exception e) {
-					existing.setMandatory(qq.getMandatory());
-					existing.setOneshot(qq.getOneshot());
-					existing.setWeight(qq.getWeight());
-					existing.setReadonly(qq.getReadonly());
-					qq = service.upsert(existing);
-				} 
-				
-			} catch (NullPointerException e) {
-				log.error("Cannot find QuestionQuestion targetCode:"+targetCode+":parentCode:"+parentCode);
-		
+                sbe.setRealm(REALM);
+                QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
+                qq.setOneshot(oneshot);
+                qq.setReadonly(readonly);
+                QuestionQuestion existing = null;
+                try {
+                    existing = service.findQuestionQuestionByCode(parentCode, targetCode);
+                    if (existing == null) {
+                        qq = service.upsert(qq);
+                    } else {
+                        service.upsert(qq);
+                    }
+                } catch (NoResultException e1) {
+                    qq = service.upsert(qq);
+                } catch (Exception e) {
+                    existing.setMandatory(qq.getMandatory());
+                    existing.setOneshot(qq.getOneshot());
+                    existing.setWeight(qq.getWeight());
+                    existing.setReadonly(qq.getReadonly());
+                    qq = service.upsert(existing);
+                } 
+                
+            } catch (NullPointerException e) {
+                log.error("Cannot find QuestionQuestion targetCode:"+targetCode+":parentCode:"+parentCode);
+        
 
           }
           } catch (final BadDataException e) {
@@ -420,25 +426,27 @@ public class BatchLoading {
       AttributeLink linkAttribute = null;
      
      try {
-		dataType = ((String) attributeLink.get("dataType")).replaceAll("^\"|\"$", "");;
-		   String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");;
-		     DataType dataTypeRecord = dataTypeMap.get(dataType);
-		     ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
-		     String privacyStr = ((String) attributeLink.get("privacy"));
-		     Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+        dataType = ((String) attributeLink.get("dataType")).replaceAll("^\"|\"$", "");;
+           String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");;
+             DataType dataTypeRecord = dataTypeMap.get(dataType);
+             ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
+             String privacyStr = (String) attributeLink.get("privacy");
+             Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 
-		     linkAttribute = new AttributeLink(code, name);
-		     linkAttribute.setDefaultPrivacyFlag(privacy);
-		     linkAttribute.setDataType(dataTypeRecord);
-		     service.upsert(linkAttribute);
-	} catch (Exception e) {
-		  String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");;
-		     String privacyStr = ((String) attributeLink.get("privacy"));
-		     Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+             linkAttribute = new AttributeLink(code, name);
+             linkAttribute.setDefaultPrivacyFlag(privacy);
+             linkAttribute.setDataType(dataTypeRecord);
+             linkAttribute.setRealm(REALM);
+             service.upsert(linkAttribute);
+    } catch (Exception e) {
+          String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");;
+             String privacyStr = (String) attributeLink.get("privacy");
+             Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 
-		      linkAttribute = new AttributeLink(code, name);
-		     linkAttribute.setDefaultPrivacyFlag(privacy);
-	}
+              linkAttribute = new AttributeLink(code, name);
+             linkAttribute.setDefaultPrivacyFlag(privacy);
+             linkAttribute.setRealm(REALM);
+    }
    
      service.upsert(linkAttribute);
 
@@ -459,9 +467,9 @@ public class BatchLoading {
       String attrCode = (String) questions.get("attribute_code");
       String html = (String) questions.get("html");
       String oneshotStr = (String) questions.get("oneshot");
-      String readonlyStr = ((String) questions.get("readonly"));
-      String hiddenStr = ((String) questions.get("hidden"));
-      String mandatoryStr = ((String) questions.get("mandatory"));
+      String readonlyStr = (String) questions.get("readonly");
+      String hiddenStr = (String) questions.get("hidden");
+      String mandatoryStr = (String) questions.get("mandatory");
  
       Boolean oneshot =getBooleanFromString(oneshotStr);
       Boolean readonly = getBooleanFromString(readonlyStr);
@@ -473,16 +481,18 @@ public class BatchLoading {
       q.setHtml(html);
       q.setReadonly(readonly);
       q.setMandatory(mandatory);
+      q.setRealm(REALM);
       Question existing = service.findQuestionByCode(code);
       if (existing == null) {
-    	  	service.insert(q);
+            service.insert(q);
       } else {
-    	  existing.setName(name);
-    	  existing.setHtml(html);
-    	  existing.setOneshot(oneshot);
-    	  existing.setReadonly(readonly);
-    	  existing.setMandatory(mandatory);
-    	  service.upsert(existing); 
+          existing.setName(name);
+          existing.setHtml(html);
+          existing.setOneshot(oneshot);
+          existing.setReadonly(readonly);
+          existing.setMandatory(mandatory);
+          existing.setRealm(REALM);
+          service.upsert(existing); 
       }
     });
   }
@@ -504,12 +514,12 @@ public class BatchLoading {
       String name = (String) asks.get("name");
       String expectedId = (String) asks.get("expectedId");
       String weightStr = (String) asks.get("weight");
-      String mandatoryStr = ((String) asks.get("mandatory"));
-      String readonlyStr = ((String) asks.get("readonly"));
-      String hiddenStr = ((String) asks.get("hidden"));
+      String mandatoryStr = (String) asks.get("mandatory");
+      String readonlyStr = (String) asks.get("readonly");
+      String hiddenStr = (String) asks.get("hidden");
       final Double weight = Double.valueOf(weightStr);
       if ("QUE_USER_SELECT_ROLE".equals(targetCode)) {
-    	  System.out.println("dummy");
+          System.out.println("dummy");
       }
       Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
       Boolean readonly = "TRUE".equalsIgnoreCase(readonlyStr);
@@ -519,6 +529,7 @@ public class BatchLoading {
       ask.setName(name);
       ask.setHidden(hidden);
       ask.setReadonly(readonly);
+      ask.setRealm(REALM);
       service.insert(ask);
     });
   }
@@ -550,8 +561,9 @@ public class BatchLoading {
       for (int count = 0; count < projects.size(); count++) {
         int subsequentIndex = count + 1;
         System.out.println("23434 =" + projects.size());
-        if (subsequentIndex == projects.size())
+        if (subsequentIndex == projects.size()) {
           break;
+        }
 
         if (lastProject == null) {
        //   System.out.println("234SDFSD34");
@@ -604,7 +616,7 @@ public class BatchLoading {
       String sheetID = (String) data.get("sheetID");
       String name = (String) data.get("name");
       String module = (String) data.get("module");
-      final List<Map<String, Object>> map = new ArrayList<Map<String, Object>>();
+      final List<Map<String, Object>> map = new ArrayList<>();
       System.out.printf("%-80s%s%n", "Loading Project \033[31;1m" + name
           + "\033[0m and module \033[31;1m" + module + "\033[0m please wait...", "\uD83D\uDE31\t");
       Map<String, Object> fields = project(sheetID);
@@ -646,6 +658,31 @@ public class BatchLoading {
       return ac;
     }).get();
   }
+  
+  public static String updateRealm() {
+    System.out.println("Inside UpdateRealm");
+    String realm = DEFAULT_REALM;
+    try {
+      List<Map> projectsConfig = getProjectConfig();
+      java.util.Iterator itr = projectsConfig.iterator();
+      while(itr.hasNext()) {
+        Map projectMap = (Map) itr.next();
+        if(projectMap != null) {
+          String realmValue = (String) projectMap.get("name");
+          realm = realmValue.toLowerCase();
+          System.out.println("REALM VALUE: " + realm);
+        } 
+      }
+    } catch (Exception ee) { 
+        ee.printStackTrace();
+    }
+    
+    return realm;
+  }
+  
+  public static List<Map> getProjectConfig() {
+    return sheets.hostingImport();
+  }
 
   /**
    * Import records from google sheets
@@ -655,42 +692,42 @@ public class BatchLoading {
    * @return
    */
   public Map<String, Object> project(final String projectType) {
-    final Map<String, Object> genny = new HashMap<String, Object>();
+    final Map<String, Object> genny = new HashMap<>();
     sheets.setSheetId(projectType);
     Integer numOfTries = 3;
     while (numOfTries > 0) {
       try {
-    	  System.out.println("validatios");
+          System.out.println("validatios");
         Map<String, Map> validations = sheets.newGetVal();
         genny.put("validations", validations);
-  	  System.out.println("datatypes");
+      System.out.println("datatypes");
         Map<String, Map> dataTypes = sheets.newGetDType();
         genny.put("dataType", dataTypes);
-  	  System.out.println("attrs");
+      System.out.println("attrs");
         Map<String, Map> attrs = sheets.newGetAttr();
         genny.put("attributes", attrs);
-  	  System.out.println("bes");
+      System.out.println("bes");
         Map<String, Map> bes = sheets.newGetBase();
         genny.put("baseEntitys", bes);
-  	  System.out.println("eas");
+      System.out.println("eas");
         Map<String, Map> attr2Bes = sheets.newGetEntAttr();
         genny.put("attibutesEntity", attr2Bes);
-  	  System.out.println("attr link");
+      System.out.println("attr link");
         Map<String, Map> attrLink = sheets.newGetAttrLink();
         genny.put("attributeLink", attrLink);
-  	  System.out.println("vee");
+      System.out.println("vee");
         Map<String, Map> bes2Bes = sheets.newGetEntEnt();
         genny.put("basebase", bes2Bes);
-  	  System.out.println("qtns");
+      System.out.println("qtns");
         Map<String, Map> gQuestions = sheets.newGetQtn();
         genny.put("questions", gQuestions);
-  	  System.out.println("vQQs");
+      System.out.println("vQQs");
         Map<String, Map> que2Que = sheets.newGetQueQue();
         genny.put("questionQuestions", que2Que);
-  	  System.out.println("asks");
+      System.out.println("asks");
         Map<String, Map> asks = sheets.newGetAsk();
         genny.put("ask", asks);
-  	  System.out.println("templates");
+      System.out.println("templates");
         Map<String, Map> messages = sheets.getMessageTemplates();
         genny.put("messages", messages);
         break;
@@ -707,8 +744,9 @@ public class BatchLoading {
       numOfTries--;
     }
 
-    if (numOfTries <= 0)
+    if (numOfTries <= 0) {
       log.error("Failed to download Google Docs Configuration ... given up ...");
+    }
 
     return genny;
   }
@@ -750,11 +788,11 @@ public class BatchLoading {
     });
     subProject.entrySet().stream().forEach(map -> {
       final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());
-      if (objects != null)
+      if (objects != null) {
         objects.entrySet().stream().forEach(obj -> {
           if (((Map<String, Object>) superProject.get(map.getKey()))
               .<HashMap<String, Object>>get(obj.getKey()) != null) {
-            Map<String, Object> mapp = ((Map<String, Object>) obj.getValue());
+            Map<String, Object> mapp = (Map<String, Object>) obj.getValue();
             Map<String, Object> mapp2 = ((Map<String, HashMap>) superProject.get(map.getKey()))
                 .<HashMap<String, Object>>get(obj.getKey());
             mapp.entrySet().stream().forEach(data -> {
@@ -767,20 +805,21 @@ public class BatchLoading {
                 .<HashMap<String, Object>>put(obj.getKey(), obj.getValue());
           }
         });
+      }
     });
     return superProject;
   }
 
   public void messageTemplates(Map<String, Object> project) {
-		
+        
     if (project.get("messages") == null) {
-    	System.out.println("project.get(messages) is null");
-    	return;
+        System.out.println("project.get(messages) is null");
+        return;
     }
       
     ((HashMap<String, HashMap>) project.get("messages")).entrySet().stream().forEach(data -> {
-    	
-    	System.out.println("messages, data ::"+data);
+        
+        System.out.println("messages, data ::"+data);
       Map<String, Object> template = data.getValue();
       String code = (String) template.get("code");
       String name = (String) template.get("name");
@@ -799,48 +838,50 @@ public class BatchLoading {
       templateObj.setSms_template(smsTemplate);
       templateObj.setSubject(subject);
       templateObj.setToast_template(toastTemplate);
+      templateObj.setRealm(REALM);
       
       if (StringUtils.isBlank(name)) {
-    	  	log.error("Empty Name");
+            log.error("Empty Name");
       } else {
-    	  try {
-			QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
-			try {
-				if(msg != null) {
-					msg.setName(name);
-					msg.setDescription(description);
-					msg.setEmail_templateId(emailTemplateDocId);
-					msg.setSms_template(smsTemplate);
-					msg.setSubject(subject);
-					msg.setToast_template(toastTemplate);
-					Long id = service.update(msg);
-					System.out.println("updated message id ::" + id);
-				} else {
-					Long id = service.insert(templateObj);
-					System.out.println("message id ::" + id);
-				}
-				
-			} catch (Exception e) {
-				log.error("Cannot update QDataMSGMessage " + code);
-			}
-				} catch (NoResultException e1) {
-					Long id = service.insert(templateObj);
-					System.out.println("message id ::" + id);
-				} catch (Exception e) {
-			log.error("Cannot add MessageTemplate");
-	
-		}
-//    	  		try {
-//					QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
-//					try {
-//						service.update(templateObj);
-//					} catch (Exception e) {
-//						log.error("Cannot update QDataMSGMessage "+code);
-//					}
-//				} catch (Exception e) {
-//					  Long id = service.insert(templateObj);
-//		    		  System.out.println("id::" + id + " Code:" + code + " :" + subject);
-//				}
+          try {
+            QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
+            try {
+                if(msg != null) {
+                    msg.setName(name);
+                    msg.setDescription(description);
+                    msg.setEmail_templateId(emailTemplateDocId);
+                    msg.setSms_template(smsTemplate);
+                    msg.setSubject(subject);
+                    msg.setToast_template(toastTemplate);
+                    msg.setRealm(REALM);
+                    Long id = service.update(msg);
+                    System.out.println("updated message id ::" + id);
+                } else {
+                    Long id = service.insert(templateObj);
+                    System.out.println("message id ::" + id);
+                }
+                
+            } catch (Exception e) {
+                log.error("Cannot update QDataMSGMessage " + code);
+            }
+                } catch (NoResultException e1) {
+                    Long id = service.insert(templateObj);
+                    System.out.println("message id ::" + id);
+                } catch (Exception e) {
+            log.error("Cannot add MessageTemplate");
+    
+        }
+//              try {
+//                  QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
+//                  try {
+//                      service.update(templateObj);
+//                  } catch (Exception e) {
+//                      log.error("Cannot update QDataMSGMessage "+code);
+//                  }
+//              } catch (Exception e) {
+//                    Long id = service.insert(templateObj);
+//                    System.out.println("id::" + id + " Code:" + code + " :" + subject);
+//              }
        }
     });
   }
@@ -851,16 +892,21 @@ public class BatchLoading {
       return false;
     }
 
-    if (("TRUE".equalsIgnoreCase(booleanString.toUpperCase()))
-        || ("YES".equalsIgnoreCase(booleanString.toUpperCase()))
-        || ("T".equalsIgnoreCase(booleanString.toUpperCase()))
-        || ("Y".equalsIgnoreCase(booleanString.toUpperCase()))
-        || ("1".equalsIgnoreCase(booleanString))) {
+    if ("TRUE".equalsIgnoreCase(booleanString.toUpperCase())
+        || "YES".equalsIgnoreCase(booleanString.toUpperCase())
+        || "T".equalsIgnoreCase(booleanString.toUpperCase())
+        || "Y".equalsIgnoreCase(booleanString.toUpperCase())
+        || "1".equalsIgnoreCase(booleanString)) {
       return true;
     }
     return false;
 
   }
+
+  public static String getRealm() {
+    return REALM;
+  }
+
 
 
 }
