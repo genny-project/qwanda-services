@@ -3987,6 +3987,7 @@ public class BaseEntityService2 {
 		return ee;
 	}
 
+	@Transactional
 	public void removeLink(final Link link) {
 		EntityEntity ee = null;
 
@@ -4003,6 +4004,7 @@ public class BaseEntityService2 {
 		}
 	}
 
+	@Transactional
 	public void removeLink(final String sourceCode, final String targetCode, final String linkCode) {
 		EntityEntity ee = null;
 
