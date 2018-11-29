@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>life.genny</groupId>
 	<artifactId>qwanda-services</artifactId>
-	<version>1.0.59</version>
+	<version>1.0.64</version>
 	<name>qwanda-services</name>
 	<description>Question and Answer Engine Services</description>
 

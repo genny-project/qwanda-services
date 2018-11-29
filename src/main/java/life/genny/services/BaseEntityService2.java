@@ -2248,10 +2248,10 @@ public class BaseEntityService2 {
 
 			try {
 				result = (BaseEntity) getEntityManager().createQuery(
-						"SELECT be FROM BaseEntity be LEFT JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr "
+						"SELECT be FROM BaseEntity be LEFT JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm in :realmStr "
 								+ privacySQL)
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())// .setParameter("flag", false)
-						.setParameter("realmStr", REALM).getSingleResult();
+						.setParameter("realmStr", "internmatch, genny").getSingleResult();
 			} catch (Exception e) {
 
 				throw new NoResultException("Cannot find " + baseEntityCode + " in db! ");
@@ -2262,9 +2262,9 @@ public class BaseEntityService2 {
 
 				result = (BaseEntity) getEntityManager()
 						.createQuery(
-								"SELECT be FROM BaseEntity be where be.code=:baseEntityCode  and be.realm=:realmStr")
+								"SELECT be FROM BaseEntity be where be.code=:baseEntityCode  and be.realm in :realmStr")
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())
-						.setParameter("realmStr", REALM).getSingleResult();
+						.setParameter("realmStr", "internmatch, genny").getSingleResult();
 			} catch (Exception e) {
 				if ("GRP_ALL_CONTACTS".equalsIgnoreCase(baseEntityCode)) {
 					System.out.println("GRP_ADMIN_JOBS");
