@@ -1536,8 +1536,14 @@ public class BaseEntityService2 {
 			}
 			Log.info("Creating new Ask " + beSource.getCode() + ":" + beTarget.getCode() + ":" + attribute.getCode()
 					+ ":" + (question == null ? "No Question" : question.getCode()));
-
-			getEntityManager().persist(newAsk);
+			List<Ask> existingList = findAsksByRawAsk(newAsk);
+			if (existingList.isEmpty()) {
+				getEntityManager().persist(newAsk);
+				ask.setId(newAsk.getId());
+			} else {
+				ask.setId(existingList.get(0).getId());
+			}
+			
 		} catch (final ConstraintViolationException e) {
 			// so update otherwise // TODO merge?
 			Ask existing = findAskById(ask.getId());
@@ -1545,9 +1551,14 @@ public class BaseEntityService2 {
 			return existing.getId();
 		} catch (final PersistenceException e) {
 			// so update otherwise // TODO merge?
-			Ask existing = findAskById(ask.getId());
-			existing = getEntityManager().merge(existing);
+		//	if (ask.getId()==null) {
+				log.error("Cannot save ask with id=["+ask.getId()+" , already in system "+e.getLocalizedMessage());
+		//	}
+				List<Ask> existingList = findAsksByRawAsk(ask);
+			Ask existing = existingList.get(0);
+
 			return existing.getId();
+			
 		} catch (final IllegalStateException e) {
 			// so update otherwise // TODO merge?
 			Ask existing = findAskById(ask.getId());
@@ -2543,7 +2554,16 @@ public class BaseEntityService2 {
 	}
 
 	public Ask findAskById(final Long id) {
-		return getEntityManager().find(Ask.class, id);
+		Ask ret = null;
+		
+		try {
+			ret = getEntityManager().find(Ask.class, id);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return ret;
 	}
 
 	public GPS findGPSById(final Long id) {
@@ -3714,6 +3734,19 @@ public class BaseEntityService2 {
 		return results;
 
 	}
+	
+	public List<Ask> findAsksByRawAsk(final Ask ask) {
+		final List<Ask> results = getEntityManager()
+				.createQuery("SELECT ea FROM Ask ea where ea.targetCode=:targetCode and  ea.sourceCode=:sourceCode and ea.attributeCode=:attributeCode")
+				.setParameter("targetCode", ask.getTargetCode())
+				.setParameter("sourceCode", ask.getSourceCode())
+				.setParameter("attributeCode", ask.getAttributeCode())
+				.getResultList();
+
+		return results;
+
+	}
+
 
 	public List<GPS> findGPSByTargetBaseEntityId(final Long id) {
 		final List<GPS> results = getEntityManager()
