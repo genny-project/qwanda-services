@@ -1750,7 +1750,7 @@ public class BaseEntityService2 {
 	}
 
 	@Transactional
-	public Long insert(Answer[] answers) {
+	public Long insert(Answer[] answers) throws IllegalArgumentException  {
 
 		// always check if answer exists through check for unique code
 		BaseEntity beTarget = null;
@@ -1762,6 +1762,13 @@ public class BaseEntityService2 {
 			return -1L;
 		}
 
+		if ( answers[0].getTargetCode()==null) {
+			Answer ans = answers[0];
+			
+  			log.error("NULL TARGET CODE IN ANSWERS[0]" + ans.getSourceCode()+":"+ans.getTargetCode()+":"+ans.getAttributeCode());
+  			throw new IllegalArgumentException("NULL TARGET CODE IN ANSWERS[0]" + ans.getSourceCode()+":"+ans.getTargetCode()+":"+ans.getAttributeCode());
+		}
+		
 		// The target and source are the same for all the answers
 		beTarget = findBaseEntityByCode(answers[0].getTargetCode());
 		beSource = findBaseEntityByCode(answers[0].getSourceCode());
@@ -1888,7 +1895,9 @@ public class BaseEntityService2 {
 						getEntityManager().persist(answer);
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
-						e1.printStackTrace();
+						log.warn("Answer already exists");
+						
+					
 					}
 
 					// Check if answer represents a link only
@@ -1986,7 +1995,7 @@ public class BaseEntityService2 {
 
 								if (optNewEA.isPresent()) {
 									msg.setEa(safeOne);
-									msg.getBe().getAnswers().add(answerLink);
+									//msg.getBe().getAnswers().add(answerLink);
 									msg.getBe().addAttribute(safeOne);
 								}
 
