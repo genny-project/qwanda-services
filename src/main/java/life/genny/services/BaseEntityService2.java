@@ -1891,14 +1891,13 @@ public class BaseEntityService2 {
 						msg.getBe().addAnswer(answer);
 						msg.setAnswer(answer);
 					}
-					try {
-						getEntityManager().persist(answer);
-					} catch (Exception e1) {
-						// TODO Auto-generated catch block
-						log.warn("Answer already exists");
-						
-					
-					}
+					List<Answer> existingList = findAnswersByRawAnswer(answer);
+			        if (existingList.isEmpty()) {
+			            getEntityManager().persist(answer);
+			        } else {
+			            log.warn("Answer already exists");
+			            answer.setId(existingList.get(0).getId());
+			        }
 
 					// Check if answer represents a link only
 					if (attribute.getDataType().getClassName().startsWith("DTT_LINK_")) {
@@ -3755,6 +3754,18 @@ public class BaseEntityService2 {
 		return results;
 
 	}
+	
+	public List<Answer> findAnswersByRawAnswer(final Answer answer) {
+      final List<Answer> results = getEntityManager()
+              .createQuery("SELECT ea FROM Answer ea where ea.targetCode=:targetCode and  ea.sourceCode=:sourceCode and ea.attributeCode=:attributeCode")
+              .setParameter("targetCode", answer.getTargetCode())
+              .setParameter("sourceCode", answer.getSourceCode())
+              .setParameter("attributeCode", answer.getAttributeCode())
+              .getResultList();
+
+      return results;
+
+  }
 
 
 	public List<GPS> findGPSByTargetBaseEntityId(final Long id) {
