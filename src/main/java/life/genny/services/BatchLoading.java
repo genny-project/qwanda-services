@@ -1,27 +1,18 @@
 package life.genny.services;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import life.genny.qwanda.Ask;
@@ -32,12 +23,12 @@ import life.genny.qwanda.attribute.AttributeLink;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.entity.EntityEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
 import life.genny.qwandautils.GennySheets;
-import life.genny.services.BaseEntityService2;
 
 /**
  * @author helios
@@ -53,6 +44,11 @@ public class BatchLoading {
   private BaseEntityService2 service;
 
   public static int id = 1;
+  
+  private static boolean isSynchronise;
+  
+
+  private static String table;
 
 
   public BatchLoading(BaseEntityService2 service) {
@@ -73,15 +69,16 @@ public class BatchLoading {
    * @param project
    */
   public void validations(Map<String, Object> project) {
-    if (project.get("validations") == null)
+    if (project.get("validations") == null) {
       return;
+    }
     ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
     ((HashMap<String, HashMap>) project.get("validations")).entrySet().stream().forEach(data -> {
       Map<String, Object> validations = data.getValue();
       String regex = null;
       
-      regex = ((String) validations.get("regex"));
+      regex = (String) validations.get("regex");
       if (regex!=null) {
     	  regex = regex.replaceAll("^\"|\"$", "");
       }
@@ -90,9 +87,9 @@ public class BatchLoading {
     	  System.out.println("detected VLD_AU_DRIVER_LICENCE_NO");
       }
       String name = ((String) validations.get("name")).replaceAll("^\"|\"$", "");;
-      String recursiveStr = ((String) validations.get("recursive"));
-      String multiAllowedStr = ((String) validations.get("multi_allowed"));
-      String groupCodesStr = ((String) validations.get("group_codes"));
+      String recursiveStr = (String) validations.get("recursive");
+      String multiAllowedStr = (String) validations.get("multi_allowed");
+      String groupCodesStr = (String) validations.get("group_codes");
       Boolean recursive = getBooleanFromString(recursiveStr);
       Boolean multiAllowed = getBooleanFromString(multiAllowedStr);
 
@@ -122,8 +119,9 @@ public class BatchLoading {
    * @param dataTypeMap
    */
   public void attributes(Map<String, Object> project, Map<String, DataType> dataTypeMap) {
-    if (project.get("attributes") == null)
+    if (project.get("attributes") == null) {
       return;
+    }
     ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
 
@@ -135,7 +133,7 @@ public class BatchLoading {
         String name = ((String) attributes.get("name")).replaceAll("^\"|\"$", "");;
         DataType dataTypeRecord = dataTypeMap.get(dataType);
         ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
-        String privacyStr = ((String) attributes.get("privacy"));
+        String privacyStr = (String) attributes.get("privacy");
         if (privacyStr != null) {
         		privacyStr = privacyStr.toUpperCase();
         }
@@ -143,10 +141,10 @@ public class BatchLoading {
         if (privacy) {
         		System.out.println("Attribute "+code+" has default privacy");
         }
-        String descriptionStr = ((String) attributes.get("description"));
-        String helpStr = ((String) attributes.get("help"));
-        String placeholderStr = ((String) attributes.get("placeholder"));
-        String defaultValueStr = ((String) attributes.get("defaultValue"));
+        String descriptionStr = (String) attributes.get("description");
+        String helpStr = (String) attributes.get("help");
+        String placeholderStr = (String) attributes.get("placeholder");
+        String defaultValueStr = (String) attributes.get("defaultValue");
         Attribute attr = new Attribute(code, name, dataTypeRecord);
         attr.setDefaultPrivacyFlag(privacy);
         attr.setDescription(descriptionStr);
@@ -159,7 +157,6 @@ public class BatchLoading {
         }
         service.upsert(attr);
       } catch (Exception e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
     });
@@ -172,15 +169,16 @@ public class BatchLoading {
    * @return
    */
   public Map<String, DataType> dataType(Map<String, Object> project) {
-    if (project.get("dataType") == null)
+    if (project.get("dataType") == null) {
       return null;
-    final Map<String, DataType> dataTypeMap = new HashMap<String, DataType>();
+    }
+    final Map<String, DataType> dataTypeMap = new HashMap<>();
     ((HashMap<String, HashMap>) project.get("dataType")).entrySet().stream().forEach(data -> {
       Map<String, Object> dataType = data.getValue();
-      String validations = ((String) dataType.get("validations"));
+      String validations = (String) dataType.get("validations");
       String code = ((String) dataType.get("code")).replaceAll("^\"|\"$", "");;
       String name = ((String) dataType.get("name")).replaceAll("^\"|\"$", "");;
-      String inputmask = ((String) dataType.get("inputmask"));
+      String inputmask = (String) dataType.get("inputmask");
       final ValidationList validationList = new ValidationList();
       validationList.setValidationList(new ArrayList<Validation>());
       if (validations != null) {
@@ -208,8 +206,9 @@ public class BatchLoading {
    * @param project
    */
   public void baseEntitys(Map<String, Object> project) {
-    if (project.get("baseEntitys") == null)
+    if (project.get("baseEntitys") == null) {
       return;
+    }
     ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
     Validator validator = factory.getValidator();
 
@@ -234,26 +233,27 @@ public class BatchLoading {
    * @param project
    */
   public void baseEntityAttributes(Map<String, Object> project) {
-    if (project.get("attibutesEntity") == null)
+    if (project.get("attibutesEntity") == null) {
       return;
+    }
     ((HashMap<String, HashMap>) project.get("attibutesEntity")).entrySet().stream()
         .forEach(data -> {
           Map<String, Object> baseEntityAttr = data.getValue();
           String attributeCode = null;
              try {
-				attributeCode =  ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");;
+				attributeCode =  ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");
 			} catch (Exception e2) {
 				log.error("AttributeCode not found ["+baseEntityAttr+"]");
 			}
-          String valueString = ((String) baseEntityAttr.get("valueString"));
+          String valueString = (String) baseEntityAttr.get("valueString");
           if (valueString != null) {
-            valueString = valueString.replaceAll("^\"|\"$", "");;
+            valueString = valueString.replaceAll("^\"|\"$", "");
           }
           String baseEntityCode = null;
           
           try {
 			baseEntityCode = 
-			      ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");;
+			      ((String) baseEntityAttr.get("baseEntityCode")).replaceAll("^\"|\"$", "");
 		          String weight = (String) baseEntityAttr.get("weight");
 		          String privacyStr = (String) baseEntityAttr.get("privacy");
 		          Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
@@ -262,6 +262,7 @@ public class BatchLoading {
 		          try {
 		            attribute = service.findAttributeByCode(attributeCode);
 		            if (attribute == null) {
+		              log.error("BASE ENTITY CODE: " + baseEntityCode);
 		            	log.error(attributeCode+" is not in the Attribute Table!!!");
 		            } else {
 		            be = service.findBaseEntityByCode(baseEntityCode);
@@ -302,15 +303,16 @@ public class BatchLoading {
    * @param project
    */
   public void entityEntitys(Map<String, Object> project) {
-    if (project.get("basebase") == null)
+    if (project.get("basebase") == null) {
       return;
+    }
     ((HashMap<String, HashMap>) project.get("basebase")).entrySet().stream().forEach(data -> {
       Map<String, Object> entEnts = data.getValue();
-      String linkCode = ((String) entEnts.get("linkCode"));
-      String parentCode = ((String) entEnts.get("parentCode"));
-      String targetCode = ((String) entEnts.get("targetCode"));
-      String weightStr = ((String) entEnts.get("weight"));
-      String valueString = ((String) entEnts.get("valueString"));
+      String linkCode = (String) entEnts.get("linkCode");
+      String parentCode = (String) entEnts.get("parentCode");
+      String targetCode = (String) entEnts.get("targetCode");
+      String weightStr = (String) entEnts.get("weight");
+      String valueString = (String) entEnts.get("valueString");
       final Double weight = Double.valueOf(weightStr);
       BaseEntity sbe = null;
       BaseEntity tbe = null;
@@ -318,10 +320,23 @@ public class BatchLoading {
       try {
         sbe = service.findBaseEntityByCode(parentCode);
         tbe = service.findBaseEntityByCode(targetCode);
+        if(isSynchronise) {
+          try {
+            EntityEntity ee = service.findEntityEntity(parentCode, targetCode, linkCode);
+            ee.setWeight(weight);
+            ee.setValueString(valueString);
+            service.updateEntityEntity(ee);
+          } catch (final NoResultException e) {
+            EntityEntity ee = new EntityEntity(sbe, tbe, linkAttribute, weight);
+            ee.setValueString(valueString);
+            service.insertEntityEntity(ee);
+          }
+          return;
+        }
         sbe.addTarget(tbe, linkAttribute, weight, valueString);
         service.updateWithAttributes(sbe);
       } catch (final NoResultException e) {
-    	  log.warn("CODE NOT PRESENT IN LINKING: "+parentCode+":"+targetCode+":"+linkAttribute);
+    	  log.warn("CODE NOT PRESENT IN LINKING: "+parentCode+" : "+targetCode+" : "+linkAttribute);
       } catch (final BadDataException e) {
         e.printStackTrace();
       } catch (final NullPointerException e) {
@@ -337,17 +352,18 @@ public class BatchLoading {
    */
   @Transactional
   public void questionQuestions(Map<String, Object> project) {
-    if (project.get("questionQuestions") == null)
+    if (project.get("questionQuestions") == null) {
       return;
+    }
     ((HashMap<String, HashMap>) project.get("questionQuestions")).entrySet().stream()
         .forEach(data -> {
           Map<String, Object> queQues = data.getValue();
-          String parentCode = ((String) queQues.get("parentCode"));
-          String targetCode = ((String) queQues.get("targetCode"));
-          String weightStr = ((String) queQues.get("weight"));
-          String mandatoryStr = ((String) queQues.get("mandatory"));
-          String readonlyStr = ((String) queQues.get("readonly"));
-          Boolean readonly = readonlyStr == null ? false: ("TRUE".equalsIgnoreCase(readonlyStr));
+          String parentCode = (String) queQues.get("parentCode");
+          String targetCode = (String) queQues.get("targetCode");
+          String weightStr = (String) queQues.get("weight");
+          String mandatoryStr = (String) queQues.get("mandatory");
+          String readonlyStr = (String) queQues.get("readonly");
+          Boolean readonly = readonlyStr == null ? false: "TRUE".equalsIgnoreCase(readonlyStr);
           
           Double weight = 0.0;
           try {
@@ -370,7 +386,7 @@ public class BatchLoading {
                 	// Set the oneshot to be that of the targetquestion
                 	oneshot = tbe.getOneshot();
                 } else {
-                 oneshot = ("TRUE".equalsIgnoreCase(oneshotStr));
+                 oneshot = "TRUE".equalsIgnoreCase(oneshotStr);
                 }
             	
 				QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
@@ -424,7 +440,7 @@ public class BatchLoading {
 		   String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");;
 		     DataType dataTypeRecord = dataTypeMap.get(dataType);
 		     ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
-		     String privacyStr = ((String) attributeLink.get("privacy"));
+		     String privacyStr = (String) attributeLink.get("privacy");
 		     Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 
 		     linkAttribute = new AttributeLink(code, name);
@@ -433,7 +449,7 @@ public class BatchLoading {
 		     service.upsert(linkAttribute);
 	} catch (Exception e) {
 		  String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");;
-		     String privacyStr = ((String) attributeLink.get("privacy"));
+		     String privacyStr = (String) attributeLink.get("privacy");
 		     Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
 
 		      linkAttribute = new AttributeLink(code, name);
@@ -459,9 +475,9 @@ public class BatchLoading {
       String attrCode = (String) questions.get("attribute_code");
       String html = (String) questions.get("html");
       String oneshotStr = (String) questions.get("oneshot");
-      String readonlyStr = ((String) questions.get("readonly"));
-      String hiddenStr = ((String) questions.get("hidden"));
-      String mandatoryStr = ((String) questions.get("mandatory"));
+      String readonlyStr = (String) questions.get("readonly");
+      String hiddenStr = (String) questions.get("hidden");
+      String mandatoryStr = (String) questions.get("mandatory");
  
       Boolean oneshot =getBooleanFromString(oneshotStr);
       Boolean readonly = getBooleanFromString(readonlyStr);
@@ -475,6 +491,14 @@ public class BatchLoading {
       q.setMandatory(mandatory);
       Question existing = service.findQuestionByCode(code);
       if (existing == null) {
+        if(isSynchronise()) {
+          Question val = service.findQuestionByCode(q.getCode(), "hidden");
+          if(val != null) {
+            val.setRealm("genny");
+            service.updateRealm(val);
+            return;
+          }
+        }
     	  	service.insert(q);
       } else {
     	  existing.setName(name);
@@ -504,9 +528,9 @@ public class BatchLoading {
       String name = (String) asks.get("name");
       String expectedId = (String) asks.get("expectedId");
       String weightStr = (String) asks.get("weight");
-      String mandatoryStr = ((String) asks.get("mandatory"));
-      String readonlyStr = ((String) asks.get("readonly"));
-      String hiddenStr = ((String) asks.get("hidden"));
+      String mandatoryStr = (String) asks.get("mandatory");
+      String readonlyStr = (String) asks.get("readonly");
+      String hiddenStr = (String) asks.get("hidden");
       final Double weight = Double.valueOf(weightStr);
       if ("QUE_USER_SELECT_ROLE".equals(targetCode)) {
     	  System.out.println("dummy");
@@ -524,16 +548,6 @@ public class BatchLoading {
   }
 
 
-  // public void main(String... args) {
-  // emf = Persistence.createEntityManagerFactory("mysql");
-  // em = emf.createEntityManager();
-  // service = new BaseEntityService(em);
-  // em.getTransaction().begin();
-  // persistProject();
-  // em.getTransaction().commit();
-  // em.close();
-  // }
-
   /**
    * Get the Project named on the last row inheriting or updating records from previous projects
    * names in the Hosting Sheet
@@ -549,18 +563,14 @@ public class BatchLoading {
     } else {
       for (int count = 0; count < projects.size(); count++) {
         int subsequentIndex = count + 1;
-        System.out.println("23434 =" + projects.size());
-        if (subsequentIndex == projects.size())
+        if (subsequentIndex == projects.size()) {
           break;
+        }
 
         if (lastProject == null) {
-       //   System.out.println("234SDFSD34");
           lastProject = upsertProjectMapProps(projects.get(count), projects.get(subsequentIndex));
-          System.out.println("23434");
         } else {
-      //    System.out.println("23wDSFSDFDSFSDFs4");
           lastProject = upsertProjectMapProps(lastProject, projects.get(subsequentIndex));
-          System.out.println("23ws4");
         }
       }
     }
@@ -570,8 +580,60 @@ public class BatchLoading {
   /**
    * Call functions named after the classes
    */
-  public void persistProject() {
+  public Map<String, Object> persistProject(boolean isSynchronise, String table, boolean isDelete) {
     System.out.println("Persisting Project in BatchLoading");
+    BatchLoading.isSynchronise = isSynchronise;
+    BatchLoading.table = table;
+    if(isSynchronise) {
+      System.out.println("Table to synchronise: " + table);
+      Map<String, Object> finalProject = getProject();
+      if(!isDelete) {
+        switch(table) {
+          case "validation":
+            validations(finalProject);
+            savedProjectData.put("validations", finalProject.get("validations"));
+            break;
+          case "attribute":
+            Map<String, DataType> dataTypes = dataType(finalProject);
+            attributes(finalProject, dataTypes);
+            savedProjectData.put("attributes", finalProject.get("attributes"));
+            break;
+          case "baseentity": 
+            baseEntitys(finalProject);
+            savedProjectData.put("baseEntitys", finalProject.get("baseEntitys"));
+            break;
+          case "entityattribute":
+            baseEntityAttributes(finalProject);
+            savedProjectData.put("attibutesEntity", finalProject.get("attibutesEntity"));
+            break;
+          case "attributelink":
+            Map<String, DataType> linkDataTypes = dataType(finalProject);
+            attributeLinks(finalProject, linkDataTypes);
+            savedProjectData.put("attributeLink", finalProject.get("attributeLink"));
+            break;
+          case "entityentity":
+            entityEntitys(finalProject);
+            savedProjectData.put("basebase", finalProject.get("basebase"));
+            break;
+          case "question":
+            questions(finalProject);
+            savedProjectData.put("questions", finalProject.get("questions"));
+            break;
+          case "questionquestion":
+            questionQuestions(finalProject);
+            savedProjectData.put("questionQuestions", finalProject.get("questionQuestions"));
+            break;
+          case "message":
+            messageTemplates(finalProject);
+            savedProjectData.put("messages", finalProject.get("messages"));
+            break;
+          default:
+            System.out.println("Error in table name. Please check.");
+        }
+        System.out.println("########## SYNCHRONISED GOOGLE SHEET #############");
+      }
+      return finalProject;
+    }
     Map<String, Object> lastProject = getProject();
     savedProjectData = lastProject;
     System.out.println("+++++++++ AbouDSDSDSDSDSDSDSDSDSDSSDSDSDt to load Questions +++++++++++++");
@@ -591,6 +653,7 @@ public class BatchLoading {
     System.out.println("+++++++++ About to load Message Templates +++++++++++++");
     messageTemplates(lastProject);
     System.out.println("########## LOADED ALL GOOGLE DOC DATA #############");
+    return lastProject;
   }
 
   /**
@@ -604,7 +667,7 @@ public class BatchLoading {
       String sheetID = (String) data.get("sheetID");
       String name = (String) data.get("name");
       String module = (String) data.get("module");
-      final List<Map<String, Object>> map = new ArrayList<Map<String, Object>>();
+      final List<Map<String, Object>> map = new ArrayList<>();
       System.out.printf("%-80s%s%n", "Loading Project \033[31;1m" + name
           + "\033[0m and module \033[31;1m" + module + "\033[0m please wait...", "\uD83D\uDE31\t");
       Map<String, Object> fields = project(sheetID);
@@ -655,12 +718,58 @@ public class BatchLoading {
    * @return
    */
   public Map<String, Object> project(final String projectType) {
-    final Map<String, Object> genny = new HashMap<String, Object>();
+    final Map<String, Object> genny = new HashMap<>();
     sheets.setSheetId(projectType);
     Integer numOfTries = 3;
     while (numOfTries > 0) {
       try {
-    	  System.out.println("validatios");
+        if(isSynchronise) {
+          switch(table) {
+            case "validation":
+              Map<String, Map> validations = sheets.newGetVal();
+              genny.put("validations", validations);
+              break;
+            case "attribute":
+              Map<String, Map> dataTypes = sheets.newGetDType();
+              genny.put("dataType", dataTypes);
+              Map<String, Map> attrs = sheets.newGetAttr();
+              genny.put("attributes", attrs);
+              break;
+            case "baseentity": 
+              Map<String, Map> bes = sheets.newGetBase();
+              genny.put("baseEntitys", bes);
+              break;
+            case "entityattribute":
+              Map<String, Map> attr2Bes = sheets.newGetEntAttr();
+              genny.put("attibutesEntity", attr2Bes);
+              break;
+            case "attributelink":
+              Map<String, Map> attrLink = sheets.newGetAttrLink();
+              genny.put("attributeLink", attrLink);
+              break;
+            case "entityentity":
+              Map<String, Map> bes2Bes = sheets.newGetEntEnt();
+              genny.put("basebase", bes2Bes);
+              break;
+            case "question":
+              Map<String, Map> gQuestions = sheets.newGetQtn();
+              genny.put("questions", gQuestions);
+              break;
+            case "questionquestion":
+              Map<String, Map> que2Que = sheets.newGetQueQue();
+              genny.put("questionQuestions", que2Que);
+              break;
+            case "message":
+              Map<String, Map> messages = sheets.getMessageTemplates();
+              genny.put("messages", messages);
+              break;
+            default:
+              System.out.println("Error in table name. Please check.");
+          }
+          return genny;
+        }
+        
+      System.out.println("validatios");
         Map<String, Map> validations = sheets.newGetVal();
         genny.put("validations", validations);
   	  System.out.println("datatypes");
@@ -707,8 +816,9 @@ public class BatchLoading {
       numOfTries--;
     }
 
-    if (numOfTries <= 0)
+    if (numOfTries <= 0) {
       log.error("Failed to download Google Docs Configuration ... given up ...");
+    }
 
     return genny;
   }
@@ -725,19 +835,6 @@ public class BatchLoading {
   @SuppressWarnings({"unchecked", "unused"})
   public Map<String, Object> upsertProjectMapProps(Map<String, Object> superProject,
       Map<String, Object> subProject) {
-    // superProject.entrySet().stream().forEach(map -> {
-    // final Map<String, Object> objects = (Map<String, Object>) superProject.get(map.getKey());
-    // if (superProject.get(map.getKey()) == null) {
-    // System.out.println("\n\n\n"+map.getKey()+"\n\n\n");
-    // superProject.put(map.getKey(), subProject.get(map.getKey()));
-    // }
-    // });
-    // subProject.entrySet().stream().forEach(map -> {
-    // final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());
-    // if (subProject.get(map.getKey()) == null) {
-    // subProject.put(map.getKey(), superProject.get(map.getKey()));
-    // }
-    // });
     superProject.entrySet().stream().forEach(map -> {
       if (subProject.get(map.getKey()) == null && superProject.get(map.getKey()) != null) {
         subProject.put(map.getKey(), superProject.get(map.getKey()));
@@ -750,11 +847,11 @@ public class BatchLoading {
     });
     subProject.entrySet().stream().forEach(map -> {
       final Map<String, Object> objects = (Map<String, Object>) subProject.get(map.getKey());
-      if (objects != null)
+      if (objects != null) {
         objects.entrySet().stream().forEach(obj -> {
           if (((Map<String, Object>) superProject.get(map.getKey()))
               .<HashMap<String, Object>>get(obj.getKey()) != null) {
-            Map<String, Object> mapp = ((Map<String, Object>) obj.getValue());
+            Map<String, Object> mapp = (Map<String, Object>) obj.getValue();
             Map<String, Object> mapp2 = ((Map<String, HashMap>) superProject.get(map.getKey()))
                 .<HashMap<String, Object>>get(obj.getKey());
             mapp.entrySet().stream().forEach(data -> {
@@ -767,6 +864,7 @@ public class BatchLoading {
                 .<HashMap<String, Object>>put(obj.getKey(), obj.getValue());
           }
         });
+      }
     });
     return superProject;
   }
@@ -824,23 +922,28 @@ public class BatchLoading {
 				log.error("Cannot update QDataMSGMessage " + code);
 			}
 				} catch (NoResultException e1) {
-					Long id = service.insert(templateObj);
-					System.out.println("message id ::" + id);
+				  try {
+				    if(BatchLoading.isSynchronise()) {
+				      QBaseMSGMessageTemplate val = service.findTemplateByCode(templateObj.getCode(), "hidden");
+		                if(val != null) {
+		                  val.setRealm("genny");
+		                  service.updateRealm(val);
+		                  return;
+		                }
+		              }
+				    Long id = service.insert(templateObj);
+                    System.out.println("message id ::" + id);
+				  } catch (javax.validation.ConstraintViolationException ce)     {
+	                log.error("Error in saving message due to constraint issue:" + templateObj + " :" + ce.getLocalizedMessage());
+	                log.info("Trying to update realm from hidden to genny");
+	                templateObj.setRealm("genny");
+	                service.updateRealm(templateObj);
+	            }
+					
 				} catch (Exception e) {
 			log.error("Cannot add MessageTemplate");
 	
 		}
-//    	  		try {
-//					QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
-//					try {
-//						service.update(templateObj);
-//					} catch (Exception e) {
-//						log.error("Cannot update QDataMSGMessage "+code);
-//					}
-//				} catch (Exception e) {
-//					  Long id = service.insert(templateObj);
-//		    		  System.out.println("id::" + id + " Code:" + code + " :" + subject);
-//				}
        }
     });
   }
@@ -851,16 +954,19 @@ public class BatchLoading {
       return false;
     }
 
-    if (("TRUE".equalsIgnoreCase(booleanString.toUpperCase()))
-        || ("YES".equalsIgnoreCase(booleanString.toUpperCase()))
-        || ("T".equalsIgnoreCase(booleanString.toUpperCase()))
-        || ("Y".equalsIgnoreCase(booleanString.toUpperCase()))
-        || ("1".equalsIgnoreCase(booleanString))) {
+    if ("TRUE".equalsIgnoreCase(booleanString.toUpperCase())
+        || "YES".equalsIgnoreCase(booleanString.toUpperCase())
+        || "T".equalsIgnoreCase(booleanString.toUpperCase())
+        || "Y".equalsIgnoreCase(booleanString.toUpperCase())
+        || "1".equalsIgnoreCase(booleanString)) {
       return true;
     }
     return false;
 
   }
-
+  
+  public static boolean isSynchronise() {
+    return isSynchronise;
+  }
 
 }

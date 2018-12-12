@@ -6,7 +6,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Type;
@@ -23,10 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-
 import javax.persistence.Query;
 import javax.ws.rs.core.MultivaluedMap;
-
 import org.apache.logging.log4j.Logger;
 import org.javamoney.moneta.Money;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
@@ -34,7 +31,6 @@ import org.junit.Test;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.mortbay.log.Log;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -43,7 +39,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
-
 import life.genny.qwanda.Answer;
 import life.genny.qwanda.AnswerLink;
 import life.genny.qwanda.Ask;
@@ -69,6 +64,7 @@ import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.KeycloakService;
 import life.genny.qwandautils.MergeUtil;
 import life.genny.qwandautils.QwandaUtils;
+import life.genny.services.BatchLoading;
 
 public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
@@ -325,7 +321,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   public void getBesWithAttributesPaged() {
     Integer pageStart = 0;
     Integer pageSize = 10; // default
-    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<String, String>();
+    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<>();
     params.add("pageStart", "0");
     params.add("pageSize", "2");
 
@@ -362,8 +358,8 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
           "SELECT distinct be FROM BaseEntity be JOIN be.baseEntityAttributes bee where  ";
       int attributeCodeIndex = 0;
       int valueIndex = 0;
-      final List<String> attributeCodeList = new ArrayList<String>();
-      final List<String> valueList = new ArrayList<String>();
+      final List<String> attributeCodeList = new ArrayList<>();
+      final List<String> valueList = new ArrayList<>();
 
       for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
         if (entry.getKey().equals("pageStart") || entry.getKey().equals("pageSize")) { // ugly
@@ -429,7 +425,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   // @Test
   public void getChildrenWithAttributesPaged() {
     System.out.println("\n\n******************* KIDS WITH ATTRIBUTE!**************");
-    final MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+    final MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
     qparams.add("pageStart", "0");
     qparams.add("pageSize", "10");
     final String sourceCode = "GRP_USERS";
@@ -442,7 +438,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     Integer pageStart = 0;
     Integer pageSize = 10; // default
     final Boolean includeAttributes = true;
-    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<String, String>();
+    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<>();
     params.putAll(qparams);
 
     final String pageStartStr = params.getFirst("pageStart");
@@ -483,7 +479,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
         String eaStringsQ = "";
         if (pairCount > 0) {
           eaStringsQ = "(";
-          for (int i = 0; i < (pairCount); i++) {
+          for (int i = 0; i < pairCount; i++) {
             eaStrings += ",EntityAttribute ea" + i;
             eaStringsQ += "ea" + i + ".baseEntityCode=be.code or ";
           }
@@ -497,8 +493,8 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
             + "  ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
         int attributeCodeIndex = 0;
         int valueIndex = 0;
-        final List<String> attributeCodeList = new ArrayList<String>();
-        final List<String> valueList = new ArrayList<String>();
+        final List<String> attributeCodeList = new ArrayList<>();
+        final List<String> valueList = new ArrayList<>();
 
         for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
           if (entry.getKey().equals("pageStart") || entry.getKey().equals("pageSize")) { // ugly
@@ -568,7 +564,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
         String eaStringsQ = "";
         if (pairCount > 0) {
           eaStringsQ = "(";
-          for (int i = 0; i < (pairCount); i++) {
+          for (int i = 0; i < pairCount; i++) {
             eaStrings += ",EntityAttribute ea" + i;
             eaStringsQ += "ea" + i + ".baseEntityCode=be.code or ";
           }
@@ -581,8 +577,8 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
             + " ee.pk.targetCode=be.code and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.code=:sourceCode and ";
         int attributeCodeIndex = 0;
         int valueIndex = 0;
-        final List<String> attributeCodeList = new ArrayList<String>();
-        final List<String> valueList = new ArrayList<String>();
+        final List<String> attributeCodeList = new ArrayList<>();
+        final List<String> valueList = new ArrayList<>();
 
         for (final Map.Entry<String, List<String>> entry : params.entrySet()) {
           if (entry.getKey().equals("pageStart") || entry.getKey().equals("pageSize")) { // ugly
@@ -681,14 +677,14 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   //// @Test
   public void getKeycloakUsersTest() {
     KeycloakService ks;
-    final Map<String, Map<String, Object>> usersMap = new HashMap<String, Map<String, Object>>();
+    final Map<String, Map<String, Object>> usersMap = new HashMap<>();
 
     try {
       ks = new KeycloakService("https://keycloakUrl", "genny", "user1", "password1", "genny");
       final List<LinkedHashMap> users = ks.fetchKeycloakUsers();
       for (final Object user : users) {
         final LinkedHashMap map = (LinkedHashMap) user;
-        final Map<String, Object> userMap = new HashMap<String, Object>();
+        final Map<String, Object> userMap = new HashMap<>();
         for (final Object key : map.keySet()) {
           // System.out.println(key + ":" + map.get(key));
           userMap.put((String) key, map.get(key));
@@ -849,7 +845,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 		assertEquals(newEntity.getPk().getSource().getCode(),testGroup.getCode());
 		assertEquals(newEntity.getPk().getTargetCode(),user1.getCode());
 		
-	    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<String, String>();
+	    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<>();
 	//    params.add("pageStart", "0");
 	//    params.add("pageSize", "2");
 
@@ -903,26 +899,26 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 	  
 	      try {
 			AttributeText attributeFirstname2 =
-				        new AttributeText(AttributeText.getDefaultCodePrefix() + "FIRSTNAME_TEST2", "Firstname");
+				        new AttributeText(Attribute.getDefaultCodePrefix() + "FIRSTNAME_TEST2", "Firstname");
 			  AttributeText  attributeLastname2 =
-				        new AttributeText(AttributeText.getDefaultCodePrefix() + "LASTNAME_TEST2", "Surname");
+				        new AttributeText(Attribute.getDefaultCodePrefix() + "LASTNAME_TEST2", "Surname");
 			  AttributeDate  attributeBirthdate2 =
-				        new AttributeDate(AttributeText.getDefaultCodePrefix() + "BIRTHDAY2", "Date of Birth");
+				        new AttributeDate(Attribute.getDefaultCodePrefix() + "BIRTHDAY2", "Date of Birth");
 			  AttributeText  attributeMiddlename2 =
-			        new AttributeText(AttributeText.getDefaultCodePrefix() + "MIDDLENAME_TEST2", "Middle Name");
+			        new AttributeText(Attribute.getDefaultCodePrefix() + "MIDDLENAME_TEST2", "Middle Name");
 			  
 			  AttributeText attributeStreetAddress12 =
-				        new AttributeText(AttributeText.getDefaultCodePrefix() + "STREET_ADDRESS1_TEST2", "Street Address 1");
+				        new AttributeText(Attribute.getDefaultCodePrefix() + "STREET_ADDRESS1_TEST2", "Street Address 1");
 			  AttributeText attributeStreetAddress22 =
-				        new AttributeText(AttributeText.getDefaultCodePrefix() + "STREET_ADDRESS2_TEST2", "Street Address 2");
+				        new AttributeText(Attribute.getDefaultCodePrefix() + "STREET_ADDRESS2_TEST2", "Street Address 2");
 			  AttributeText attributeCity2 =
-				        new AttributeText(AttributeText.getDefaultCodePrefix() + "CITY_TEST2", "City");
+				        new AttributeText(Attribute.getDefaultCodePrefix() + "CITY_TEST2", "City");
 			  AttributeText attributeState2 =
-				        new AttributeText(AttributeText.getDefaultCodePrefix() + "STATE_TEST2", "State");
+				        new AttributeText(Attribute.getDefaultCodePrefix() + "STATE_TEST2", "State");
 			  AttributeText attributePostcode2 =
-				        new AttributeText(AttributeText.getDefaultCodePrefix() + "POSTCODE_TEST2", "Postcode");
+				        new AttributeText(Attribute.getDefaultCodePrefix() + "POSTCODE_TEST2", "Postcode");
 			  AttributeText attributeCountry2 =
-				        new AttributeText(AttributeText.getDefaultCodePrefix() + "COUNTRY_TEST2", "Country");
+				        new AttributeText(Attribute.getDefaultCodePrefix() + "COUNTRY_TEST2", "Country");
 			  
 
 				   Person person2 = new Person("Clark Kent");
@@ -1169,8 +1165,8 @@ public void questionGroupTest()
 		Integer pageSize = 10; // default
 		Integer level = 1;
 
-		MultivaluedMap<String, String> params = new MultivaluedMapImpl<String, String>();
-		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<String, String>();
+		MultivaluedMap<String, String> params = new MultivaluedMapImpl<>();
+		MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
 		qparams.putAll(params);
 
 
@@ -1188,7 +1184,7 @@ public void questionGroupTest()
 	   public void isMandatoryFieldsCompletedTest() {
 	 
 		  List<Ask> asks = service.createAsksByQuestionCode2("QUE_NEW_USER_PROFILE_GRP", "PER_USER1", "PER_USER1");
-		  Ask[] asksArray = (Ask[]) asks.toArray(new Ask[0]);
+		  Ask[] asksArray = asks.toArray(new Ask[0]);
 		  BaseEntity user = service.findBaseEntityByCode("PER_USER1");
 		  BaseEntity company = service.findBaseEntityByCode("CPY_COMPANY1");
 	      List<BaseEntity> baseEntityList = Arrays.asList(user, company);
@@ -1219,7 +1215,7 @@ public void questionGroupTest()
 				assertEquals(newEntity.getPk().getSource().getCode(),testGroup.getCode());
 				assertEquals(newEntity.getPk().getTargetCode(),user1.getCode());
 				
-			    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<String, String>();
+			    final MultivaluedMap<String, String> params = new MultivaluedMapImpl<>();
 			//    params.add("pageStart", "0");
 			//    params.add("pageSize", "2");
 
@@ -1252,5 +1248,11 @@ public void questionGroupTest()
 				e.printStackTrace();
 			}
 		    getEm().getTransaction().commit();	 }
-
+	 
+	 @Test
+	 public void executeSyncCodeTest() {
+	   BatchLoading bl = new BatchLoading(service);
+	   Map<String, Object> sheetMap = bl.persistProject(true, "question", true);
+	   assertEquals(sheetMap.size()>0, true);
+	 }
 }
