@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>life.genny</groupId>
 	<artifactId>qwanda-services</artifactId>
-	<version>1.0.59</version>
+	<version>1.0.65</version>
 	<name>qwanda-services</name>
 	<description>Question and Answer Engine Services</description>
 
@@ -19,7 +19,7 @@
 		<jar.finalName>${project.name}</jar.finalName>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<qwanda-utils.version>1.0.59</qwanda-utils.version>
+		<qwanda-utils.version>1.0.65</qwanda-utils.version>
 
 		<!--java version -->
 		<java-version>1.8</java-version>
@@ -44,7 +44,7 @@
 
 
 		<!-- <jackson.version>2.8.7</jackson.version> -->
-		<jackson.version>2.6.3</jackson.version>
+		<jackson.version>2.9.5</jackson.version>
 		<version.mysql-connector>6.0.6</version.mysql-connector>
 		<jersey-version>2.13</jersey-version>
 		<version.apache-httpclient>4.5.3</version.apache-httpclient>
