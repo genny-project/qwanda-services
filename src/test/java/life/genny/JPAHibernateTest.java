@@ -55,7 +55,7 @@ public class JPAHibernateTest {
   public static void import_from_google_docs() {
     em.getTransaction().begin();
     bl = new BatchLoading(service);
-    bl.persistProject();
+    bl.persistProject(false, null, false);
     em.getTransaction().commit();
   }
 
