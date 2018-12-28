@@ -2198,9 +2198,10 @@ public class BaseEntityService2 {
 				} else {
 					log.info("Adding new attribute ("+ea.getAttributeCode()+") to existing baseentity "+existing.getCode());
 					existing.getBaseEntityAttributes().add(ea);
+					existing = getEntityManager().merge(existing);
 				}
 			}
-			existing = getEntityManager().merge(existing);
+			
 			String json = JsonUtils.toJson(existing);
 			writeToDDT(entity.getCode(), json);
 		} catch (final IllegalArgumentException e) {
