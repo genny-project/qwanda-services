@@ -91,6 +91,7 @@ import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.message.QSearchEntityMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.validation.Validation;
+import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.MergeUtil;
 
@@ -2198,8 +2199,25 @@ public class BaseEntityService2 {
 	public Long updateWithAttributes(BaseEntity entity) {
 	    entity.setRealm(REALM);
 		try {
-			entity = getEntityManager().merge(entity);
-			String json = JsonUtils.toJson(entity);
+			BaseEntity existing  = this.findBaseEntityByCode(entity.getCode());
+			// merge in entityAttributes
+			for (EntityAttribute ea : entity.getBaseEntityAttributes()) {
+				Boolean eaExists = existing.containsEntityAttribute(ea.getAttributeCode());
+				if (eaExists) {
+					EntityAttribute existingEa = existing.findEntityAttribute(ea.getAttributeCode()).get();
+					existingEa.setValue(ea.getValue());
+					existingEa.setInferred(ea.getInferred());
+					existingEa.setPrivacyFlag(ea.getPrivacyFlag());
+					existingEa.setReadonly(ea.getReadonly());
+					existingEa = getEntityManager().merge(existingEa);
+				} else {
+					log.info("Adding new attribute ("+ea.getAttributeCode()+") to existing baseentity "+existing.getCode());
+					existing.getBaseEntityAttributes().add(ea);
+					existing = getEntityManager().merge(existing);
+				}
+			}
+			
+			String json = JsonUtils.toJson(existing);
 			writeToDDT(entity.getCode(), json);
 		} catch (final IllegalArgumentException e) {
 			// so persist otherwise
@@ -2266,7 +2284,7 @@ public class BaseEntityService2 {
 	 * Upserts
 	 */
 
-	// CHECK!
+	@Transactional
 	public Ask upsert(Ask ask) {
 	    ask.setRealm(REALM);
 		try {
