@@ -2283,7 +2283,7 @@ public class BaseEntityService2 {
 	 * Upserts
 	 */
 
-	// CHECK!
+	@Transactional
 	public Ask upsert(Ask ask) {
 	    ask.setRealm(REALM);
 		try {
