@@ -91,6 +91,7 @@ import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.message.QSearchEntityMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.validation.Validation;
+import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.MergeUtil;
 
@@ -119,7 +120,7 @@ public class BaseEntityService2 {
 	List<String> allowedConditions = Arrays.asList("=", "<", ">", "<=", ">=", "LIKE", "!=", "<>", "&+", "&0");
 	List<String> allowedLinkWeightConditions = Arrays.asList("=", "<", ">", "<=", ">=");
 	
-	public static final String REALM = BatchLoading.REALM;
+	public static final String REALM = GennySettings.mainrealm;
 	Set<String> realms = new HashSet<>(Arrays.asList("genny", "hidden"));
     String realmsStr = getRealmsStr(realms);
 

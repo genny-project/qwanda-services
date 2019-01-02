@@ -55,15 +55,15 @@ public class BatchLoading {
     this.service = service;
   }
 
-  private final static String secret = System.getenv("GOOGLE_CLIENT_SECRET");
-  private final static String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
-  static File credentialPath =
+  private final String secret = System.getenv("GOOGLE_CLIENT_SECRET");
+  private final String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
+  File credentialPath =
       new File(System.getProperty("user.home"), ".genny/sheets.googleapis.com-java-quickstart");
-  public static GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
+  public GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
 
   public static Map<String, Object> savedProjectData;
   
-  public static final String REALM = updateRealm();
+  //public static final String REALM = updateRealm();
   
   public static final String DEFAULT_REALM = "genny";
   
@@ -107,7 +107,7 @@ public class BatchLoading {
         val = new Validation(code, name, regex);
 
       }
-      val.setRealm(REALM);
+      //val.setRealm(REALM);
       System.out.print("code " + code + ",name:" + name + ",val:" + val + ", grp="
           + (groupCodesStr != null ? groupCodesStr : "X"));
 
@@ -158,7 +158,7 @@ public class BatchLoading {
         attr.setHelp(helpStr);
         attr.setPlaceholder(placeholderStr);
         attr.setDefaultValue(defaultValueStr);
-        attr.setRealm(REALM);
+        //attr.setRealm(REALM);
         Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
         for (ConstraintViolation<Attribute> constraint : constraints) {
           System.out.println(constraint.getPropertyPath() + " " + constraint.getMessage());
@@ -225,7 +225,7 @@ public class BatchLoading {
       String code = ((String) baseEntitys.get("code")).replaceAll("^\"|\"$", "");;
       String name = ((String) baseEntitys.get("name")).replaceAll("^\"|\"$", "");;
       BaseEntity be = new BaseEntity(code, name);
-      be.setRealm(REALM);
+      //be.setRealm(REALM);
       Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
       for (ConstraintViolation<BaseEntity> constraint : constraints) {
         System.out.println(constraint.getPropertyPath() + " " + constraint.getMessage());
@@ -342,7 +342,7 @@ public class BatchLoading {
           return;
         }
         sbe.addTarget(tbe, linkAttribute, weight, valueString);
-        sbe.setRealm(REALM);
+        //sbe.setRealm(REALM);
         service.updateWithAttributes(sbe);
       } catch (final NoResultException e) {
     	  log.warn("CODE NOT PRESENT IN LINKING: "+parentCode+" : "+targetCode+" : "+linkAttribute);
@@ -397,7 +397,7 @@ public class BatchLoading {
                 } else {
                  oneshot = "TRUE".equalsIgnoreCase(oneshotStr);
                 }
-                sbe.setRealm(REALM);
+                //sbe.setRealm(REALM);
                 QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
                 qq.setOneshot(oneshot);
                 qq.setReadonly(readonly);
@@ -497,7 +497,7 @@ public class BatchLoading {
       q.setHtml(html);
       q.setReadonly(readonly);
       q.setMandatory(mandatory);
-      q.setRealm(REALM);
+      //q.setRealm(REALM);
       Question existing = service.findQuestionByCode(code);
       if (existing == null) {
         if(isSynchronise()) {
@@ -515,7 +515,7 @@ public class BatchLoading {
           existing.setOneshot(oneshot);
           existing.setReadonly(readonly);
           existing.setMandatory(mandatory);
-          existing.setRealm(REALM);
+          //existing.setRealm(REALM);
           service.upsert(existing); 
       }
     });
@@ -553,7 +553,7 @@ public class BatchLoading {
       ask.setName(name);
       ask.setHidden(hidden);
       ask.setReadonly(readonly);
-      ask.setRealm(REALM);
+      //ask.setRealm(REALM);
       service.insert(ask);
     });
   }
@@ -721,7 +721,7 @@ public class BatchLoading {
     }).get();
   }
   
-  public static String updateRealm() {
+  /*public static String updateRealm() {
     System.out.println("Inside UpdateRealm");
     String realm = DEFAULT_REALM;
     try {
@@ -744,7 +744,7 @@ public class BatchLoading {
   
   public static List<Map> getProjectConfig() {
     return sheets.hostingImport();
-  }
+  }*/
 
   /**
    * Import records from google sheets
@@ -933,7 +933,7 @@ public class BatchLoading {
       templateObj.setSms_template(smsTemplate);
       templateObj.setSubject(subject);
       templateObj.setToast_template(toastTemplate);
-      templateObj.setRealm(REALM);
+      //templateObj.setRealm(REALM);
       
       if (StringUtils.isBlank(name)) {
             log.error("Empty Name");
@@ -1002,9 +1002,9 @@ public class BatchLoading {
 
   }
 
-  public static String getRealm() {
+  /*public static String getRealm() {
     return REALM;
-  }
+  }*/
 
 
   
