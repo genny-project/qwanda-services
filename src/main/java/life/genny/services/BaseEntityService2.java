@@ -4801,6 +4801,7 @@ public class BaseEntityService2 {
 
 	@Transactional
 	public Long update(final QBaseMSGMessageTemplate template) {
+	    template.setRealm(REALM);
 		QBaseMSGMessageTemplate temp = getEntityManager().merge(template);
 		log.debug("klnsnfklsdjfjsdfjklsfsdf " + temp);
 		return template.getId();
@@ -4808,6 +4809,7 @@ public class BaseEntityService2 {
 
 	@Transactional
 	public Long insert(final QBaseMSGMessageTemplate template) {
+	  template.setRealm(REALM);
 		try {
 			getEntityManager().persist(template);
 
