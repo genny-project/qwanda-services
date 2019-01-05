@@ -2183,19 +2183,9 @@ public class BaseEntityService2 {
 	@Transactional
 	public Long updateWithAttributes(BaseEntity entity) {
 
-		try {
-			BaseEntity existing  = this.findBaseEntityByCode(entity.getCode());
-			// merge in entityAttributes
-			entity = getEntityManager().merge(entity);
-            String json = JsonUtils.toJson(entity);
-			writeToDDT(entity.getCode(), json);
-		} catch (final IllegalArgumentException e) {
-			// so persist otherwise
-			getEntityManager().persist(entity);
-			String json = JsonUtils.toJson(entity);
-			writeToDDT(entity.getCode(), json);
+			entity = getEntityManager().merge(entity); 
+ 			writeToDDT(entity);
 
-		}
 		return entity.getId();
 	}
 
