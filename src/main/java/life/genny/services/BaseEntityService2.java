@@ -3792,7 +3792,7 @@ public class BaseEntityService2 {
 	public List<BaseEntity> findBaseEntitysByAttributeValues(final MultivaluedMap<String, String> params,
 			final boolean includeAttributes, final Integer pageStart, final Integer pageSize) {
 
-		final List<BaseEntity> eeResults;
+		List<BaseEntity> eeResults= new ArrayList<BaseEntity>();
 		new HashMap<String, BaseEntity>();
 		String realmStr = this.getRealm();
 
@@ -3869,11 +3869,15 @@ public class BaseEntityService2 {
 				}
 				query.setParameter("realmStr", realmStr);
 				query.setFirstResult(pageStart).setMaxResults(pageSize);
-				eeResults = query.getResultList();
+				try {
+					eeResults = query.getResultList();
+				} catch (Exception e) {
+					log.error("findBaseEntitysByAttributeValues Error:"+query.toString());
+				}
 
 			}
 		} else {
-			Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
+			log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
 			eeResults = getEntityManager().createQuery("SELECT be FROM BaseEntity be where be.realm=:realmStr")
 					.setFirstResult(pageStart).setParameter("realmStr", realmStr).setMaxResults(pageSize)
