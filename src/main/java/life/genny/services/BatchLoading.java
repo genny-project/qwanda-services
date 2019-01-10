@@ -280,8 +280,7 @@ public class BatchLoading {
 		            } catch (final BadDataException e) {
 		              e.printStackTrace();
 		            }
-		            be = service.getEntityManager().merge(be);
-		            //service.updateWithAttributes(be);
+		            service.updateWithAttributes(be);
 		            }
 		          }
 		           catch (final NoResultException e) {
@@ -334,13 +333,12 @@ public class BatchLoading {
           }
           return;
         }
-     //   sbe.addTarget(tbe, linkAttribute, weight, valueString);
-        
-     //   service.updateWithAttributes(sbe);
+        sbe.addTarget(tbe, linkAttribute, weight, valueString);
+        service.updateWithAttributes(sbe);
       } catch (final NoResultException e) {
     	  log.warn("CODE NOT PRESENT IN LINKING: "+parentCode+" : "+targetCode+" : "+linkAttribute);
-//      } catch (final BadDataException e) {
-//        e.printStackTrace();
+      } catch (final BadDataException e) {
+        e.printStackTrace();
       } catch (final NullPointerException e) {
         e.printStackTrace();
       }
@@ -587,7 +585,7 @@ public class BatchLoading {
     BatchLoading.isSynchronise = isSynchronise;
     BatchLoading.table = table;
     if(isSynchronise) {
-      log.info("Table to synchronise: " + table);
+      System.out.println("Table to synchronise: " + table);
       Map<String, Object> finalProject = getProject();
       if(!isDelete) {
         switch(table) {
