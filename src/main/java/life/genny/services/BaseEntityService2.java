@@ -2183,9 +2183,19 @@ public class BaseEntityService2 {
 	@Transactional
 	public Long updateWithAttributes(BaseEntity entity) {
 
-			entity = getEntityManager().merge(entity); 
- 			writeToDDT(entity);
+		try {
+			BaseEntity existing  = this.findBaseEntityByCode(entity.getCode());
+			// merge in entityAttributes
+			entity = getEntityManager().merge(entity);
+            String json = JsonUtils.toJson(entity);
+			writeToDDT(entity.getCode(), json);
+		} catch (final IllegalArgumentException e) {
+			// so persist otherwise
+			getEntityManager().persist(entity);
+			String json = JsonUtils.toJson(entity);
+			writeToDDT(entity.getCode(), json);
 
+		}
 		return entity.getId();
 	}
 
@@ -3792,7 +3802,7 @@ public class BaseEntityService2 {
 	public List<BaseEntity> findBaseEntitysByAttributeValues(final MultivaluedMap<String, String> params,
 			final boolean includeAttributes, final Integer pageStart, final Integer pageSize) {
 
-		List<BaseEntity> eeResults= new ArrayList<BaseEntity>();
+		final List<BaseEntity> eeResults;
 		new HashMap<String, BaseEntity>();
 		String realmStr = this.getRealm();
 
@@ -3869,15 +3879,11 @@ public class BaseEntityService2 {
 				}
 				query.setParameter("realmStr", realmStr);
 				query.setFirstResult(pageStart).setMaxResults(pageSize);
-				try {
-					eeResults = query.getResultList();
-				} catch (Exception e) {
-					log.error("findBaseEntitysByAttributeValues Error:"+query.toString());
-				}
+				eeResults = query.getResultList();
 
 			}
 		} else {
-			log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
+			Log.info("**************** ENTITY ENTITY WITH NO ATTRIBUTES ****************");
 
 			eeResults = getEntityManager().createQuery("SELECT be FROM BaseEntity be where be.realm=:realmStr")
 					.setFirstResult(pageStart).setParameter("realmStr", realmStr).setMaxResults(pageSize)
