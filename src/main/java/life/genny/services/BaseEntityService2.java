@@ -1380,7 +1380,7 @@ public class BaseEntityService2 {
 	 *             when removing {@link BaseEntity} at given index
 	 */
 	@Transactional
-	public void removeBaseEntity(final String code) {
+	public void removeBaseEntity(final String realm, final String code) {
 		final BaseEntity be = findBaseEntityByCode(code);
 		if (be != null) {
 		    // remove all answers
@@ -1394,7 +1394,7 @@ public class BaseEntityService2 {
 			// remove the be
 			getEntityManager().remove(be);
 			// clear cache
-			writeToDDT(code, null);
+			writeToDDT(realm, code, null);
 		}
 	}
 
@@ -1681,7 +1681,7 @@ public class BaseEntityService2 {
 
 			getEntityManager().persist(entity);
 			String json = JsonUtils.toJson(entity);
-			writeToDDT(entity.getCode(), json);
+			writeToDDT(entity);
 		} catch (javax.validation.ConstraintViolationException e) {
 			log.error("Cannot save BaseEntity with code "+entity.getCode()+"! "+e.getLocalizedMessage());
 			return -1L;
@@ -1963,8 +1963,7 @@ public class BaseEntityService2 {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				String json = JsonUtils.toJson(beTarget);
-				writeToDDT(beTarget.getCode(), json); // Update the DDT
+				writeToDDT(beTarget); // Update the DDT
 			}
 			if (!msg.getBe().getBaseEntityAttributes().isEmpty()) {
 				sendQEventAttributeValueChangeMessage(msg); 
@@ -2069,8 +2068,7 @@ public class BaseEntityService2 {
 					.setParameter("sourceCode", entity.getCode()).setParameter("name", entity.getName())
 					.executeUpdate();
 			BaseEntity updated = this.findBaseEntityByCode(entity.getCode());
-			String json = JsonUtils.toJson(updated);
-			writeToDDT(entity.getCode(), json);
+			writeToDDT(updated);
 
 		} catch (Exception e) {
 
@@ -2187,14 +2185,11 @@ public class BaseEntityService2 {
 			BaseEntity existing  = this.findBaseEntityByCode(entity.getCode());
 			// merge in entityAttributes
 			entity = getEntityManager().merge(entity);
-            String json = JsonUtils.toJson(entity);
-			writeToDDT(entity.getCode(), json);
+			writeToDDT(entity);
 		} catch (final IllegalArgumentException e) {
 			// so persist otherwise
 			getEntityManager().persist(entity);
-			String json = JsonUtils.toJson(entity);
-			writeToDDT(entity.getCode(), json);
-
+			writeToDDT(entity);
 		}
 		return entity.getId();
 	}
@@ -4789,7 +4784,7 @@ public class BaseEntityService2 {
 		return true; // allow for qwanda-services
 	}
 
-	public void writeToDDT(final String key, final String value) {
+	public void writeToDDT(final String realm, final String key, final String value) {
 		ddtCacheMock.put(key, value);
 	}
 
@@ -4797,11 +4792,11 @@ public class BaseEntityService2 {
 		ddtCacheMock.put(be.getCode(), JsonUtils.toJson(be));
 	}
 
-	public void updateDDT(final String key, final String value) {
+	public void updateDDT(final String realm, final String key, final String value) {
 		log.info("Update DDT " + key);
 	}
 
-	public String readFromDDT(final String key) {
+	public String readFromDDT(final String realm, final String key) {
 
 		return ddtCacheMock.get(key);
 	}
