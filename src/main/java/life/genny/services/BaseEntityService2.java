@@ -1717,8 +1717,14 @@ public class BaseEntityService2 {
 		}
 		
 		// The target and source are the same for all the answers
-		beTarget = findBaseEntityByCode(answers[0].getTargetCode());
-		beSource = findBaseEntityByCode(answers[0].getSourceCode());
+		try {
+			beTarget = findBaseEntityByCode(answers[0].getTargetCode());
+			beSource = findBaseEntityByCode(answers[0].getSourceCode());
+		} catch (NoResultException e1) {
+ 			log.error("BAD TARGET/SOURCE CODE IN ANSWERS[0]" + answers[0].getSourceCode()+":"+answers[0].getTargetCode());
+  			throw new IllegalArgumentException("BAD TARGET/SOURCE CODE IN ANSWERS[0]" + answers[0].getSourceCode()+":"+answers[0].getTargetCode());
+
+		}
 
 		BaseEntity safeBe = new BaseEntity(beTarget.getCode(), beTarget.getName());
 		Set<EntityAttribute> safeSet = new HashSet<>();
