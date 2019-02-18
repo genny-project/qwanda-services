@@ -325,7 +325,7 @@ public class BaseEntityService2 {
 			}
 		}
 		Object count1 = query.getSingleResult();
-		System.out.println("The Count Object is :: " + count1.toString());
+		log.info("The Count Object is :: " + count1.toString());
 		count = (Long) count1;
 
 		return count;
@@ -478,7 +478,7 @@ public class BaseEntityService2 {
 		}
 		}
 		Object count1 = query.getSingleResult();
-		System.out.println("The Count Object is :: " + count1.toString());
+		log.info("The Count Object is :: " + count1.toString());
 		count = (Long) count1;
 		// count = (Long)query.getSingleResult();
 
@@ -1296,19 +1296,19 @@ public class BaseEntityService2 {
 		for (Order order : orderList) {
 			String sqlAttribute = null;
 			if (order.getFieldName().equalsIgnoreCase("PRI_CREATED")) {
-				System.out.println(">>> Reached CreateOrderString with PRI_CREATED ");
+				log.info(">>> Reached CreateOrderString with PRI_CREATED ");
 				sqlAttribute = " ea.pk.baseEntity.created";
 			} else if (order.getFieldName().equalsIgnoreCase("PRI_CODE")) {
-				System.out.println(">>> Reached CreateOrderString with PRI_CODE ");
+				log.info(">>> Reached CreateOrderString with PRI_CODE ");
 				sqlAttribute = " ea.pk.baseEntity.code";
 			} else if (order.getFieldName().equalsIgnoreCase("PRI_UPDATED")) {
-				System.out.println(">>> Reached CreateOrderString with PRI_UPDATED ");
+				log.info(">>> Reached CreateOrderString with PRI_UPDATED ");
 				sqlAttribute = " ea.pk.baseEntity.updated";
 			} else if (order.getFieldName().equalsIgnoreCase("PRI_ID")) {
-				System.out.println(">>> Reached CreateOrderString with PRI_ID ");
+				log.info(">>> Reached CreateOrderString with PRI_ID ");
 				sqlAttribute = " ea.pk.baseEntity.id";
 			} else if (order.getFieldName().equalsIgnoreCase("PRI_NAME")) {
-				System.out.println(">>> Reached CreateOrderString with PRI_NAME ");
+				log.info(">>> Reached CreateOrderString with PRI_NAME ");
 				sqlAttribute = " ea.pk.baseEntity.name";
 			} else {
 				sqlAttribute = attributeCodeMap.get(order.getFieldName());
@@ -1532,6 +1532,9 @@ public class BaseEntityService2 {
 		} catch (final PersistenceException e) {
 				log.error("Cannot save ask with id=["+ask.getId()+" , already in system "+e.getLocalizedMessage());
 				List<Ask> existingList = findAsksByRawAsk(ask);
+				if (existingList.isEmpty()) {  // TODO
+					return 0L;
+				}
 			Ask existing = existingList.get(0);
 			return existing.getId();
 			
@@ -2500,17 +2503,23 @@ public class BaseEntityService2 {
 			throws NoResultException {
 
 		BaseEntity result = null;
-		final String userRealmStr = getRealm();
+		String userRealmStr = getRealm();
 
+		log.info("FIND BASEENTITY BY CODE ["+baseEntityCode+"]in realm "+userRealmStr);
 		if (includeEntityAttributes) {
 			String privacySQL = "";
 
+//			String sql = "SELECT be FROM BaseEntity be LEFT JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm in (\"genny\",\"" + userRealmStr + "\")  "
+//					+ privacySQL;
+			String sql = "SELECT be FROM BaseEntity be LEFT JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr  "
+					+ privacySQL;
+			log.info("FIND BASEENTITY BY CODE :"+sql);
 			try {
 				result = (BaseEntity) getEntityManager().createQuery(
-						"SELECT be FROM BaseEntity be LEFT JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr "
-								+ privacySQL)
+						sql)
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())// .setParameter("flag", false)
-						.setParameter("realmStr", userRealmStr).getSingleResult();
+						.setParameter("realmStr", userRealmStr)
+						.getSingleResult();
 			} catch (Exception e) {
 
 				throw new NoResultException("Cannot find " + baseEntityCode + " in db! ");
@@ -2521,12 +2530,12 @@ public class BaseEntityService2 {
 
 				result = (BaseEntity) getEntityManager()
 						.createQuery(
-								"SELECT be FROM BaseEntity be where be.code=:baseEntityCode  and be.realm=:realmStr")
+								"SELECT be FROM BaseEntity be where be.code=:baseEntityCode  and  be.realm=:realmStr ")
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())
 						.setParameter("realmStr", userRealmStr).getSingleResult();
 			} catch (Exception e) {
 				if ("GRP_ALL_CONTACTS".equalsIgnoreCase(baseEntityCode)) {
-					System.out.println("GRP_ADMIN_JOBS");
+					log.info("GRP_ADMIN_JOBS");
 				}
 
 				throw new NoResultException("Cannot find " + baseEntityCode + " in db ");
