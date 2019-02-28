@@ -2,6 +2,7 @@ package life.genny.services;
 
 import static java.lang.System.out;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 
+import org.apache.logging.log4j.Logger;
 import org.hibernate.exception.ConstraintViolationException;
 
 import life.genny.qwanda.Ask;
@@ -22,6 +24,10 @@ import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.validation.Validation;
 
 public class QwandaUpserts {
+	
+	  protected static final Logger log = org.apache.logging.log4j.LogManager
+		      .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
+
 
   EntityManager em;
 
@@ -165,7 +171,7 @@ public class QwandaUpserts {
     // always check if question exists through check for unique code
     try {
       em.persist(question);
-      System.out.println("\n\n\n\n\n\n\n11111111\n\n\n\n\n\n\n\n");
+      log.info("\n\n\n\n\n\n\n11111111\n\n\n\n\n\n\n\n");
       // baseEntityEventSrc.fire(entity);
     } catch (final ConstraintViolationException e) {
       Question existing = findQuestionByCode(question.getCode());
@@ -190,9 +196,9 @@ public class QwandaUpserts {
       
       BeanNotNullFields copyFields = new BeanNotNullFields();
       copyFields.copyProperties(val, be);
-      System.out.println("***********"+val);
+      log.info("***********"+val);
       val = em.merge(val);
-      System.out.println("*******&&&&&&&&&&&&****");
+      log.info("*******&&&&&&&&&&&&****");
       return be;
     } catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
       Long id = insert(be);
