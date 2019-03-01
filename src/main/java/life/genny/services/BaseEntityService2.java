@@ -2513,7 +2513,7 @@ public class BaseEntityService2 {
 //					+ privacySQL;
 			String sql = "SELECT be FROM BaseEntity be LEFT JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr  "
 					+ privacySQL;
-			log.info("FIND BASEENTITY BY CODE :"+sql);
+	//		log.info("FIND BASEENTITY BY CODE :"+sql);
 			try {
 				result = (BaseEntity) getEntityManager().createQuery(
 						sql)
