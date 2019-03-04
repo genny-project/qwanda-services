@@ -2505,7 +2505,7 @@ public class BaseEntityService2 {
 		BaseEntity result = null;
 		String userRealmStr = getRealm();
 
-		log.info("FIND BASEENTITY BY CODE ["+baseEntityCode+"]in realm "+userRealmStr);
+	//	log.info("FIND BASEENTITY BY CODE ["+baseEntityCode+"]in realm "+userRealmStr);
 		if (includeEntityAttributes) {
 			String privacySQL = "";
 
@@ -2534,9 +2534,9 @@ public class BaseEntityService2 {
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())
 						.setParameter("realmStr", userRealmStr).getSingleResult();
 			} catch (Exception e) {
-				if ("GRP_ALL_CONTACTS".equalsIgnoreCase(baseEntityCode)) {
-					log.info("GRP_ADMIN_JOBS");
-				}
+//				if ("GRP_ALL_CONTACTS".equalsIgnoreCase(baseEntityCode)) {
+//					log.info("GRP_ADMIN_JOBS");
+//				}
 
 				throw new NoResultException("Cannot find " + baseEntityCode + " in db ");
 			}
