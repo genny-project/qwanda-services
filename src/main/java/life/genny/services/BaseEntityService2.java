@@ -2519,7 +2519,7 @@ public class BaseEntityService2 {
 		BaseEntity result = null;
 		String userRealmStr = getRealm();
 
-		log.info("FIND BASEENTITY BY CODE ["+baseEntityCode+"]in realm "+userRealmStr);
+	//	log.info("FIND BASEENTITY BY CODE ["+baseEntityCode+"]in realm "+userRealmStr);
 		if (includeEntityAttributes) {
 			String privacySQL = "";
 
@@ -2527,7 +2527,7 @@ public class BaseEntityService2 {
 //					+ privacySQL;
 			String sql = "SELECT be FROM BaseEntity be LEFT JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr  "
 					+ privacySQL;
-			log.info("FIND BASEENTITY BY CODE :"+sql);
+	//		log.info("FIND BASEENTITY BY CODE :"+sql);
 			try {
 				result = (BaseEntity) getEntityManager().createQuery(
 						sql)
@@ -2548,9 +2548,9 @@ public class BaseEntityService2 {
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())
 						.setParameter("realmStr", userRealmStr).getSingleResult();
 			} catch (Exception e) {
-				if ("GRP_ALL_CONTACTS".equalsIgnoreCase(baseEntityCode)) {
-					log.info("GRP_ADMIN_JOBS");
-				}
+//				if ("GRP_ALL_CONTACTS".equalsIgnoreCase(baseEntityCode)) {
+//					log.info("GRP_ADMIN_JOBS");
+//				}
 
 				throw new NoResultException("Cannot find " + baseEntityCode + " in db ");
 			}
