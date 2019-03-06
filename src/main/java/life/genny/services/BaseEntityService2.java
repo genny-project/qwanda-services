@@ -1705,7 +1705,7 @@ public class BaseEntityService2 {
 		// always check if answer exists through check for unique code
 		BaseEntity beTarget = null;
 		BaseEntity beSource = null;
-		Attribute attribute = null;
+		Attribute attribute = null; 
 		Ask ask = null;
 
 		if (answers.length == 0) {
