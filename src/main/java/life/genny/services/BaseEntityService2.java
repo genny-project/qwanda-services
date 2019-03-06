@@ -1383,13 +1383,27 @@ public class BaseEntityService2 {
 	public void removeBaseEntity(final String code) {
 		final BaseEntity be = findBaseEntityByCode(code);
 		if (be != null) {
-		    // remove all answers
+			
+		    // remove all answers 
 		  
 			// remove all answerlinks
+			List<AnswerLink> answers = findAnswersByTargetOrSourceBaseEntityCode(be.getCode());
+			log.info("Answers count: " + answers.size());
 
-			// remove all attributes
+			// remove all attributes - It is automatically removed by Hibernate.
 
-			// remove all entityentity
+			// remove all links
+			List<EntityEntity> links = findLinksBySourceOrTargetBaseEntityCode(be.getCode());
+			log.info("Links count: " + links.size());
+			//removeEntityEntity(be.getCode());
+			
+			for (final AnswerLink answerLink : answers) {
+				removeAnswerLink(code, answerLink);
+			}
+			
+			for (final EntityEntity entityEntity : links) {
+				removeEntityEntity(code, entityEntity);
+			}
 
 			// remove the be
 			getEntityManager().remove(be);
@@ -3720,7 +3734,7 @@ public class BaseEntityService2 {
 
 	public List<AnswerLink> findAnswersByTargetBaseEntityCode(final String targetCode) {
 		final List<AnswerLink> results = getEntityManager()
-				.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.targetCode=:baseEntityCode")
+				.createQuery("SELECT ea FROM AnswerLink ea where ea.targetCode=:baseEntityCode")
 				.setParameter("baseEntityCode", targetCode).getResultList();
 
 		return results;
@@ -3731,6 +3745,23 @@ public class BaseEntityService2 {
 		final List<AnswerLink> results = getEntityManager()
 				.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.source.code=:baseEntityCode")
 				.setParameter("baseEntityCode", sourceCode).getResultList();
+
+		return results;
+
+	}
+	
+	public List<AnswerLink> findAnswersByTargetOrSourceBaseEntityCode(final String baseEntityCode) {
+		final List<AnswerLink> results = getEntityManager()
+				.createQuery("SELECT ea FROM AnswerLink ea where ea.sourceCode=:baseEntityCode or ea.targetCode=:baseEntityCode")
+				.setParameter("baseEntityCode", baseEntityCode).getResultList();
+
+		return results;
+	}
+	
+	public List<EntityEntity> findLinksBySourceOrTargetBaseEntityCode(final String baseEntityCode) {
+		final List<EntityEntity> results = getEntityManager()
+				.createQuery("SELECT ea FROM EntityEntity ea where ea.link.sourceCode=:baseEntityCode or ea.pk.targetCode=:baseEntityCode")
+				.setParameter("baseEntityCode", baseEntityCode).getResultList();
 
 		return results;
 
@@ -4221,10 +4252,10 @@ public class BaseEntityService2 {
 }
 
 	@Transactional
-	public void removeEntityEntity(final EntityEntity ee) {
+	public void removeEntityEntity(final String code, final EntityEntity ee) {
 		try {
 			Link oldLink = ee.getLink();
-			BaseEntity source = findBaseEntityByCode(ee.getLink().getSourceCode());
+			BaseEntity source = findBaseEntityByCode(code);
 			source.getLinks().remove(ee);
 			getEntityManager().merge(source);
 			this.writeToDDT(source);
@@ -4235,6 +4266,20 @@ public class BaseEntityService2 {
 		} catch (Exception e) {
 		  e.printStackTrace();
 		}
+	}
+	
+	@Transactional
+	public void removeAnswerLink(final String code, final AnswerLink answerLink) {
+		try {
+			BaseEntity source = findBaseEntityByCode(code);
+			source.getAnswers().remove(answerLink);
+			getEntityManager().merge(source);
+			this.writeToDDT(source);
+            getEntityManager().remove(answerLink);
+		} catch (Exception e) {
+		  e.printStackTrace();
+		}
+
 	}
 	
 	@Transactional
@@ -4296,7 +4341,7 @@ public class BaseEntityService2 {
 		}
 
 	}
-
+	
 	@Transactional
 	public EntityEntity addLink(final String sourceCode, final String targetCode, final String linkCode, Object value,
 			Double weight) throws IllegalArgumentException, BadDataException {
@@ -4349,7 +4394,7 @@ public class BaseEntityService2 {
 
 		try {
 			ee = findEntityEntity(link.getSourceCode(), link.getTargetCode(), link.getAttributeCode());
-			removeEntityEntity(ee);
+			removeEntityEntity(link.getSourceCode(), ee);
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(null, ee.getLink(), getCurrentToken());
 
 			sendQEventLinkChangeMessage(msg);
@@ -4366,7 +4411,7 @@ public class BaseEntityService2 {
 
 		try {
 			ee = findEntityEntity(sourceCode, targetCode, linkCode);
-			removeEntityEntity(ee);
+			removeEntityEntity(sourceCode, ee);
 
 		} catch (Exception e) {
 			log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode + " not found");
