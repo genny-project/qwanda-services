@@ -2536,7 +2536,7 @@ public class BaseEntityService2 {
 						.getSingleResult();
 			} catch (Exception e) {
 
-				throw new NoResultException("Cannot find " + baseEntityCode + " in db! ");
+				throw new NoResultException("Cannot find " + baseEntityCode + " in db! with realm "+userRealmStr);
 			}
 
 		} else {
@@ -4367,7 +4367,7 @@ public class BaseEntityService2 {
 			try {
 				beTarget = findBaseEntityByCode(targetCode);
 			} catch (NoResultException es) {
-				throw new IllegalArgumentException("targetCode" + targetCode + " not found");
+				throw new IllegalArgumentException("targetCode " + targetCode + " not found");
 			}
 
 			try {
