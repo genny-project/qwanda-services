@@ -30,6 +30,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
@@ -93,6 +94,7 @@ import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.MergeUtil;
+
 
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
@@ -1714,7 +1716,7 @@ public class BaseEntityService2 {
 		return entity.getId();
 	}
 
-	@Transactional
+	@Transactional(dontRollbackOn={Exception.class})
 	public Long insert(Answer[] answers) throws IllegalArgumentException  {
 
 		// always check if answer exists through check for unique code
@@ -2069,7 +2071,7 @@ public class BaseEntityService2 {
 			log.debug("Sent Event Link Change Msg " + msg);
 
 		} catch (Exception e) {
-			// rollback
+		// rollback
 		}
 		return ee;
 	}
@@ -2416,7 +2418,8 @@ public class BaseEntityService2 {
 		}
 	}
 
-    @Transactional
+	@Transactional
+
 	public BaseEntity upsert(BaseEntity be) {
 		try {
 			String code = be.getCode();
@@ -2427,7 +2430,7 @@ public class BaseEntityService2 {
 			val = getEntityManager().merge(val);
 
 			return be;
-		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+		} catch (NoResultException | IllegalAccessException | InvocationTargetException | NullPointerException e) {
 		  if(BatchLoading.isSynchronise()) {
 		    BaseEntity val = findBaseEntityByCode(be.getCode(), REALM_HIDDEN);
             if(val != null) {
@@ -4342,10 +4345,17 @@ public class BaseEntityService2 {
 		}
 
 	}
+
+
+	public EntityEntity addLink(final String sourceCode, final String targetCode, final String linkCode, Object value,
+			Double weight) throws IllegalArgumentException, BadDataException {
+
+		return addLink(sourceCode,targetCode,linkCode,value,weight,true);
+	}
 	
 	@Transactional
 	public EntityEntity addLink(final String sourceCode, final String targetCode, final String linkCode, Object value,
-			Double weight) throws IllegalArgumentException, BadDataException {
+			Double weight, final boolean changeEvent) throws IllegalArgumentException, BadDataException {
 		EntityEntity ee = null;
 
 		try {
@@ -4380,10 +4390,14 @@ public class BaseEntityService2 {
 			ee = beSource.addTarget(beTarget, linkAttribute, weight, value);
 			beSource = getEntityManager().merge(beSource);
 			this.writeToDDT(beSource); // This is to ensure the BE in cache has its links updated
-			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee.getLink(), null, getCurrentToken());
+			
+			
+			if (changeEvent) {
+				QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee.getLink(), null, getCurrentToken());
 
-			sendQEventLinkChangeMessage(msg);
-			log.debug("Sent Event Link Change Msg " + msg);
+				sendQEventLinkChangeMessage(msg);
+				log.debug("Sent Event Link Change Msg " + msg);
+			}
 
 		}
 		return ee;
