@@ -61,6 +61,7 @@ import life.genny.qwanda.Context;
 import life.genny.qwanda.ContextList;
 import life.genny.qwanda.CoreEntity;
 import life.genny.qwanda.GPS;
+import life.genny.qwanda.Layout;
 import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
@@ -87,6 +88,7 @@ import life.genny.qwanda.entity.Product;
 import life.genny.qwanda.entity.SearchEntity;
 import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
+import life.genny.qwanda.message.QDataSubLayoutMessage;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.message.QEventLinkChangeMessage;
 import life.genny.qwanda.message.QSearchEntityMessage;
@@ -2206,22 +2208,18 @@ public class BaseEntityService2 {
         return result;
     }
 	
-	@Transactional
+	//@Transactional
 	public Long updateWithAttributes(BaseEntity entity) {
 
 		try {
-			BaseEntity existing  = this.findBaseEntityByCode(entity.getCode());
 			// merge in entityAttributes
 			entity = getEntityManager().merge(entity);
-            String json = JsonUtils.toJson(entity);
-			writeToDDT(entity.getCode(), json);
-		} catch (final IllegalArgumentException e) {
+ 		} catch (final Exception  e) {
 			// so persist otherwise
 			getEntityManager().persist(entity);
-			String json = JsonUtils.toJson(entity);
-			writeToDDT(entity.getCode(), json);
-
 		}
+		String json = JsonUtils.toJson(entity);
+		writeToDDT(entity.getCode(), json);
 		return entity.getId();
 	}
 
@@ -2434,7 +2432,7 @@ public class BaseEntityService2 {
 		  if(BatchLoading.isSynchronise()) {
 		    BaseEntity val = findBaseEntityByCode(be.getCode(), REALM_HIDDEN);
             if(val != null) {
-              val.setRealm(DEFAULT_REALM);
+              val.setRealm(getRealm());
               updateRealm(val);
               return val;
             }
@@ -4961,5 +4959,107 @@ public class BaseEntityService2 {
 		}
 		return be;
 	}
+	
+	/**
+	 * fetches V1 Layouts from db
+	 * 
+	 * @param table
+	 * @return response of the synchronization
+	 */
+
+
+	public QDataSubLayoutMessage fetchSubLayoutsFromDb(final String realm, final String gitrealm, final String branch) {
+
+		QDataSubLayoutMessage  ret = null;
+		
+	       SearchEntity searchBE = new SearchEntity("Sublayouts","Sublayouts")
+	    	  	     .addSort("PRI_CREATED","Created",SearchEntity.Sort.DESC)
+	    	  	     .addFilter("PRI_CODE",SearchEntity.StringFilter.LIKE,"LAY_%")
+	    	  	//     .addFilter("PRI_VERSION",SearchEntity.StringFilter.EQUAL,"V1")
+	    	  	//     .addFilter("PRI_BRANCH",SearchEntity.StringFilter.EQUAL,branch)
+	    	  	//     .addFilter("PRI_GITREALM",SearchEntity.StringFilter.EQUAL,gitrealm)	    	  	     
+	    	  	     .setPageStart(0)
+	    	  	     .setPageSize(10000);
+
+			List<BaseEntity> layouts = findBySearchBE(searchBE );
+			
+			Layout[] layoutArray = new Layout[layouts.size()];
+
+
+	       // Convert BaseEntity to Layout
+			int index=0;
+			for (BaseEntity be : layouts) {
+				try {
+					layoutArray[index++] = new Layout(be.getValue("PRI_LAYOUT_NAME").get().toString(),
+							be.getValue("PRI_LAYOUT_DATA").get().toString(), be.getValue("PRI_LAYOUT_URL").get().toString(), be.getValue("PRI_LAYOUT_URI").get().toString(), be.getValue("PRI_LAYOUT_MODIFIED_DATE").get().toString());
+				} catch (Exception e) {
+				}
+			}
+
+			ret = new QDataSubLayoutMessage(layoutArray, getToken());
+			
+
+		return ret;
+	}
+
+	public void saveLayouts(final List<BaseEntity> layouts, final String gitrealm, final String version, final String branch) {
+
+		
+		Attribute layoutDataAttribute = findAttributeByCode("PRI_LAYOUT_DATA");
+		Attribute layoutURLAttribute = findAttributeByCode("PRI_LAYOUT_URL");
+		Attribute layoutURIAttribute = findAttributeByCode("PRI_LAYOUT_URI");
+		Attribute layoutNameAttribute = findAttributeByCode("PRI_LAYOUT_NAME");
+		Attribute layoutModifiedDateAttribute = findAttributeByCode("PRI_LAYOUT_MODIFIED_DATE");
+		Attribute layoutVersionAttribute = findAttributeByCode("PRI_VERSION");
+		Attribute layoutBranchAttribute = findAttributeByCode("PRI_BRANCH");
+		Attribute layoutGitRealmAttribute = findAttributeByCode("PRI_GITREALM");
+		
+		for (BaseEntity layout : layouts) {
+				// so save the layout
+				BaseEntity newLayout = null;
+				try {
+					newLayout = findBaseEntityByCode(layout.getCode());
+				} catch (NoResultException e) {
+					log.info("New Layout detected");
+				}
+				if (newLayout == null) {
+					newLayout = new BaseEntity(layout.getCode(), layout.getName());
+				} else {
+					int newData = layout.getValue("PRI_LAYOUT_DATA").get().toString().hashCode();
+					int oldData = newLayout.findEntityAttribute(layoutDataAttribute).getAsString().hashCode();
+					if (newData == oldData) {
+						continue;
+					}
+				}
+				newLayout.setRealm(getRealm());
+				newLayout.setUpdated(layout.getUpdated());
+
+			//	upsert(newLayout);
+				
+				 try {
+		              newLayout.addAttribute(layoutDataAttribute, 0.0, layout.getValue("PRI_LAYOUT_DATA").get().toString());
+		              newLayout.addAttribute(layoutURLAttribute, 0.0, layout.getValue("PRI_LAYOUT_URL").get().toString());
+		              newLayout.addAttribute(layoutURIAttribute, 0.0, layout.getValue("PRI_LAYOUT_URI").get().toString());
+		              newLayout.addAttribute(layoutNameAttribute, 0.0, layout.getValue("PRI_LAYOUT_NAME").get().toString());
+		              newLayout.addAttribute(layoutModifiedDateAttribute, 0.0, layout.getValue("PRI_LAYOUT_MODIFIED_DATE").get().toString());
+		              newLayout.addAttribute(layoutBranchAttribute, 0.0, branch);
+		              newLayout.addAttribute(layoutVersionAttribute, 0.0, version);
+		              newLayout.addAttribute(layoutGitRealmAttribute, 0.0, gitrealm);
+
+				 } catch (final BadDataException e) {
+		              e.printStackTrace();
+		            }
+					try {
+						updateWithAttributes(newLayout);
+						addLink("GRP_LAYOUTS", newLayout.getCode(), "LNK_CORE", "LAYOUT", 1.0,false);   // don't send change event
+					} catch (IllegalArgumentException | BadDataException e) {
+						log.error("Could not write layout - "+e.getLocalizedMessage());
+					}
+					
+				}
+
+	}
+
+
 
 }
