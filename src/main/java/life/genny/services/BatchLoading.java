@@ -90,7 +90,7 @@ public class BatchLoading {
       }
       String code = ((String) validations.get("code")).replaceAll("^\"|\"$", "");;
       if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
-          System.out.println("detected VLD_AU_DRIVER_LICENCE_NO");
+    	  log.info("detected VLD_AU_DRIVER_LICENCE_NO");
       }
       String name = ((String) validations.get("name")).replaceAll("^\"|\"$", "");;
       String recursiveStr = (String) validations.get("recursive");
@@ -113,7 +113,7 @@ public class BatchLoading {
 
       Set<ConstraintViolation<Validation>> constraints = validator.validate(val);
       for (ConstraintViolation<Validation> constraint : constraints) {
-        System.out.println(constraint.getPropertyPath() + " " + constraint.getMessage());
+        log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
       }
       service.upsert(val);
     });
@@ -146,7 +146,7 @@ public class BatchLoading {
         }
         Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
         if (privacy) {
-                System.out.println("Attribute "+code+" has default privacy");
+        		log.info("Attribute "+code+" has default privacy");
         }
         String descriptionStr = (String) attributes.get("description");
         String helpStr = (String) attributes.get("help");
@@ -161,7 +161,7 @@ public class BatchLoading {
         //attr.setRealm(REALM);
         Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
         for (ConstraintViolation<Attribute> constraint : constraints) {
-          System.out.println(constraint.getPropertyPath() + " " + constraint.getMessage());
+          log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
         }
         service.upsert(attr);
       } catch (Exception e) {
@@ -228,7 +228,7 @@ public class BatchLoading {
       //be.setRealm(REALM);
       Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
       for (ConstraintViolation<BaseEntity> constraint : constraints) {
-        System.out.println(constraint.getPropertyPath() + " " + constraint.getMessage());
+        log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
       }
 
       service.upsert(be);
@@ -543,7 +543,7 @@ public class BatchLoading {
       String hiddenStr = (String) asks.get("hidden");
       final Double weight = Double.valueOf(weightStr);
       if ("QUE_USER_SELECT_ROLE".equals(targetCode)) {
-          System.out.println("dummy");
+    	  log.info("dummy");
       }
       Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
       Boolean readonly = "TRUE".equalsIgnoreCase(readonlyStr);
@@ -569,7 +569,7 @@ public class BatchLoading {
     Map<String, Object> lastProject = null;
     List<Map<String, Object>> projects = getProjects();
     if (projects.size() <= 1) {
-      System.out.println("is null");
+      log.info("is null");
       return projects.get(0);
     } else {
       for (int count = 0; count < projects.size(); count++) {
@@ -592,11 +592,11 @@ public class BatchLoading {
    * Call functions named after the classes
    */
   public Map<String, Object> persistProject(boolean isSynchronise, String table, boolean isDelete) {
-    System.out.println("Persisting Project in BatchLoading");
+    log.info("Persisting Project in BatchLoading");
     BatchLoading.isSynchronise = isSynchronise;
     BatchLoading.table = table;
     if(isSynchronise) {
-      System.out.println("Table to synchronise: " + table);
+      log.info("Table to synchronise: " + table);
       Map<String, Object> finalProject = getProject();
       if(!isDelete) {
         switch(table) {
@@ -639,15 +639,15 @@ public class BatchLoading {
             savedProjectData.put("messages", finalProject.get("messages"));
             break;
           default:
-            System.out.println("Error in table name. Please check.");
+            log.info("Error in table name. Please check.");
         }
-        System.out.println("########## SYNCHRONISED GOOGLE SHEET #############");
+        log.info("########## SYNCHRONISED GOOGLE SHEET #############");
       }
       return finalProject;
     }
     Map<String, Object> lastProject = getProject();
     savedProjectData = lastProject;
-    System.out.println("+++++++++ AbouDSDSDSDSDSDSDSDSDSDSSDSDSDt to load Questions +++++++++++++");
+    log.info("+++++++++ AbouDSDSDSDSDSDSDSDSDSDSSDSDSDt to load Questions +++++++++++++");
     validations(lastProject);
     Map<String, DataType> dataTypes = dataType(lastProject);
     attributes(lastProject, dataTypes);
@@ -655,15 +655,15 @@ public class BatchLoading {
     baseEntityAttributes(lastProject);
     attributeLinks(lastProject, dataTypes);
     entityEntitys(lastProject);
-    System.out.println("+++++++++ About to load Questions +++++++++++++");
+    log.info("+++++++++ About to load Questions +++++++++++++");
     questions(lastProject);
-    System.out.println("+++++++++ About to load QuestionQuestions +++++++++++++");
+    log.info("+++++++++ About to load QuestionQuestions +++++++++++++");
     questionQuestions(lastProject);
-    System.out.println("+++++++++ Finished loading QuestionQuestions +++++++++++++");
+    log.info("+++++++++ Finished loading QuestionQuestions +++++++++++++");
     asks(lastProject);
-    System.out.println("+++++++++ About to load Message Templates +++++++++++++");
+    log.info("+++++++++ About to load Message Templates +++++++++++++");
     messageTemplates(lastProject);
-    System.out.println("########## LOADED ALL GOOGLE DOC DATA #############");
+    log.info("########## LOADED ALL GOOGLE DOC DATA #############");
     return lastProject;
   }
 
@@ -800,42 +800,42 @@ public class BatchLoading {
               genny.put("messages", messages);
               break;
             default:
-              System.out.println("Error in table name. Please check.");
+              log.info("Error in table name. Please check.");
           }
           return genny;
         }
         
-      System.out.println("validatios");
+      log.info("validatios");
         Map<String, Map> validations = sheets.newGetVal();
         genny.put("validations", validations);
-      System.out.println("datatypes");
+  	  log.info("datatypes");
         Map<String, Map> dataTypes = sheets.newGetDType();
         genny.put("dataType", dataTypes);
-      System.out.println("attrs");
+  	  log.info("attrs");
         Map<String, Map> attrs = sheets.newGetAttr();
         genny.put("attributes", attrs);
-      System.out.println("bes");
+  	  log.info("bes");
         Map<String, Map> bes = sheets.newGetBase();
         genny.put("baseEntitys", bes);
-      System.out.println("eas");
+  	  log.info("eas");
         Map<String, Map> attr2Bes = sheets.newGetEntAttr();
         genny.put("attibutesEntity", attr2Bes);
-      System.out.println("attr link");
+  	  log.info("attr link");
         Map<String, Map> attrLink = sheets.newGetAttrLink();
         genny.put("attributeLink", attrLink);
-      System.out.println("vee");
+  	  log.info("vee");
         Map<String, Map> bes2Bes = sheets.newGetEntEnt();
         genny.put("basebase", bes2Bes);
-      System.out.println("qtns");
+  	  log.info("qtns");
         Map<String, Map> gQuestions = sheets.newGetQtn();
         genny.put("questions", gQuestions);
-      System.out.println("vQQs");
+  	  log.info("vQQs");
         Map<String, Map> que2Que = sheets.newGetQueQue();
         genny.put("questionQuestions", que2Que);
-      System.out.println("asks");
+  	  log.info("asks");
         Map<String, Map> asks = sheets.newGetAsk();
         genny.put("ask", asks);
-      System.out.println("templates");
+  	  log.info("templates");
         Map<String, Map> messages = sheets.getMessageTemplates();
         genny.put("messages", messages);
         break;
@@ -908,13 +908,13 @@ public class BatchLoading {
   public void messageTemplates(Map<String, Object> project) {
         
     if (project.get("messages") == null) {
-        System.out.println("project.get(messages) is null");
-        return;
+    	log.info("project.get(messages) is null");
+    	return;
     }
       
     ((HashMap<String, HashMap>) project.get("messages")).entrySet().stream().forEach(data -> {
-        
-        System.out.println("messages, data ::"+data);
+    	
+    	log.info("messages, data ::"+data);
       Map<String, Object> template = data.getValue();
       String code = (String) template.get("code");
       String name = (String) template.get("name");
@@ -949,10 +949,10 @@ public class BatchLoading {
 					msg.setSubject(subject);
 					msg.setToast_template(toastTemplate);
 					Long id = service.update(msg);
-					System.out.println("updated message id ::" + id);
+					log.info("updated message id ::" + id);
 				} else {
 					Long id = service.insert(templateObj);
-					System.out.println("message id ::" + id);
+					log.info("message id ::" + id);
 				}
 				
 			} catch (Exception e) {
@@ -969,7 +969,7 @@ public class BatchLoading {
 		                }
 		              }
 				    Long id = service.insert(templateObj);
-                    System.out.println("message id ::" + id);
+                    log.info("message id ::" + id);
 				  } catch (javax.validation.ConstraintViolationException ce)     {
 	                log.error("Error in saving message due to constraint issue:" + templateObj + " :" + ce.getLocalizedMessage());
 	                log.info("Trying to update realm from hidden to genny");

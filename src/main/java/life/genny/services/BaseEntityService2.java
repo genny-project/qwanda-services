@@ -30,6 +30,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
@@ -94,6 +95,7 @@ import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.MergeUtil;
+
 
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
@@ -1381,13 +1383,27 @@ public class BaseEntityService2 {
 	public void removeBaseEntity(final String code) {
 		final BaseEntity be = findBaseEntityByCode(code);
 		if (be != null) {
-		    // remove all answers
+			
+		    // remove all answers 
 		  
 			// remove all answerlinks
+			List<AnswerLink> answers = findAnswersByTargetOrSourceBaseEntityCode(be.getCode());
+			log.info("Answers count: " + answers.size());
 
-			// remove all attributes
+			// remove all attributes - It is automatically removed by Hibernate.
 
-			// remove all entityentity
+			// remove all links
+			List<EntityEntity> links = findLinksBySourceOrTargetBaseEntityCode(be.getCode());
+			log.info("Links count: " + links.size());
+			//removeEntityEntity(be.getCode());
+			
+			for (final AnswerLink answerLink : answers) {
+				removeAnswerLink(code, answerLink);
+			}
+			
+			for (final EntityEntity entityEntity : links) {
+				removeEntityEntity(code, entityEntity);
+			}
 
 			// remove the be
 			getEntityManager().remove(be);
@@ -1395,6 +1411,7 @@ public class BaseEntityService2 {
 			writeToDDT(code, null);
 		}
 	}
+
 
 	/**
 	 * Remove {@link Attribute} one by one and throws an exception at a given point
@@ -1707,13 +1724,13 @@ public class BaseEntityService2 {
 		return entity.getId();
 	}
 
-	@Transactional
+	@Transactional(dontRollbackOn={Exception.class})
 	public Long insert(Answer[] answers) throws IllegalArgumentException  {
 
 		// always check if answer exists through check for unique code
 		BaseEntity beTarget = null;
 		BaseEntity beSource = null;
-		Attribute attribute = null;
+		Attribute attribute = null; 
 		Ask ask = null;
 
 		if (answers.length == 0) {
@@ -2068,7 +2085,7 @@ public class BaseEntityService2 {
 			log.debug("Sent Event Link Change Msg " + msg);
 
 		} catch (Exception e) {
-			// rollback
+		// rollback
 		}
 		return ee;
 	}
@@ -2423,7 +2440,8 @@ public class BaseEntityService2 {
 		}
 	}
 
-    @Transactional
+	@Transactional
+
 	public BaseEntity upsert(BaseEntity be) {
 		try {
 			String code = be.getCode();
@@ -2438,7 +2456,7 @@ public class BaseEntityService2 {
 			val = getEntityManager().merge(val);
 
 			return be;
-		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+		} catch (NoResultException | IllegalAccessException | InvocationTargetException | NullPointerException e) {
 		  if(BatchLoading.isSynchronise()) {
 		    BaseEntity val = findBaseEntityByCode(be.getCode(), REALM_HIDDEN);
             if(val != null) {
@@ -2535,7 +2553,6 @@ public class BaseEntityService2 {
 
 		BaseEntity result = null;
 
-		log.info("FIND BASEENTITY BY CODE ["+baseEntityCode+"]in realm " + REALM);
 		if (includeEntityAttributes) {
 			String privacySQL = "";
 
@@ -2543,7 +2560,7 @@ public class BaseEntityService2 {
 //					+ privacySQL;
 			String sql = "SELECT be FROM BaseEntity be LEFT JOIN be.baseEntityAttributes ea where be.code=:baseEntityCode and be.realm=:realmStr  "
 					+ privacySQL;
-			log.info("FIND BASEENTITY BY CODE :"+sql);
+	//		log.info("FIND BASEENTITY BY CODE :"+sql);
 			try {
 				result = (BaseEntity) getEntityManager().createQuery(
 						sql)
@@ -2552,7 +2569,7 @@ public class BaseEntityService2 {
 						.getSingleResult();
 			} catch (Exception e) {
 
-				throw new NoResultException("Cannot find " + baseEntityCode + " in db! ");
+				throw new NoResultException("Cannot find " + baseEntityCode + " in db! with realm "+ REALM);
 			}
 
 		} else {
@@ -2564,9 +2581,9 @@ public class BaseEntityService2 {
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())
 						.setParameter("realmStr", REALM).getSingleResult();
 			} catch (Exception e) {
-				if ("GRP_ALL_CONTACTS".equalsIgnoreCase(baseEntityCode)) {
-					log.info("GRP_ADMIN_JOBS");
-				}
+//				if ("GRP_ALL_CONTACTS".equalsIgnoreCase(baseEntityCode)) {
+//					log.info("GRP_ADMIN_JOBS");
+//				}
 
 				throw new NoResultException("Cannot find " + baseEntityCode + " in db ");
 			}
@@ -3745,7 +3762,7 @@ public class BaseEntityService2 {
 
 	public List<AnswerLink> findAnswersByTargetBaseEntityCode(final String targetCode) {
 		final List<AnswerLink> results = getEntityManager()
-				.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.targetCode=:baseEntityCode")
+				.createQuery("SELECT ea FROM AnswerLink ea where ea.targetCode=:baseEntityCode")
 				.setParameter("baseEntityCode", targetCode).getResultList();
 
 		return results;
@@ -3756,6 +3773,23 @@ public class BaseEntityService2 {
 		final List<AnswerLink> results = getEntityManager()
 				.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.source.code=:baseEntityCode")
 				.setParameter("baseEntityCode", sourceCode).getResultList();
+
+		return results;
+
+	}
+	
+	public List<AnswerLink> findAnswersByTargetOrSourceBaseEntityCode(final String baseEntityCode) {
+		final List<AnswerLink> results = getEntityManager()
+				.createQuery("SELECT ea FROM AnswerLink ea where ea.sourceCode=:baseEntityCode or ea.targetCode=:baseEntityCode")
+				.setParameter("baseEntityCode", baseEntityCode).getResultList();
+
+		return results;
+	}
+	
+	public List<EntityEntity> findLinksBySourceOrTargetBaseEntityCode(final String baseEntityCode) {
+		final List<EntityEntity> results = getEntityManager()
+				.createQuery("SELECT ea FROM EntityEntity ea where ea.link.sourceCode=:baseEntityCode or ea.pk.targetCode=:baseEntityCode")
+				.setParameter("baseEntityCode", baseEntityCode).getResultList();
 
 		return results;
 
@@ -4261,10 +4295,10 @@ public class BaseEntityService2 {
 }
 
 	@Transactional
-	public void removeEntityEntity(final EntityEntity ee) {
+	public void removeEntityEntity(final String code, final EntityEntity ee) {
 		try {
 			Link oldLink = ee.getLink();
-			BaseEntity source = findBaseEntityByCode(ee.getLink().getSourceCode());
+			BaseEntity source = findBaseEntityByCode(code);
 			source.getLinks().remove(ee);
 			getEntityManager().merge(source);
 			this.writeToDDT(source);
@@ -4275,6 +4309,20 @@ public class BaseEntityService2 {
 		} catch (Exception e) {
 		  e.printStackTrace();
 		}
+	}
+	
+	@Transactional
+	public void removeAnswerLink(final String code, final AnswerLink answerLink) {
+		try {
+			BaseEntity source = findBaseEntityByCode(code);
+			source.getAnswers().remove(answerLink);
+			getEntityManager().merge(source);
+			this.writeToDDT(source);
+            getEntityManager().remove(answerLink);
+		} catch (Exception e) {
+		  e.printStackTrace();
+		}
+
 	}
 	
 	@Transactional
@@ -4338,9 +4386,16 @@ public class BaseEntityService2 {
 
 	}
 
-	@Transactional
+
 	public EntityEntity addLink(final String sourceCode, final String targetCode, final String linkCode, Object value,
 			Double weight) throws IllegalArgumentException, BadDataException {
+
+		return addLink(sourceCode,targetCode,linkCode,value,weight,true);
+	}
+	
+	@Transactional
+	public EntityEntity addLink(final String sourceCode, final String targetCode, final String linkCode, Object value,
+			Double weight, final boolean changeEvent) throws IllegalArgumentException, BadDataException {
 		EntityEntity ee = null;
 
 		try {
@@ -4363,7 +4418,7 @@ public class BaseEntityService2 {
 			try {
 				beTarget = findBaseEntityByCode(targetCode);
 			} catch (NoResultException es) {
-				throw new IllegalArgumentException("targetCode" + targetCode + " not found");
+				throw new IllegalArgumentException("targetCode " + targetCode + " not found");
 			}
 
 			try {
@@ -4375,10 +4430,14 @@ public class BaseEntityService2 {
 			ee = beSource.addTarget(beTarget, linkAttribute, weight, value);
 			beSource = getEntityManager().merge(beSource);
 			this.writeToDDT(beSource); // This is to ensure the BE in cache has its links updated
-			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee.getLink(), null, getCurrentToken());
+			
+			
+			if (changeEvent) {
+				QEventLinkChangeMessage msg = new QEventLinkChangeMessage(ee.getLink(), null, getCurrentToken());
 
-			sendQEventLinkChangeMessage(msg);
-			log.debug("Sent Event Link Change Msg " + msg);
+				sendQEventLinkChangeMessage(msg);
+				log.debug("Sent Event Link Change Msg " + msg);
+			}
 
 		}
 		return ee;
@@ -4390,7 +4449,7 @@ public class BaseEntityService2 {
 
 		try {
 			ee = findEntityEntity(link.getSourceCode(), link.getTargetCode(), link.getAttributeCode());
-			removeEntityEntity(ee);
+			removeEntityEntity(link.getSourceCode(), ee);
 			QEventLinkChangeMessage msg = new QEventLinkChangeMessage(null, ee.getLink(), getCurrentToken());
 
 			sendQEventLinkChangeMessage(msg);
@@ -4407,7 +4466,7 @@ public class BaseEntityService2 {
 
 		try {
 			ee = findEntityEntity(sourceCode, targetCode, linkCode);
-			removeEntityEntity(ee);
+			removeEntityEntity(sourceCode, ee);
 
 		} catch (Exception e) {
 			log.error("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode + " not found");
