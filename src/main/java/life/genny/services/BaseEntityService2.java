@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
@@ -2208,9 +2209,8 @@ public class BaseEntityService2 {
         return result;
     }
 	
-	//@Transactional
-	public Long updateWithAttributes(BaseEntity entity) {
 
+	public Long updateWithAttributes(BaseEntity entity) {
 		try {
 			// merge in entityAttributes
 			entity = getEntityManager().merge(entity);
@@ -5002,6 +5002,7 @@ public class BaseEntityService2 {
 		return ret;
 	}
 
+	
 	public void saveLayouts(final List<BaseEntity> layouts, final String gitrealm, final String version, final String branch) {
 
 		
