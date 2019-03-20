@@ -31,7 +31,7 @@
 		<ejb-plugin-version>2.3</ejb-plugin-version>
 		<war-plugin-version>2.4</war-plugin-version>
 		<ear-plugin-version>2.9</ear-plugin-version>
-		<compiler-plugin-version>3.1</compiler-plugin-version>
+		<compiler-plugin-version>3.7.0</compiler-plugin-version>
 		<version.maven-jar-plugin>3.0.2</version.maven-jar-plugin>
 		<version.maven-source-plugin>3.0.1</version.maven-source-plugin>
 
@@ -51,8 +51,8 @@
 		<keycloak-core.version>3.4.0.Final</keycloak-core.version>
 		<version.hibernate>5.3.6.Final</version.hibernate>
 		<version.hibernate-validator>5.3.6.Final</version.hibernate-validator>
-		<version.hsqldb>2.4.0</version.hsqldb>
-		<version.h2db>1.4.193</version.h2db>
+		<version.hsqldb>2.4.1</version.hsqldb>
+		<version.h2db>1.4.198</version.h2db>
 		<version.resteasy>3.0.10.Final</version.resteasy>
 
 		<m2e.jpa.activation>false</m2e.jpa.activation>
