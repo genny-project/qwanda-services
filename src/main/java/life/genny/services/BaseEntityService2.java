@@ -2348,7 +2348,7 @@ public class BaseEntityService2 {
 			  if(BatchLoading.isSynchronise()) {
 			    Validation val = findValidationByCode(validation.getCode(), REALM_HIDDEN);
                 if(val != null) {
-                  val.setRealm(DEFAULT_REALM);
+                  val.setRealm(REALM);
                   updateRealm(val);
                   return val;
                 }
@@ -2356,9 +2356,6 @@ public class BaseEntityService2 {
 				getEntityManager().persist(validation);
 			} catch (javax.validation.ConstraintViolationException ce)    {
               log.error("Error in saving attribute due to constraint issue:" + validation + " :" + ce.getLocalizedMessage());
-              log.info("Trying to update realm from hidden to genny");
-              validation.setRealm("genny");
-              updateRealm(validation);
             } catch (javax.persistence.PersistenceException pe) {
 				log.error("Error in saving validation :" + validation + " :" + pe.getLocalizedMessage());
 			}
@@ -2387,7 +2384,7 @@ public class BaseEntityService2 {
 			  if(BatchLoading.isSynchronise()) {
 			    Attribute val = findAttributeByCode(attr.getCode(), REALM_HIDDEN);
 	            if(val != null) {
-	              val.setRealm(DEFAULT_REALM);
+	              val.setRealm(REALM);
 	              updateRealm(val);
 	              return val;
 	            }
@@ -2422,7 +2419,7 @@ public class BaseEntityService2 {
 			  if(BatchLoading.isSynchronise()) {
 			    Question val = findQuestionByCode(q.getCode(), REALM_HIDDEN);
 			    if(val != null) {
-			      val.setRealm(DEFAULT_REALM);
+			      val.setRealm(REALM);
 			      updateRealm(val);
 			      return val;
 			    }
