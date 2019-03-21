@@ -5,9 +5,13 @@ import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.Map.Entry;
+
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
@@ -28,6 +32,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
+import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.GennySheets;
 
 /**
@@ -158,7 +163,6 @@ public class BatchLoading {
         attr.setHelp(helpStr);
         attr.setPlaceholder(placeholderStr);
         attr.setDefaultValue(defaultValueStr);
-        //attr.setRealm(REALM);
         Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
         for (ConstraintViolation<Attribute> constraint : constraints) {
           log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
@@ -1002,14 +1006,92 @@ public class BatchLoading {
 
   }
 
-  /*public static String getRealm() {
-    return REALM;
-  }*/
-
-
   
   public static boolean isSynchronise() {
     return isSynchronise;
+  }
+  
+  public String constructKeycloakJson() {
+	  final String PROJECT_CODE = "PRJ_" + REALM.toUpperCase();
+	  String keycloakUrl = null;
+	  String keycloakSecret = null;
+	  String keycloakJson = null;
+		
+	  if(savedProjectData != null && savedProjectData.get("attibutesEntity") != null) {
+		final Iterator iter =
+		    ((HashMap<String, HashMap>) savedProjectData.get("attibutesEntity")).entrySet().iterator();
+
+		while (iter.hasNext()) {
+			final Entry entry = (Entry) iter.next();
+			final String key = (String) entry.getKey();
+			if((PROJECT_CODE+"ENV_KEYCLOAK_AUTHURL").equalsIgnoreCase(key)) {
+				HashMap<String, Object> baseEntityAttr = (HashMap<String, Object>) entry.getValue();
+				keycloakUrl = baseEntityAttr.get("valueString").toString();
+			} else if((PROJECT_CODE+"ENV_KEYCLOAK_SECRET").equalsIgnoreCase(key)) {
+				HashMap<String, Object> baseEntityAttr = (HashMap<String, Object>) entry.getValue();
+				keycloakSecret = baseEntityAttr.get("valueString").toString();
+			}
+		}
+			
+		keycloakJson = "{\n" + 
+	    	  		"  \"realm\": \"" + GennySettings.mainrealm + "\",\n" + 
+	    	  		"  \"auth-server-url\": \"" + keycloakUrl + "\",\n" + 
+	    	  		"  \"ssl-required\": \"none\",\n" + 
+	    	  		"  \"resource\": \"" + GennySettings.mainrealm + "\",\n" + 
+	    	  		"  \"credentials\": {\n" + 
+	    	  		"    \"secret\": \"" + keycloakSecret + "\" \n" + 
+	    	  		"  },\n" + 
+	    	  		"  \"policy-enforcer\": {}\n" + 
+	    	  		"}";
+	          
+	    log.info("Loaded keycloak.json... " + keycloakJson);
+	    return keycloakJson;
+				
+	  } else {
+		log.warn("Could not construct keycloak json as savedProjectData is null due to google doc loading might be skipped...");
+		BaseEntity project = service.findBaseEntityByCode(PROJECT_CODE);
+		if (project == null) {
+			log.error("Error: no Project Setting for " + PROJECT_CODE);
+			return null;
+		}
+		Optional<EntityAttribute> entityAttribute1 = project.findEntityAttribute("ENV_KEYCLOAK_JSON");
+		if (entityAttribute1.isPresent()) {
+
+			keycloakJson = entityAttribute1.get().getValueString();
+			return keycloakJson;
+
+		} else {
+			log.error("Error: no Project Setting for ENV_KEYCLOAK_JSON ensure PRJ_" + REALM.toUpperCase()
+					+ " has entityAttribute value for ENV_KEYCLOAK_JSON");
+			return null;
+		}
+	}		
+  }
+  
+  public void upsertKeycloakJson(String keycloakJson) {
+	  final String PROJECT_CODE = "PRJ_" + REALM.toUpperCase();
+	  BaseEntity be = service.findBaseEntityByCode(PROJECT_CODE);
+	  
+	  ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+	  Validator validator = factory.getValidator();
+	  Attribute attr = service.findAttributeByCode("ENV_KEYCLOAK_JSON");
+	  if(attr == null) {
+		  attr = new Attribute("ENV_KEYCLOAK_JSON", "Keycloak Json", new DataType("DTT_TEXT"));
+		  Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
+	      for (ConstraintViolation<Attribute> constraint : constraints) {
+	        log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
+	      }
+	      service.upsert(attr);
+	  }
+      try {
+		EntityAttribute ea = be.addAttribute(attr, 0.0, keycloakJson);
+	} catch (BadDataException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+    
+      service.updateWithAttributes(be);
+	  
   }
 
 }
