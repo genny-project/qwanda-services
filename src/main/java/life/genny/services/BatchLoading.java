@@ -507,7 +507,7 @@ public class BatchLoading {
         if(isSynchronise()) {
           Question val = service.findQuestionByCode(q.getCode(), "hidden");
           if(val != null) {
-            val.setRealm("genny");
+            val.setRealm(REALM);
             service.updateRealm(val);
             return;
           }
@@ -967,7 +967,7 @@ public class BatchLoading {
 				    if(BatchLoading.isSynchronise()) {
 				      QBaseMSGMessageTemplate val = service.findTemplateByCode(templateObj.getCode(), "hidden");
 		                if(val != null) {
-		                  val.setRealm("genny");
+		                  val.setRealm(REALM);
 		                  service.updateRealm(val);
 		                  return;
 		                }
@@ -976,9 +976,6 @@ public class BatchLoading {
                     log.info("message id ::" + id);
 				  } catch (javax.validation.ConstraintViolationException ce)     {
 	                log.error("Error in saving message due to constraint issue:" + templateObj + " :" + ce.getLocalizedMessage());
-	                log.info("Trying to update realm from hidden to genny");
-	                templateObj.setRealm("genny");
-	                service.updateRealm(templateObj);
 	            }
 					
 				} catch (Exception e) {
