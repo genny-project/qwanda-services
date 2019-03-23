@@ -1997,7 +1997,7 @@ public class BaseEntityService2 {
 			}
 			if (!msg.getBe().getBaseEntityAttributes().isEmpty()) {
 				// Don't send service events
-				if (!msg.getBe().getCode().equals("PER_SERVICE"))) {
+				if (!msg.getBe().getCode().equals("PER_SERVICE")) {
 					sendQEventAttributeValueChangeMessage(msg); 
 				}
 			}
