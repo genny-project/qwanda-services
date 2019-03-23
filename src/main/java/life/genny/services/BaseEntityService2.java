@@ -1996,7 +1996,10 @@ public class BaseEntityService2 {
 				writeToDDT(beTarget.getCode(), json); // Update the DDT
 			}
 			if (!msg.getBe().getBaseEntityAttributes().isEmpty()) {
-				sendQEventAttributeValueChangeMessage(msg); 
+				// Don't send service events
+				if (!msg.getBe().getCode().equals("PER_SERVICE"))) {
+					sendQEventAttributeValueChangeMessage(msg); 
+				}
 			}
 		
 		return 0L;
