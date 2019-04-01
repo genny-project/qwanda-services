@@ -91,38 +91,35 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 	   
    }
   
-	//@Test
+	@Test
 	public void searchBETest() {
 
-		BaseEntity searchBE = new BaseEntity("SER_TEST_SEARCH", "Search test");
-		try {
-			// searchBE.setValue(new AttributeText("SCH_STAKEHOLDER_CODE",
-			// "Stakeholder"),"PER_USER1");
-			searchBE.setValue(new AttributeInteger("SCH_PAGE_START", "PageStart"), 0);
-			searchBE.setValue(new AttributeInteger("SCH_PAGE_SIZE", "PageSize"), 10);
-			
-			// Set some Filter attributes
-			// searchBE.setValue(new AttributeText("QRY_PRI_FIRST_NAME", "First
-			// Name"),"Bob");
+		   QSearchEntityMessage searchBE = new QSearchEntityMessage.Builder("SBE_SEARCH_TEST","Search Test")
+				   .pageStart(0)
+				   .pageSize(10)
+				   .sort("PRI_CREATED","Created",SearchEntity.Sort.DESC)
+				   .sort("PRI_NAME","Name",SearchEntity.Sort.ASC)
+		//		   .sourceCode("GRP_ROOT")
+				   .searchOr(new SearchEntity("SBE_TEST1","Test1")
+						   .addFilter("PRI_CODE",SearchEntity.StringFilter.LIKE,"PER_%"))
+				   .column("PRI_CODE", "Code")
+				   .column("PRI_NAME", "Name")
+				   .column("PRI_DOB", "Date Of Birth")				   
+				   .build();
 
-			searchBE.setValue(new AttributeDate("QRY_PRI_DOB", "DOB"), LocalDate.of(2018, 2, 20));
-
-			searchBE.setValue(new AttributeText("SRT_PRI_DOB", "DOB"), "ASC", 0.8);
-			searchBE.setValue(new AttributeText("SRT_PRI_FIRSTNAME", "FIRSTNAME"), "DESC", 1.0); // higher priority
-																									// sorting
-
-			searchBE.setValue(new AttributeText("PRI_FIRST_NAME", "First name"), "First Name", 1.0); // return this
-																										// column with
-																										// this header
-			searchBE.setValue(new AttributeText("PRI_DOB", "DOB"), "Birthday", 2.0); // return this column with this
-																						// header
-			searchBE.setValue(new AttributeText("PRI_LASTNAME", "LastName"), "Last Name", 1.5); // return this column
-																								// with this header
-
-		} catch (BadDataException e) {
-			log.error("Bad Data Exception");
-		}
-
+/* 
+ * 
+ * 
+ * We need to include columns that represent attributes of associated baseentities
+ *
+ * .column("LINK_CODE","PARENT/CHILD","PRI_ATTRIBUTE","Associated Attribute"),
+ * or can we fetch it through a separate search and merge in?
+ * 
+ */
+		   
+		
+		   
+		   
 		List<BaseEntity> results = service.findBySearchBE(searchBE);
 		log.info(results);
 	}

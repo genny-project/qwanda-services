@@ -1869,7 +1869,7 @@ public class BaseEntityService2 {
 			        if (existingList.isEmpty()) {
 			            getEntityManager().persist(answer);
 			        } else {
-			            log.warn("Answer already exists");
+			            log.warn("Answer already exists "+answer);
 			            answer.setId(existingList.get(0).getId());
 			        }
 
