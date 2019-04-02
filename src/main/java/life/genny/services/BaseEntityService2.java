@@ -158,6 +158,8 @@ public class BaseEntityService2 {
 		private String fieldName;
 		private String fieldCode;
 		private Double weight;
+		private String linkCode;
+		private String linkType;
 
 		public Column(final String fieldCode, final String fieldName, final Double weight) {
 			this.fieldName = fieldName;
@@ -189,6 +191,34 @@ public class BaseEntityService2 {
 		 */
 		public Double getWeight() {
 			return weight;
+		}
+
+		/**
+		 * @return the linkCode
+		 */
+		public String getLinkCode() {
+			return linkCode;
+		}
+
+		/**
+		 * @param linkCode the linkCode to set
+		 */
+		public void setLinkCode(String linkCode) {
+			this.linkCode = linkCode;
+		}
+
+		/**
+		 * @return the linkType
+		 */
+		public String getLinkType() {
+			return linkType;
+		}
+
+		/**
+		 * @param linkType the linkType to set
+		 */
+		public void setLinkType(String linkType) {
+			this.linkType = linkType;
 		}
 
 	}
@@ -655,7 +685,19 @@ public class BaseEntityService2 {
 					ss.columnList.add(new Column(columnAttributeCode, ea.getAttributeName(), ea.getWeight()));
 					ss.attributeCodes.add(columnAttributeCode);
 				}
-			} else {
+			}
+			else if (ea.getAttributeCode().startsWith("CAL_")) {
+				Map<String,String> associatedCodes = QSearchEntityMessage.getAssociationCodes(ea.getAttributeCode());
+				String columnAttributeCode = associatedCodes.get("ATTRIBUTE_CODE");
+				
+				if (!columnAttributeCode.equalsIgnoreCase("code")) {
+					Column calColumn = new Column(columnAttributeCode, ea.getAttributeName(), ea.getWeight());
+					calColumn.setLinkCode(associatedCodes.get("LINK_CODE"));
+					calColumn.setLinkType(associatedCodes.get("LINK_TYPE"));
+					ss.columnList.add(calColumn);
+					ss.attributeCodes.add(columnAttributeCode);
+				}
+			}else {
 				String priAttributeCode = ea.getAttributeCode();
 
 				// Check no nasty SQL injection

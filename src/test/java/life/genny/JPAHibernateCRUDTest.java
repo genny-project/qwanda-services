@@ -104,7 +104,9 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 						   .addFilter("PRI_CODE",SearchEntity.StringFilter.LIKE,"PER_%"))
 				   .column("PRI_CODE", "Code")
 				   .column("PRI_NAME", "Name")
-				   .column("PRI_DOB", "Date Of Birth")				   
+				   .column("PRI_DOB", "Date Of Birth")	
+				   .column("LNK_CORE",QSearchEntityMessage.LinkType.PARENT,"PRI_NAME", "Referer Name")	
+				   
 				   .build();
 
 /* 
@@ -116,8 +118,6 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
  * or can we fetch it through a separate search and merge in?
  * 
  */
-		   
-		
 		   
 		   
 		List<BaseEntity> results = service.findBySearchBE(searchBE);
