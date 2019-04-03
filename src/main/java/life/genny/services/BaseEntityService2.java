@@ -699,7 +699,10 @@ public class BaseEntityService2 {
 					// (3) Now get the BaseEntitys (so we can get the value of the attributeCode
 					// required
 					Set<BaseEntity> associatedBaseEntitySet = associatedBaseEntityCodes.parallelStream()
-							.map(abe -> associatedBaseEntityMap.getOrDefault(abe, findBaseEntityByCode(abe)))
+							.map(abe -> { BaseEntity foundBe = associatedBaseEntityMap.getOrDefault(abe, findBaseEntityByCode(abe));
+								associatedBaseEntityMap.put(abe,foundBe); // don't worry about putting it back in of already there
+							return foundBe;
+							})
 							.collect(Collectors.toSet());
 			
 					// (3.5) create fake EntityAttributes for any attributes that this baseentity does not have ...
