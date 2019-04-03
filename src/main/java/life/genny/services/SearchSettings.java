@@ -22,6 +22,7 @@ public class SearchSettings {
 	public List<Tuple2<String, Object>> valueList = new ArrayList<Tuple2<String, Object>>();
 	public List<Order> orderList = new ArrayList<Order>(); // attributeCode , ASC/DESC
 	public List<Column> columnList = new ArrayList<Column>(); // column to be searched for and returned
+	
 
 	public Set<String> attributeCodes = new HashSet<String>();
 
