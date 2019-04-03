@@ -657,34 +657,61 @@ public class BaseEntityService2 {
 					Attribute requiredAttribute = attributeMap.get(requiredAttributeCode);
 					requiredAttribute.setName(requiredAttributeName); // Override the virtual name
 
+					Set<String> associatedBaseEntityCodes = new HashSet<String>();
+					
+					if (associatedColumn.getLinkCode().startsWith("LNK_")) {
 					// (1) find if any links have the linkCode requested
+						if (associatedColumn.getLinkType().equalsIgnoreCase("CHILD")) {
 					List<EntityEntity> associatedLinks = be.getLinks().parallelStream() // convert list to stream
 							.filter(ti -> ti.getPk().getAttribute().getCode().equals(associatedColumn.getLinkCode())) // check
 																														// for
 																														// linkCode
 							.collect(Collectors.toList()); // collect the output and convert streams to a List
 					
-					// (1.5) create fake EntityAttributes for any attributes that this baseentity does not have ...
-					if (associatedLinks.isEmpty()) {
-						EntityAttribute virtualEA = new EntityAttribute(be, requiredAttribute, 1.0,
-								requiredAttribute.getDefaultValue());
-						virtualEA.setAttributeCode(":" + requiredAttributeCode);
-						be.getBaseEntityAttributes().add(virtualEA);
-						continue;
-					}
 					
 					// (2) Now find the associated BaseEntitys
-					Set<String> associatedBaseEntityCodes = associatedLinks.parallelStream() // convert list to stream
+					associatedBaseEntityCodes = associatedLinks.parallelStream() // convert list to stream
 							.map(ee -> ee.getLink().getTargetCode()).collect(Collectors.toSet()); // collect the output
 																									// and convert
 																									// streams to a Set
+						} else {
+							// find the parents that match the linkCode!
+							List<Link> links = findParentLinks(be.getCode(), associatedColumn.getLinkCode());
+							// (2) Now find the associated BaseEntitys
+							associatedBaseEntityCodes = links.parallelStream() // convert list to stream
+									.map(ee -> ee.getSourceCode()).collect(Collectors.toSet()); // collect the output
+																											// and convert
+																											// streams to a Set
+
+						}
+
+					} else {
+						// The associated baseentity is actually contained in an attribute within the be
+						// (1) find if any links have the linkCode requested
+						 String associatedBaseEntityCode = be.getValue(associatedColumn.getLinkCode(),null);
+						 if (associatedBaseEntityCode!=null) {
+							 associatedBaseEntityCodes.add(associatedBaseEntityCode);
+						 }
+						
+					}
+					
 
 					// (3) Now get the BaseEntitys (so we can get the value of the attributeCode
 					// required
 					Set<BaseEntity> associatedBaseEntitySet = associatedBaseEntityCodes.parallelStream()
 							.map(abe -> associatedBaseEntityMap.getOrDefault(abe, findBaseEntityByCode(abe)))
 							.collect(Collectors.toSet());
-				
+			
+					// (3.5) create fake EntityAttributes for any attributes that this baseentity does not have ...
+					if (associatedBaseEntitySet.isEmpty()) {
+						EntityAttribute virtualEA = new EntityAttribute(be, requiredAttribute, 1.0,
+								requiredAttribute.getDefaultValue());
+						virtualEA.setAttributeCode(":" + requiredAttributeCode);
+						be.getBaseEntityAttributes().add(virtualEA);
+						continue;
+					}
+
+					
 
 					// (4) Now create a Set of EntityAttributes
 					Set<EntityAttribute> virtualEntityAttributeList = associatedBaseEntitySet.parallelStream()
