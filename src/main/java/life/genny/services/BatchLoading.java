@@ -1010,6 +1010,7 @@ public class BatchLoading {
   
   public String constructKeycloakJson() {
 	  final String PROJECT_CODE = "PRJ_" + REALM.toUpperCase();
+	  final String CURRENT_ENV = System.getenv("CURRENT_ENV");
 	  String keycloakUrl = null;
 	  String keycloakSecret = null;
 	  String keycloakJson = null;
@@ -1021,10 +1022,10 @@ public class BatchLoading {
 		while (iter.hasNext()) {
 			final Entry entry = (Entry) iter.next();
 			final String key = (String) entry.getKey();
-			if((PROJECT_CODE+"ENV_KEYCLOAK_AUTHURL").equalsIgnoreCase(key)) {
+			if((PROJECT_CODE+"ENV_KEYCLOAK_AUTHURL_"+CURRENT_ENV).equalsIgnoreCase(key)) {
 				HashMap<String, Object> baseEntityAttr = (HashMap<String, Object>) entry.getValue();
 				keycloakUrl = baseEntityAttr.get("valueString").toString();
-			} else if((PROJECT_CODE+"ENV_KEYCLOAK_SECRET").equalsIgnoreCase(key)) {
+			} else if((PROJECT_CODE+"ENV_KEYCLOAK_SECRET_"+CURRENT_ENV).equalsIgnoreCase(key)) {
 				HashMap<String, Object> baseEntityAttr = (HashMap<String, Object>) entry.getValue();
 				keycloakSecret = baseEntityAttr.get("valueString").toString();
 			}
