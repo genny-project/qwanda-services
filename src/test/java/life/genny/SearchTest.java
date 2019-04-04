@@ -69,7 +69,7 @@ public class SearchTest {
 		}
 	}
 
-//	@Test
+	//@Test
 	public void searchBETest() {
 
 		BaseEntity searchBE = new BaseEntity("SER_TEST_SEARCH", "Search test");

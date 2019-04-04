@@ -45,7 +45,7 @@ public class BeanNotNullFields extends BeanUtilsBean {
 
     // Copy the properties, converting as necessary
     if (orig instanceof DynaBean) {
-      System.out.println("INSTANCE OF DYNABEAN\n\n");
+      log.info("INSTANCE OF DYNABEAN\n\n");
       final DynaProperty[] origDescriptors = ((DynaBean) orig).getDynaClass().getDynaProperties();
       for (DynaProperty origDescriptor : origDescriptors) {
         final String name = origDescriptor.getName();
@@ -60,10 +60,10 @@ public class BeanNotNullFields extends BeanUtilsBean {
           else 
             copyProperty(dest, name, newValue);
         }
-        System.out.println("1 init here");
+        log.info("1 init here");
       }
     } else if (orig instanceof Map) {
-      System.out.println("INSTANCE OF MAP\n\n");
+      log.info("INSTANCE OF MAP\n\n");
       @SuppressWarnings("unchecked")
       final
       // Map properties are always of type <String, Object>
@@ -96,7 +96,7 @@ public class BeanNotNullFields extends BeanUtilsBean {
           }
         }
       }
-     // System.out.println("Java property on standard JavaBean");
+     // log.info("Java property on standard JavaBean");
     }
 
   }
