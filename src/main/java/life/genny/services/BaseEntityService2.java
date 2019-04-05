@@ -3697,7 +3697,7 @@ public class BaseEntityService2 {
 
 			Map<String, Object> templateEntityMap = new HashMap<>();
 			ContextList contexts = ask.getContextList();
-			for (Context context : contexts.getContextList()) {
+			for (Context context : contexts.getContexts()) {
 				BaseEntity be = context.getEntity();
 				templateEntityMap.put(context.getName(), be);
 			}
