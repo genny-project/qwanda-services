@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
@@ -1061,6 +1062,32 @@ public class BatchLoading {
 	  }
       try {
 		EntityAttribute ea = be.addAttribute(attr, 0.0, keycloakJson);
+	} catch (BadDataException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+    
+      service.updateWithAttributes(be);
+	  
+  }
+  
+  public void upsertProjectUrls(String urlList) {
+	  final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
+	  BaseEntity be = service.findBaseEntityByCode(PROJECT_CODE);
+	  
+	  ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+	  Validator validator = factory.getValidator();
+	  Attribute attr = service.findAttributeByCode("ENV_URL_LIST");
+	  if(attr == null) {
+		  attr = new Attribute("ENV_URL_LIST", "Url List", new DataType("DTT_TEXT"));
+		  Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
+	      for (ConstraintViolation<Attribute> constraint : constraints) {
+	        log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
+	      }
+	      service.upsert(attr);
+	  }
+      try {
+		EntityAttribute ea = be.addAttribute(attr, 0.0, urlList);
 	} catch (BadDataException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
