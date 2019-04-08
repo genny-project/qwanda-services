@@ -1038,7 +1038,7 @@ public class BatchLoading {
 			return keycloakJson;
 
 		} else {
-			log.error("Error: no Project Setting for ENV_KEYCLOAK_JSON ensure PRJ_" + REALM.toUpperCase()
+			log.error("Error: no Project Setting for ENV_KEYCLOAK_JSON ensure PRJ_" + this.mainRealm.toUpperCase()
 					+ " has entityAttribute value for ENV_KEYCLOAK_JSON");
 			return null;
 		}
