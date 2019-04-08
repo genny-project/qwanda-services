@@ -5,8 +5,10 @@ import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
@@ -28,6 +30,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
+import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.GennySheets;
 
 /**
@@ -49,10 +52,19 @@ public class BatchLoading {
   
 
   private static String table;
+  
+  private String mainRealm = GennySettings.mainrealm;
+  private Map project = null;
 
 
   public BatchLoading(BaseEntityService2 service) {
     this.service = service;
+  }
+  
+  public BatchLoading(Map project, BaseEntityService2 service) {
+	  this.service = service;
+	  this.mainRealm = (String)project.get("code");
+	  this.project = project;
   }
 
   private final String secret = System.getenv("GOOGLE_CLIENT_SECRET");
@@ -586,7 +598,7 @@ public class BatchLoading {
     BatchLoading.table = table;
     if(isSynchronise) {
       log.info("Table to synchronise: " + table);
-      Map<String, Object> finalProject = getProject();
+      Map<String, Object> finalProject = project==null?getProject():project;
       if(!isDelete) {
         switch(table) {
           case "validation":
@@ -969,4 +981,92 @@ public class BatchLoading {
     return isSynchronise;
   }
 
+  public String constructKeycloakJson() {
+	  final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
+	  final String CURRENT_ENV = System.getenv("CURRENT_ENV");
+	  String keycloakUrl = null;
+	  String keycloakSecret = null;
+	  String keycloakJson = null;
+		
+	  if(savedProjectData != null && savedProjectData.get("attibutesEntity") != null) {
+		final Iterator iter =
+		    ((HashMap<String, HashMap>) savedProjectData.get("attibutesEntity")).entrySet().iterator();
+
+		while (iter.hasNext()) {
+			final Entry entry = (Entry) iter.next();
+			final String key = (String) entry.getKey();
+			if((PROJECT_CODE+"ENV_KEYCLOAK_AUTHURL_"+CURRENT_ENV).equalsIgnoreCase(key)) {
+				HashMap<String, Object> baseEntityAttr = (HashMap<String, Object>) entry.getValue();
+				keycloakUrl = baseEntityAttr.get("valueString").toString();
+			} else if((PROJECT_CODE+"ENV_KEYCLOAK_SECRET_"+CURRENT_ENV).equalsIgnoreCase(key)) {
+				HashMap<String, Object> baseEntityAttr = (HashMap<String, Object>) entry.getValue();
+				keycloakSecret = baseEntityAttr.get("valueString").toString();
+			}
+		}
+			
+		if (project!=null) {
+			keycloakUrl = (String) project.get("keycloakUrl");
+			keycloakSecret = (String) project.get("clientSecret");
+		}
+		
+		keycloakJson = "{\n" + 
+	    	  		"  \"realm\": \"" + this.mainRealm + "\",\n" + 
+	    	  		"  \"auth-server-url\": \"" + keycloakUrl + "\",\n" + 
+	    	  		"  \"ssl-required\": \"none\",\n" + 
+	    	  		"  \"resource\": \"" + this.mainRealm + "\",\n" + 
+	    	  		"  \"credentials\": {\n" + 
+	    	  		"    \"secret\": \"" + keycloakSecret + "\" \n" + 
+	    	  		"  },\n" + 
+	    	  		"  \"policy-enforcer\": {}\n" + 
+	    	  		"}";
+	          
+	    log.info("Loaded keycloak.json... " + keycloakJson);
+	    return keycloakJson;
+				
+	  } else {
+		log.warn("Could not construct keycloak json as savedProjectData is null due to google doc loading might be skipped...");
+		BaseEntity project = service.findBaseEntityByCode(PROJECT_CODE);
+		if (project == null) {
+			log.error("Error: no Project Setting for " + PROJECT_CODE);
+			return null;
+		}
+		Optional<EntityAttribute> entityAttribute1 = project.findEntityAttribute("ENV_KEYCLOAK_JSON");
+		if (entityAttribute1.isPresent()) {
+
+			keycloakJson = entityAttribute1.get().getValueString();
+			return keycloakJson;
+
+		} else {
+			log.error("Error: no Project Setting for ENV_KEYCLOAK_JSON ensure PRJ_" + REALM.toUpperCase()
+					+ " has entityAttribute value for ENV_KEYCLOAK_JSON");
+			return null;
+		}
+	}		
+  }
+  
+  public void upsertKeycloakJson(String keycloakJson) {
+	  final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
+	  BaseEntity be = service.findBaseEntityByCode(PROJECT_CODE);
+	  
+	  ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+	  Validator validator = factory.getValidator();
+	  Attribute attr = service.findAttributeByCode("ENV_KEYCLOAK_JSON");
+	  if(attr == null) {
+		  attr = new Attribute("ENV_KEYCLOAK_JSON", "Keycloak Json", new DataType("DTT_TEXT"));
+		  Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
+	      for (ConstraintViolation<Attribute> constraint : constraints) {
+	        log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
+	      }
+	      service.upsert(attr);
+	  }
+      try {
+		EntityAttribute ea = be.addAttribute(attr, 0.0, keycloakJson);
+	} catch (BadDataException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+    
+      service.updateWithAttributes(be);
+	  
+  }
 }

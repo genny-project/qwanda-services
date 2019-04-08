@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.invoke.MethodHandles;
 import java.sql.SQLException;
+import java.util.Map;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -15,6 +17,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import life.genny.services.BaseEntityService2;
 import life.genny.services.BatchLoading;
+import life.genny.services.ProjectsLoading;
 
 public class JPAHibernateTest {
 
@@ -54,6 +57,19 @@ public class JPAHibernateTest {
 
   public static void import_from_google_docs() {
     em.getTransaction().begin();
+    
+	String secret = System.getenv("GOOGLE_CLIENT_SECRET");
+	String hostingSheetId = System.getenv("GOOGLE_HOSTING_SHEET_ID");
+	File credentialPath = new File(System.getProperty("user.home"),
+			".genny/sheets.googleapis.com-java-quickstart");
+
+	Map<String,Map> projects = ProjectsLoading.loadIntoMap(hostingSheetId, secret, credentialPath);
+
+	for (String projectCode : projects.keySet()) {
+		log.info("Project: "+projects.get(projectCode));
+	}
+
+    
     bl = new BatchLoading(service);
     bl.persistProject(false, null, false);
     em.getTransaction().commit();
