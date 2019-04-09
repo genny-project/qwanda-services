@@ -114,14 +114,17 @@ public class BatchLoading {
         val = new Validation(code, name, regex);
 
       }
-      System.out.print("code " + code + ",name:" + name + ",val:" + val + ", grp="
+      val.setRealm(this.mainRealm);
+      log.info("code " + code + ",name:" + name + ",val:" + val + ", grp="
           + (groupCodesStr != null ? groupCodesStr : "X"));
 
       Set<ConstraintViolation<Validation>> constraints = validator.validate(val);
       for (ConstraintViolation<Validation> constraint : constraints) {
-        log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
+        log.error(constraint.getPropertyPath() + " " + constraint.getMessage());
       }
-      service.upsert(val);
+      if (constraints.isEmpty()) {
+    	  service.upsert(val);
+      }
     });
   }
 
@@ -164,11 +167,14 @@ public class BatchLoading {
         attr.setHelp(helpStr);
         attr.setPlaceholder(placeholderStr);
         attr.setDefaultValue(defaultValueStr);
+        attr.setRealm(mainRealm);
         Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
         for (ConstraintViolation<Attribute> constraint : constraints) {
           log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
         }
-        service.upsert(attr);
+        if (constraints.isEmpty()) {
+      	  service.upsert(attr);
+        }
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -230,13 +236,18 @@ public class BatchLoading {
       String code = ((String) baseEntitys.get("code")).replaceAll("^\"|\"$", "");;
       String name = ((String) baseEntitys.get("name")).replaceAll("^\"|\"$", "");;
       BaseEntity be = new BaseEntity(code, name);
+      be.setRealm(mainRealm);
       
       Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
       for (ConstraintViolation<BaseEntity> constraint : constraints) {
         log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
       }
-
-      service.upsert(be);
+      if ("SEL_OCCUPATION_SALES".equals(code)) {
+    	  log.info("SEL_OCCUPATION_SALES");
+      }
+      if (constraints.isEmpty()) {
+    	  service.upsert(be);
+      }
     });
   }
 
@@ -293,6 +304,7 @@ public class BatchLoading {
 		            } catch (final BadDataException e) {
 		              e.printStackTrace();
 		            }
+		            be.setRealm(mainRealm);
 		            service.updateWithAttributes(be);
 		            }
 		          }
@@ -405,6 +417,7 @@ public class BatchLoading {
 				QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
 				qq.setOneshot(oneshot);
 				qq.setReadonly(readonly);
+				qq.setRealm(mainRealm);
 				QuestionQuestion existing = null;
 				try {
 					existing = service.findQuestionQuestionByCode(parentCode, targetCode);
@@ -420,6 +433,7 @@ public class BatchLoading {
 					existing.setOneshot(qq.getOneshot());
 					existing.setWeight(qq.getWeight());
 					existing.setReadonly(qq.getReadonly());
+					existing.setRealm(mainRealm);
 					qq = service.upsert(existing);
 				} 
 				
@@ -459,6 +473,7 @@ public class BatchLoading {
 		     linkAttribute = new AttributeLink(code, name);
 		     linkAttribute.setDefaultPrivacyFlag(privacy);
 		     linkAttribute.setDataType(dataTypeRecord);
+		     linkAttribute.setRealm(mainRealm);
 		     service.upsert(linkAttribute);
 	} catch (Exception e) {
 		  String name = ((String) attributeLink.get("name")).replaceAll("^\"|\"$", "");;
@@ -467,6 +482,7 @@ public class BatchLoading {
 
 		      linkAttribute = new AttributeLink(code, name);
 		     linkAttribute.setDefaultPrivacyFlag(privacy);
+		     linkAttribute.setRealm(mainRealm);
 	}
    
      service.upsert(linkAttribute);
@@ -502,12 +518,13 @@ public class BatchLoading {
       q.setHtml(html);
       q.setReadonly(readonly);
       q.setMandatory(mandatory);
+      q.setRealm(mainRealm);
       Question existing = service.findQuestionByCode(code);
       if (existing == null) {
         if(isSynchronise()) {
-          Question val = service.findQuestionByCode(q.getCode(), "hidden");
+          Question val = service.findQuestionByCode(q.getCode(), mainRealm);
           if(val != null) {
-            val.setRealm("genny");
+            val.setRealm(mainRealm);
             service.updateRealm(val);
             return;
           }
@@ -556,6 +573,7 @@ public class BatchLoading {
       ask.setName(name);
       ask.setHidden(hidden);
       ask.setReadonly(readonly);
+      ask.setRealm(mainRealm);
       service.insert(ask);
     });
   }
@@ -665,7 +683,7 @@ public class BatchLoading {
     asks(lastProject);
     log.info("+++++++++ About to load Message Templates +++++++++++++");
     messageTemplates(lastProject);
-    log.info("########## LOADED ALL GOOGLE DOC DATA #############");
+    log.info("########## LOADED ALL GOOGLE DOC DATA FOR REALM "+mainRealm.toUpperCase()+" #############");
     return lastProject;
   }
 
@@ -714,6 +732,9 @@ public class BatchLoading {
     }
     return projectsConfig.stream().map(data -> {
       String sheetID = (String) data.get("sheetID");
+      if ("1tgefqD-33yFAn4PXlQa0UJOzFnKVK9ehT47nLxmqoXU".equals(sheetID)) {
+    	  log.info("compliance docs");
+      }
       sheets.setSheetId(sheetID);
       List<Map<String, Object>> listModuleProject = getModules();
       return listModuleProject;
@@ -1045,6 +1066,34 @@ public class BatchLoading {
 	}		
   }
   
+  public String constructKeycloakJson(final Map project) {
+	  final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
+	  String keycloakUrl = null;
+	  String keycloakSecret = null;
+	  String keycloakJson = null;
+		
+			
+		if (project!=null) {
+			keycloakUrl = (String) project.get("keycloakUrl");
+			keycloakSecret = (String) project.get("clientSecret");
+		}
+		
+		keycloakJson = "{\n" + 
+	    	  		"  \"realm\": \"" + this.mainRealm + "\",\n" + 
+	    	  		"  \"auth-server-url\": \"" + keycloakUrl + "\",\n" + 
+	    	  		"  \"ssl-required\": \"none\",\n" + 
+	    	  		"  \"resource\": \"" + this.mainRealm + "\",\n" + 
+	    	  		"  \"credentials\": {\n" + 
+	    	  		"    \"secret\": \"" + keycloakSecret + "\" \n" + 
+	    	  		"  },\n" + 
+	    	  		"  \"policy-enforcer\": {}\n" + 
+	    	  		"}";
+	          
+	    log.info("Loaded keycloak.json... " + keycloakJson);
+	    return keycloakJson;
+	
+  }
+  
   public void upsertKeycloakJson(String keycloakJson) {
 	  final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
 	  BaseEntity be = service.findBaseEntityByCode(PROJECT_CODE);
@@ -1054,6 +1103,7 @@ public class BatchLoading {
 	  Attribute attr = service.findAttributeByCode("ENV_KEYCLOAK_JSON");
 	  if(attr == null) {
 		  attr = new Attribute("ENV_KEYCLOAK_JSON", "Keycloak Json", new DataType("DTT_TEXT"));
+		  attr.setRealm(mainRealm);
 		  Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);
 	      for (ConstraintViolation<Attribute> constraint : constraints) {
 	        log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
@@ -1078,6 +1128,7 @@ public class BatchLoading {
 	  ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
 	  Validator validator = factory.getValidator();
 	  Attribute attr = service.findAttributeByCode("ENV_URL_LIST");
+	  attr.setRealm(mainRealm);
 	  if(attr == null) {
 		  attr = new Attribute("ENV_URL_LIST", "Url List", new DataType("DTT_TEXT"));
 		  Set<ConstraintViolation<Attribute>> constraints = validator.validate(attr);

@@ -2410,7 +2410,8 @@ public class BaseEntityService2 {
 	 * Upserts
 	 */
 
-	@Transactional
+
+	@Transactional(dontRollbackOn = { Exception.class })
 	public <T extends CoreEntity> T upsert(T object) {
 
 		try {
@@ -2423,7 +2424,8 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+
+	@Transactional(dontRollbackOn = { Exception.class })
 	public QuestionQuestion upsert(QuestionQuestion qq) {
 		try {
 			QuestionQuestion existing = findQuestionQuestionByCode(qq.getPk().getSource().getCode(),
@@ -2441,7 +2443,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+	@Transactional(dontRollbackOn = { Exception.class })
 	public Validation upsert(Validation validation) {
 		try {
 			String code = validation.getCode();
@@ -2459,9 +2461,9 @@ public class BaseEntityService2 {
 		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
 			try {
 				if (BatchLoading.isSynchronise()) {
-					Validation val = findValidationByCode(validation.getCode(), REALM_HIDDEN);
+					Validation val = findValidationByCode(validation.getCode(), getRealm());
 					if (val != null) {
-						val.setRealm(DEFAULT_REALM);
+						val.setRealm(getRealm());
 						updateRealm(val);
 						return val;
 					}
@@ -2471,7 +2473,7 @@ public class BaseEntityService2 {
 				log.error("Error in saving attribute due to constraint issue:" + validation + " :"
 						+ ce.getLocalizedMessage());
 				log.info("Trying to update realm from hidden to genny");
-				validation.setRealm("genny");
+				validation.setRealm(getRealm());
 				updateRealm(validation);
 			} catch (javax.persistence.PersistenceException pe) {
 				log.error("Error in saving validation :" + validation + " :" + pe.getLocalizedMessage());
@@ -2482,7 +2484,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+	@Transactional(dontRollbackOn = { Exception.class })
 	public Attribute upsert(Attribute attr) {
 		try {
 			String code = attr.getCode();
@@ -2497,9 +2499,9 @@ public class BaseEntityService2 {
 		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
 			try {
 				if (BatchLoading.isSynchronise()) {
-					Attribute val = findAttributeByCode(attr.getCode(), REALM_HIDDEN);
+					Attribute val = findAttributeByCode(attr.getCode(), getRealm());
 					if (val != null) {
-						val.setRealm(DEFAULT_REALM);
+						val.setRealm(getRealm());
 						updateRealm(val);
 						return val;
 					}
@@ -2516,7 +2518,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+	@Transactional(dontRollbackOn = { Exception.class })
 	public Question upsert(Question q) {
 		try {
 			String code = q.getCode();
@@ -2531,9 +2533,9 @@ public class BaseEntityService2 {
 		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
 			try {
 				if (BatchLoading.isSynchronise()) {
-					Question val = findQuestionByCode(q.getCode(), REALM_HIDDEN);
+					Question val = findQuestionByCode(q.getCode(), getRealm());
 					if (val != null) {
-						val.setRealm(DEFAULT_REALM);
+						val.setRealm(getRealm());
 						updateRealm(val);
 						return val;
 					}
@@ -2551,7 +2553,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+	@Transactional(dontRollbackOn = { Exception.class })
 
 	public BaseEntity upsert(BaseEntity be) {
 		try {
@@ -2565,19 +2567,20 @@ public class BaseEntityService2 {
 			return be;
 		} catch (NoResultException | IllegalAccessException | InvocationTargetException | NullPointerException e) {
 			if (BatchLoading.isSynchronise()) {
-				BaseEntity val = findBaseEntityByCode(be.getCode(), REALM_HIDDEN);
+				BaseEntity val = findBaseEntityByCode(be.getCode(), getRealm());
 				if (val != null) {
 					val.setRealm(getRealm());
 					updateRealm(val);
 					return val;
 				}
 			}
+			be.setRealm(getRealm());
 			Long id = insert(be);
 			return be;
 		}
 	}
 
-	@Transactional
+	@Transactional(dontRollbackOn = { Exception.class })
 	public Long upsert(final BaseEntity be, Set<EntityAttribute> ba) {
 		try {
 			out.println("****3*****"
@@ -2588,6 +2591,7 @@ public class BaseEntityService2 {
 			getEntityManager().merge(val);
 			return val.getId();
 		} catch (NoResultException e) {
+			be.setRealm(getRealm());
 			Long id = insert(be);
 			return id;
 		}
@@ -2789,10 +2793,10 @@ public class BaseEntityService2 {
 	}
 
 	public AttributeLink findAttributeLinkByCode(@NotNull final String code) throws NoResultException {
-
+		String realmStr = this.getRealm();
 		final AttributeLink result = (AttributeLink) getEntityManager()
-				.createQuery("SELECT a FROM AttributeLink a where a.code=:code")
-				.setParameter("code", code.toUpperCase()).getSingleResult();
+				.createQuery("SELECT a FROM AttributeLink a where a.code=:code  and a.realm=:realmStr")
+				.setParameter("code", code.toUpperCase()).setParameter("realmStr", realmStr).getSingleResult();
 
 		return result;
 	}
@@ -3570,10 +3574,11 @@ public class BaseEntityService2 {
 	public QuestionQuestion findQuestionQuestionByCode(final String sourceCode, final String targetCode)
 			throws NoResultException {
 		QuestionQuestion result = null;
+		final String userRealmStr = getRealm();
 		try {
 			result = (QuestionQuestion) getEntityManager().createQuery(
-					"SELECT qq FROM QuestionQuestion qq where qq.pk.sourceCode=:sourceCode and qq.pk.targetCode=:targetCode")
-					.setParameter("sourceCode", sourceCode).setParameter("targetCode", targetCode).getSingleResult();
+					"SELECT qq FROM QuestionQuestion qq where qq.pk.sourceCode=:sourceCode and qq.pk.targetCode=:targetCode and qq.realm=:realmStr")
+					.setParameter("sourceCode", sourceCode).setParameter("targetCode", targetCode).setParameter("realmStr", userRealmStr).getSingleResult();
 		} catch (Exception e) {
 			throw new NoResultException("Cannot find QQ " + sourceCode + ":" + targetCode);
 		}
@@ -3586,9 +3591,11 @@ public class BaseEntityService2 {
 
 		try {
 			results = getEntityManager().createQuery(
-					"SELECT ask FROM Ask ask where ask.questionCode=:questionCode and ask.sourceCode=:sourceCode and ask.targetCode=:targetCode ")
+					"SELECT ask FROM Ask ask where ask.questionCode=:questionCode and ask.sourceCode=:sourceCode and ask.targetCode=:targetCode  and ask.realm=:realmStr")
 					.setParameter("questionCode", questionCode).setParameter("sourceCode", sourceCode)
-					.setParameter("targetCode", targetCode).getResultList();
+					.setParameter("targetCode", targetCode)
+					.setParameter("realmStr", userRealmStr)
+					.getResultList();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
