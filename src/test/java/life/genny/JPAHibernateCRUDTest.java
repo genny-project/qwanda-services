@@ -71,7 +71,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   private static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-  @Test
+ // @Test
    public void qsearchEntityMessageTest()
    {
 	   QSearchEntityMessage qsm = new QSearchEntityMessage.Builder("SBE_SEARCH_TEST","Search Test")
@@ -105,7 +105,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 				   .column("PRI_CODE", "Code")
 				   .column("PRI_NAME", "Name")
 				   .column("PRI_DOB", "Date Of Birth")	
-				   .column("LNK_CORE",QSearchEntityMessage.LinkType.PARENT,"PRI_NAME", "Referer Name")	
+				   .column("LNK_CORE",QSearchEntityMessage.LinkType.CHILD,"PRI_NAME", "Referer Name")	
 				   
 				   .build();
 
