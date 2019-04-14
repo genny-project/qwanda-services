@@ -16,6 +16,7 @@ public class SearchSettings {
 	public String filterStringsQ = "";
 	public String orderString = "";
 	public String codeFilter = "";
+	public String prefix = "";
 
 	public Integer filterIndex = 0;
 	public HashMap<String, String> attributeCodeMap = new HashMap<String, String>();
@@ -150,6 +151,22 @@ public class SearchSettings {
 	 */
 	public void setAttributeCodes(Set<String> attributeCodes) {
 		this.attributeCodes = attributeCodes;
+	}
+
+	
+	
+	/**
+	 * @return the prefix
+	 */
+	public String getPrefix() {
+		return prefix;
+	}
+
+	/**
+	 * @param prefix the prefix to set
+	 */
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
 	}
 
 	/* (non-Javadoc)
