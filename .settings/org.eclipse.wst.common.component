@@ -5,5 +5,7 @@
         <wb-resource deploy-path="/" source-path="/src/test/java"/>
         <wb-resource deploy-path="/" source-path="/src/test/resources"/>
         <wb-resource deploy-path="/" source-path="/.apt_generated"/>
+        <wb-resource deploy-path="/" source-path="/"/>
+        <wb-resource deploy-path="/" source-path="/target/generated-sources/annotations"/>
     </wb-module>
 </project-modules>
