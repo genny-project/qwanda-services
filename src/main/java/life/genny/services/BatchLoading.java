@@ -8,9 +8,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import java.util.Map.Entry;
+
 import java.util.Optional;
 import java.util.Set;
+
+
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
@@ -46,7 +50,7 @@ public class BatchLoading {
   protected static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
-  private BaseEntityService2 service;
+  private static BaseEntityService2 service;
 
   public static int id = 1;
   
@@ -76,6 +80,12 @@ public class BatchLoading {
   public GennySheets sheets = new GennySheets(secret, hostingSheetId, credentialPath);
 
   public static Map<String, Object> savedProjectData;
+  
+  public static final String REALM = updateRealm();
+  
+  public static final String DEFAULT_REALM = "genny";
+  
+  List<String> projectList = new ArrayList<>();
 
   /**
    * Upsert Validation to database
@@ -94,7 +104,7 @@ public class BatchLoading {
       
       regex = (String) validations.get("regex");
       if (regex!=null) {
-    	  regex = regex.replaceAll("^\"|\"$", "");
+          regex = regex.replaceAll("^\"|\"$", "");
       }
       String code = ((String) validations.get("code")).replaceAll("^\"|\"$", "");;
       if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
@@ -115,8 +125,10 @@ public class BatchLoading {
         val = new Validation(code, name, regex);
 
       }
+
       val.setRealm(this.mainRealm);
       log.info("code " + code + ",name:" + name + ",val:" + val + ", grp="
+
           + (groupCodesStr != null ? groupCodesStr : "X"));
 
       Set<ConstraintViolation<Validation>> constraints = validator.validate(val);
@@ -152,7 +164,7 @@ public class BatchLoading {
         ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
         String privacyStr = (String) attributes.get("privacy");
         if (privacyStr != null) {
-        		privacyStr = privacyStr.toUpperCase();
+                privacyStr = privacyStr.toUpperCase();
         }
         Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
         if (privacy) {
@@ -205,11 +217,11 @@ public class BatchLoading {
         final String[] validationListStr = validations.split(",");
         for (final String validationCode : validationListStr) {
           try {
-			Validation validation = service.findValidationByCode(validationCode);
-			  validationList.getValidationList().add(validation);
-		} catch (NoResultException e) {
-			log.error("Could not load Validation "+validationCode);
-		}
+            Validation validation = service.findValidationByCode(validationCode);
+              validationList.getValidationList().add(validation);
+        } catch (NoResultException e) {
+            log.error("Could not load Validation "+validationCode);
+        }
         }
       }
       if (!dataTypeMap.containsKey(code)) {
@@ -237,8 +249,10 @@ public class BatchLoading {
       String code = ((String) baseEntitys.get("code")).replaceAll("^\"|\"$", "");;
       String name = ((String) baseEntitys.get("name")).replaceAll("^\"|\"$", "");;
       BaseEntity be = new BaseEntity(code, name);
+
       be.setRealm(mainRealm);
       
+
       Set<ConstraintViolation<BaseEntity>> constraints = validator.validate(be);
       for (ConstraintViolation<BaseEntity> constraint : constraints) {
         log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
@@ -360,6 +374,7 @@ public class BatchLoading {
           return;
         }
         sbe.addTarget(tbe, linkAttribute, weight, valueString);
+        //sbe.setRealm(REALM);
         service.updateWithAttributes(sbe);
       } catch (final NoResultException e) {
     	  log.warn("CODE NOT PRESENT IN LINKING: "+parentCode+" : "+targetCode+" : "+linkAttribute);
@@ -393,10 +408,10 @@ public class BatchLoading {
           
           Double weight = 0.0;
           try {
-			weight = Double.valueOf(weightStr);
-		} catch (NumberFormatException e1) {
-			weight = 0.0;
-		}
+            weight = Double.valueOf(weightStr);
+        } catch (NumberFormatException e1) {
+            weight = 0.0;
+        }
           Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
 
           Question sbe = null;
@@ -409,11 +424,12 @@ public class BatchLoading {
                 String oneshotStr = (String)  queQues.get("oneshot");
                 Boolean oneshot = false;
                 if (oneshotStr == null) {
-                	// Set the oneshot to be that of the targetquestion
-                	oneshot = tbe.getOneshot();
+                    // Set the oneshot to be that of the targetquestion
+                    oneshot = tbe.getOneshot();
                 } else {
                  oneshot = "TRUE".equalsIgnoreCase(oneshotStr);
                 }
+
             	
 				QuestionQuestion qq = sbe.addChildQuestion(tbe.getCode(), weight, mandatory);
 				qq.setOneshot(oneshot);
@@ -441,6 +457,7 @@ public class BatchLoading {
 			} catch (NullPointerException e) {
 				log.error("Cannot find QuestionQuestion targetCode:"+targetCode+":parentCode:"+parentCode);
 		
+
 
           }
           } catch (final BadDataException e) {
@@ -485,7 +502,6 @@ public class BatchLoading {
 		     linkAttribute.setDefaultPrivacyFlag(privacy);
 		     linkAttribute.setRealm(mainRealm);
 	}
-   
      service.upsert(linkAttribute);
 
       
@@ -519,25 +535,30 @@ public class BatchLoading {
       q.setHtml(html);
       q.setReadonly(readonly);
       q.setMandatory(mandatory);
+
       q.setRealm(mainRealm);
+
       Question existing = service.findQuestionByCode(code);
       if (existing == null) {
         if(isSynchronise()) {
           Question val = service.findQuestionByCode(q.getCode(), mainRealm);
           if(val != null) {
+
             val.setRealm(mainRealm);
+
             service.updateRealm(val);
             return;
           }
         }
     	  	service.insert(q);
       } else {
-    	  existing.setName(name);
-    	  existing.setHtml(html);
-    	  existing.setOneshot(oneshot);
-    	  existing.setReadonly(readonly);
-    	  existing.setMandatory(mandatory);
-    	  service.upsert(existing); 
+          existing.setName(name);
+          existing.setHtml(html);
+          existing.setOneshot(oneshot);
+          existing.setReadonly(readonly);
+          existing.setMandatory(mandatory);
+          //existing.setRealm(REALM);
+          service.upsert(existing); 
       }
     });
   }
@@ -574,7 +595,9 @@ public class BatchLoading {
       ask.setName(name);
       ask.setHidden(hidden);
       ask.setReadonly(readonly);
+
       ask.setRealm(mainRealm);
+
       service.insert(ask);
     });
   }
@@ -744,6 +767,31 @@ public class BatchLoading {
       return ac;
     }).get();
   }
+  
+  public static String updateRealm() {
+    System.out.println("Inside UpdateRealm");
+    String realm = DEFAULT_REALM;
+    try {
+      List<Map> projectsConfig = getProjectConfig();
+      java.util.Iterator itr = projectsConfig.iterator();
+      while(itr.hasNext()) {
+        Map projectMap = (Map) itr.next();
+        if(projectMap != null) {
+          String realmValue = (String) projectMap.get("name");
+          realm = realmValue.toLowerCase();
+          System.out.println("REALM VALUE: " + realm);
+        } 
+      }
+    } catch (Exception ee) { 
+        ee.printStackTrace();
+    }
+    
+    return realm;
+  }
+  
+  public static List<Map> getProjectConfig() {
+    return new BatchLoading(service).sheets.hostingImport();
+  }
 
   /**
    * Import records from google sheets
@@ -905,7 +953,7 @@ public class BatchLoading {
   }
 
   public void messageTemplates(Map<String, Object> project) {
-		
+        
     if (project.get("messages") == null) {
     	log.info("project.get(messages) is null");
     	return;
@@ -932,9 +980,10 @@ public class BatchLoading {
       templateObj.setSms_template(smsTemplate);
       templateObj.setSubject(subject);
       templateObj.setToast_template(toastTemplate);
+      //templateObj.setRealm(REALM);
       
       if (StringUtils.isBlank(name)) {
-    	  	log.error("Empty Name");
+            log.error("Empty Name");
       } else {
     	  try {
 			QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
@@ -961,7 +1010,7 @@ public class BatchLoading {
 				    if(BatchLoading.isSynchronise()) {
 				      QBaseMSGMessageTemplate val = service.findTemplateByCode(templateObj.getCode(), "hidden");
 		                if(val != null) {
-		                  val.setRealm("genny");
+		                  val.setRealm(REALM);
 		                  service.updateRealm(val);
 		                  return;
 		                }
@@ -970,9 +1019,6 @@ public class BatchLoading {
                     log.info("message id ::" + id);
 				  } catch (javax.validation.ConstraintViolationException ce)     {
 	                log.error("Error in saving message due to constraint issue:" + templateObj + " :" + ce.getLocalizedMessage());
-	                log.info("Trying to update realm from hidden to genny");
-	                templateObj.setRealm("genny");
-	                service.updateRealm(templateObj);
 	            }
 					
 				} catch (Exception e) {
@@ -999,10 +1045,13 @@ public class BatchLoading {
     return false;
 
   }
+
   
   public static boolean isSynchronise() {
     return isSynchronise;
   }
+  
+ 
 
   public String constructKeycloakJson() {
 	  final String PROJECT_CODE = "PRJ_" + this.mainRealm.toUpperCase();
