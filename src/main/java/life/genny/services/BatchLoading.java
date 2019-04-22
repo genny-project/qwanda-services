@@ -1130,8 +1130,8 @@ public class BatchLoading {
 		
 		keycloakJson = "{\n" + 
 	    	  		"  \"realm\": \"" + this.mainRealm + "\",\n" + 
-	    	  		"  \"auth-server-url\": \"" + keycloakUrl + "\",\n" + 
-	    	  		"  \"ssl-required\": \"none\",\n" + 
+	    	  		"  \"auth-server-url\": \"" + keycloakUrl + "/auth\",\n" + 
+	    	  		"  \"ssl-required\": \"external\",\n" + 
 	    	  		"  \"resource\": \"" + this.mainRealm + "\",\n" + 
 	    	  		"  \"credentials\": {\n" + 
 	    	  		"    \"secret\": \"" + keycloakSecret + "\" \n" + 
