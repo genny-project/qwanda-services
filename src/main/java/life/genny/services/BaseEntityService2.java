@@ -2584,13 +2584,13 @@ public class BaseEntityService2 {
 		String realm = getRealm();
 		try {
 			String code = be.getCode();
-			//BaseEntity val = findBaseEntityByCode(code);
-			Session session = getEntityManager().unwrap(org.hibernate.Session.class);
-			Criteria criteria = session.createCriteria(BaseEntity.class);
-			BaseEntity val = (BaseEntity)criteria
-					.add(Restrictions.eq("code", code))
-					.add(Restrictions.eq("realm", realm))
-			                             .uniqueResult();
+			BaseEntity val = findBaseEntityByCode(code);
+//			Session session = getEntityManager().unwrap(org.hibernate.Session.class);
+//			Criteria criteria = session.createCriteria(BaseEntity.class);
+//			BaseEntity val = (BaseEntity)criteria
+//					.add(Restrictions.eq("code", code))
+//					.add(Restrictions.eq("realm", realm))
+//			                             .uniqueResult();
 
             if(val == null) {
               throw new NoResultException();
