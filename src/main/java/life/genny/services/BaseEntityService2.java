@@ -3743,7 +3743,7 @@ public class BaseEntityService2 {
 
 		try {
 			results = getEntityManager().createQuery(
-					"SELECT ask FROM Ask ask where ask.questionCode=:questionCode and ask.sourceCode=:sourceCode and ask.targetCode=:targetCode ")
+					"SELECT ask FROM Ask ask where ask.questionCode=:questionCode and ask.sourceCode=:sourceCode and ask.targetCode=:targetCode and ask.realm=:realmStr")
 					.setParameter("questionCode", questionCode).setParameter("sourceCode", sourceCode)
 
 					.setParameter("realmStr", getRealm()).setParameter("targetCode", targetCode).getResultList();
@@ -3996,9 +3996,9 @@ public class BaseEntityService2 {
 
 	public List<Ask> findAsksByRawAsk(final Ask ask) {
 		final List<Ask> results = getEntityManager().createQuery(
-				"SELECT ea FROM Ask ea where ea.targetCode=:targetCode and  ea.sourceCode=:sourceCode and ea.attributeCode=:attributeCode")
+				"SELECT ea FROM Ask ea where ea.targetCode=:targetCode and  ea.sourceCode=:sourceCode and ea.attributeCode=:attributeCode  and ea.realm=:realmStr")
 				.setParameter("targetCode", ask.getTargetCode()).setParameter("sourceCode", ask.getSourceCode())
-				.setParameter("attributeCode", ask.getAttributeCode()).getResultList();
+				.setParameter("attributeCode", ask.getAttributeCode()).setParameter("realmStr", getRealm()).getResultList();
 
 		return results;
 
@@ -4006,9 +4006,9 @@ public class BaseEntityService2 {
 
 	public List<Answer> findAnswersByRawAnswer(final Answer answer) {
 		final List<Answer> results = getEntityManager().createQuery(
-				"SELECT ea FROM Answer ea where ea.targetCode=:targetCode and  ea.sourceCode=:sourceCode and ea.attributeCode=:attributeCode")
+				"SELECT ea FROM Answer ea where ea.targetCode=:targetCode and  ea.sourceCode=:sourceCode and ea.attributeCode=:attributeCode  and ea.realm=:realmStr")
 				.setParameter("targetCode", answer.getTargetCode()).setParameter("sourceCode", answer.getSourceCode())
-				.setParameter("attributeCode", answer.getAttributeCode()).getResultList();
+				.setParameter("attributeCode", answer.getAttributeCode()).setParameter("realmStr", getRealm()).getResultList();
 
 		return results;
 
@@ -4025,7 +4025,8 @@ public class BaseEntityService2 {
 
 	public List<GPS> findGPSByTargetBaseEntityCode(final String targetCode) {
 		final List<GPS> results = getEntityManager()
-				.createQuery("SELECT ea FROM GPS ea where ea.targetCode=:baseEntityCode")
+				.createQuery("SELECT ea FROM GPS ea where ea.targetCode=:baseEntityCode  and ea.realm=:realmStr")
+				.setParameter("realmStr", getRealm())
 				.setParameter("baseEntityCode", targetCode).getResultList();
 
 		return results;
@@ -4043,7 +4044,8 @@ public class BaseEntityService2 {
 
 	public List<AnswerLink> findAnswersByTargetBaseEntityCode(final String targetCode) {
 		final List<AnswerLink> results = getEntityManager()
-				.createQuery("SELECT ea FROM AnswerLink ea where ea.targetCode=:baseEntityCode")
+				.createQuery("SELECT ea FROM AnswerLink ea where ea.targetCode=:baseEntityCode  and ea.realm=:realmStr")
+				.setParameter("realmStr", getRealm())
 				.setParameter("baseEntityCode", targetCode).getResultList();
 
 		return results;
@@ -4052,7 +4054,8 @@ public class BaseEntityService2 {
 
 	public List<AnswerLink> findAnswersBySourceBaseEntityCode(final String sourceCode) {
 		final List<AnswerLink> results = getEntityManager()
-				.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.source.code=:baseEntityCode")
+				.createQuery("SELECT ea FROM AnswerLink ea where ea.pk.source.code=:baseEntityCode  and ea.realm=:realmStr")
+				.setParameter("realmStr", getRealm())
 				.setParameter("baseEntityCode", sourceCode).getResultList();
 
 		return results;
@@ -4061,7 +4064,8 @@ public class BaseEntityService2 {
 
 	public List<AnswerLink> findAnswersByTargetOrSourceBaseEntityCode(final String baseEntityCode) {
 		final List<AnswerLink> results = getEntityManager().createQuery(
-				"SELECT ea FROM AnswerLink ea where ea.sourceCode=:baseEntityCode or ea.targetCode=:baseEntityCode")
+				"SELECT ea FROM AnswerLink ea where ea.sourceCode=:baseEntityCode or ea.targetCode=:baseEntityCode  and ea.realm=:realmStr")
+				.setParameter("realmStr", getRealm())
 				.setParameter("baseEntityCode", baseEntityCode).getResultList();
 
 		return results;
@@ -4069,7 +4073,8 @@ public class BaseEntityService2 {
 
 	public List<EntityEntity> findLinksBySourceOrTargetBaseEntityCode(final String baseEntityCode) {
 		final List<EntityEntity> results = getEntityManager().createQuery(
-				"SELECT ea FROM EntityEntity ea where ea.link.sourceCode=:baseEntityCode or ea.pk.targetCode=:baseEntityCode")
+				"SELECT ea FROM EntityEntity ea where ea.link.sourceCode=:baseEntityCode or ea.pk.targetCode=:baseEntityCode  and ea.realm=:realmStr")
+				.setParameter("realmStr", getRealm())
 				.setParameter("baseEntityCode", baseEntityCode).getResultList();
 
 		return results;
