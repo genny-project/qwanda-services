@@ -5,11 +5,10 @@ import java.lang.invoke.MethodHandles;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-<<<<<<< HEAD
-import java.util.Set;
-=======
+
 
 import java.util.Map.Entry;
 
@@ -17,7 +16,6 @@ import java.util.Optional;
 import java.util.Set;
 
 
->>>>>>> GEN-1731A
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
@@ -38,6 +36,7 @@ import life.genny.qwanda.exception.BadDataException;
 import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwanda.validation.ValidationList;
+import life.genny.qwandautils.GennySettings;
 import life.genny.qwandautils.GennySheets;
 
 /**

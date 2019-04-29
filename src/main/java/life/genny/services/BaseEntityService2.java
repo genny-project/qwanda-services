@@ -2650,8 +2650,8 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
 
+	@Transactional
 	public BaseEntity upsert(BaseEntity be) {
 		String realm = getRealm();
 		try {
@@ -4527,7 +4527,7 @@ public class BaseEntityService2 {
 
 		try {
 			ee = (Link) getEntityManager().createQuery(
-					"SELECT ee.link FROM EntityEntity ee where ee.link.targetCode=:targetCode and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode")
+					"SELECT ee.link FROM EntityEntity ee where ee.link.targetCode=:targetCode and ee.link.attributeCode=:linkAttributeCode and ee.link.sourceCode=:sourceCode and ee.realm=:realmStr")
 					.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
 
 					.setParameter("targetCode", targetCode)
