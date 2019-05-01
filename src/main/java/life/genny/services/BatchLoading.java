@@ -158,7 +158,13 @@ public class BatchLoading {
       try {
         Map<String, Object> attributes = data.getValue();
          String code = ((String) attributes.get("code")).replaceAll("^\"|\"$", "");;
-        String dataType = ((String) attributes.get("dataType")).replaceAll("^\"|\"$", "");;
+        String dataType = null;
+        try {
+        dataType = ((String) attributes.get("dataType")).replaceAll("^\"|\"$", "");;
+        } catch (NullPointerException npe) {
+        	log.error("DataType for "+code+" cannot be null");
+        	throw new Exception("Bad DataType given for code "+code);
+        }
         String name = ((String) attributes.get("name")).replaceAll("^\"|\"$", "");;
         DataType dataTypeRecord = dataTypeMap.get(dataType);
         ((HashMap<String, HashMap>) project.get("dataType")).get(dataType);
