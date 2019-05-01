@@ -226,6 +226,19 @@ public class BaseEntityService2 {
 			this.linkType = linkType;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			return "Column [" + (fieldName != null ? "fieldName=" + fieldName + ", " : "")
+					+ (fieldCode != null ? "fieldCode=" + fieldCode + ", " : "")
+					+ (weight != null ? "weight=" + weight + ", " : "")
+					+ (linkCode != null ? "linkCode=" + linkCode + ", " : "")
+					+ (linkType != null ? "linkType=" + linkType : "") + "]";
+		}
+
+		
 	}
 
 	class Order implements Comparable<Order> {
@@ -634,12 +647,17 @@ public class BaseEntityService2 {
 		List<Column> columns = ss.getColumnList();
 		List<Column> associatedColumns = new ArrayList<Column>();
 		Map<String, Attribute> attributeMap = new ConcurrentHashMap<String, Attribute>();
-
+		Map<String,Integer> columnIndexMap = new ConcurrentHashMap<String,Integer>();
+		
+		Integer columnIndex = 0;
 		for (Column column : columns) { // TODO: stream
 			if (column.linkCode != null) {
 				associatedColumns.add(column);
 				attributeMap.put(column.fieldCode, findAttributeByCode(column.fieldCode)); // prepare cache to be
 																							// quicker
+				columnIndexMap.put(column.fieldCode, columnIndex++);
+			} else {
+				columnIndexMap.put(column.fieldCode, columnIndex++);
 			}
 		}
 
@@ -648,6 +666,10 @@ public class BaseEntityService2 {
 		if (associatedColumns.isEmpty()) { // for speed
 			for (BaseEntity be : results) {
 				be.setIndex(index++);
+				// Set the baseentity entityAttribute order
+				for (EntityAttribute ea : be.getBaseEntityAttributes()) {
+					ea.setIndex(columnIndexMap.get(ea.getAttributeCode()));
+				}
 			}
 		} else {
 			Map<String, BaseEntity> associatedBaseEntityMap = new ConcurrentHashMap<String, BaseEntity>(); // store
@@ -739,6 +761,12 @@ public class BaseEntityService2 {
 					be.getBaseEntityAttributes().addAll(virtualEntityAttributeList);
 
 				}
+				
+				// Set the baseentity entityAttribute order
+				for (EntityAttribute ea : be.getBaseEntityAttributes()) {
+					ea.setIndex(columnIndexMap.get(ea.getAttributeCode()));
+				}
+
 			}
 		}
 		return results;
@@ -833,6 +861,8 @@ public class BaseEntityService2 {
 					} else {
 						ss.codeFilter += " and ea.pk.baseEntity.code " + condition + " :v" + ss.filterIndex + " ";
 					}
+					String attributeCodeEA = "ea" + ss.filterIndex;
+					ss.filterStrings += ",EntityAttribute " + attributeCodeEA;
 					ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueString()));
 					ss.filterIndex++;
 				} else if (priAttributeCode.equalsIgnoreCase("PRI_CREATED")) {
@@ -841,10 +871,13 @@ public class BaseEntityService2 {
 					} else {
 						ss.codeFilter += " and ea.pk.baseEntity.created " + condition + " :v" + ss.filterIndex + " ";
 					}
+					String attributeCodeEA = "ea" + ss.filterIndex;
+					ss.filterStrings += ",EntityAttribute " + attributeCodeEA;
 					ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueDateTime()));
 					ss.filterIndex++;
 				} else {
 					String attributeCodeEA = "ea" + ss.filterIndex;
+					ss.setPrefix(attributeCodeEA);
 					ss.filterStrings += ",EntityAttribute " + attributeCodeEA;
 					ss.filterStringsQ += " and " + attributeCodeEA + ".pk.baseEntity.id=ea.pk.baseEntity.id and "
 							+ attributeCodeEA + ".pk.attribute.code='" + priAttributeCode + "' ";
@@ -917,6 +950,7 @@ public class BaseEntityService2 {
 						ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueString()));
 						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueString");
 					}
+					ss.codeFilter = ss.filterStringsQ;
 					ss.filterIndex++;
 
 				}
@@ -924,7 +958,7 @@ public class BaseEntityService2 {
 		}
 
 		ss.filterStringsQ = fixFilterStringsQ(ss.filterStringsQ, ss.filterIndex);
-
+		ss.filterStrings = ss.filterStrings.replaceFirst(",", "");
 		return ss;
 	}
 
@@ -1326,7 +1360,7 @@ public class BaseEntityService2 {
 			String linkValue, Double linkWeight, String linkWeightFilter, String sourceCode, String targetCode,
 			String filterStrings, String filterStringsQ, String orderString, List<SearchSettings> filters,
 			String realmsStr) {
-		String sql = "select " + prefix + " from EntityAttribute ea "
+		String sql = "select " + prefix + " from "+filterStrings+" " //EntityAttribute ea "
 				+ ((stakeholderCode != null) ? " ,EntityEntity ff " : "")
 				+ ((sourceStakeholderCode != null) ? " ,EntityEntity gg " : "")
 				// + " EntityAttribute ea JOIN be.baseEntityAttributes bea,"
