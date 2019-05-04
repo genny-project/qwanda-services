@@ -1856,6 +1856,7 @@ public class BaseEntityService2 {
 		return entity.getId();
 	}
 
+	@Transactional(dontRollbackOn = { Exception.class })
 	public Long insert(Answer[] answers) throws IllegalArgumentException {
 		long insertStartMs =  System.nanoTime();;
 
