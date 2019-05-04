@@ -1856,8 +1856,8 @@ public class BaseEntityService2 {
 		return entity.getId();
 	}
 
-	@Transactional(dontRollbackOn = { Exception.class })
 	public Long insert(Answer[] answers) throws IllegalArgumentException {
+		long insertStartMs =  System.nanoTime();;
 
 		// always check if answer exists through check for unique code
 		BaseEntity beTarget = null;
@@ -1901,8 +1901,7 @@ public class BaseEntityService2 {
 		Boolean entityChanged = false;
 
 		for (Answer answer : answers) {
-
-			try {
+			long answerStartMs =  System.nanoTime();;
 				try {
 					Optional<EntityAttribute> optExisting = beTarget.findEntityAttribute(answer.getAttributeCode());
 					Object old = null;
@@ -1916,14 +1915,14 @@ public class BaseEntityService2 {
 							continue;
 						}
 					}
-
+				//	log.info("Answer processing 1 = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms");
 					// check that the codes exist
 					attribute = findAttributeByCode(answer.getAttributeCode());
-					if (attribute == null && (answer.getAttributeCode().startsWith("SRT_")
-							|| answer.getAttributeCode().startsWith("SCH_"))) {
-						attribute = new AttributeText(answer.getAttributeCode(), answer.getAttributeCode());
+					if (attribute == null && (answer.getAttributeCode().startsWith("SRT_") || answer.getAttributeCode().startsWith("SCH_")))  {
+						attribute = new AttributeText(answer.getAttributeCode(),answer.getAttributeCode());
+						attribute.setRealm(getRealm());
 						getEntityManager().persist(attribute);
-
+						log.info("Answer processing 2.1 = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms - saving SEARCH Attribute "+attribute.getCode());
 					}
 					if (attribute == null) {
 						if (answer.getAttributeCode().startsWith("PRI_IS_")) {
@@ -1986,7 +1985,9 @@ public class BaseEntityService2 {
 										StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
 							}
 						}
+						attribute.setRealm(getRealm());
 						insert(attribute);
+						log.info("Answer processing 2.2 = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms - saving SEARCH Attribute "+attribute.getCode());
 					}
 
 					answer.setAttribute(attribute);
@@ -1998,18 +1999,36 @@ public class BaseEntityService2 {
 							log.error("Answer codes do not match Ask codes! " + answer);
 							// return -1L; // need to throw error
 						}
+					//	log.info("Answer processing 3.1 = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms - ASK ID "+answer.getAskId());
+
+					} else {
+					//	log.info("Answer processing 3.0 = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms - NO ASK");
 					}
 
 					if (answer.getChangeEvent()) {
 						msg.getBe().addAnswer(answer);
 						msg.setAnswer(answer);
 					}
-					List<Answer> existingList = findAnswersByRawAnswer(answer);
-					if (existingList.isEmpty()) {
+					//log.info("Answer processing 3.5 = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms - Before find Answer");
+				//	List<Answer> existingList = findAnswersByRawAnswer(answer);
+				//	if (existingList.isEmpty()) {
+					try {
 						getEntityManager().persist(answer);
-					} else {
-						log.warn("Answer already exists " + answer);
-						answer.setId(existingList.get(0).getId());
+					//	log.info("Answer processing 4 = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms - Persisted Answer");
+
+					} catch (Exception ee) {
+					//	log.warn("Answer already exists 4 "+((System.nanoTime() - answerStartMs) / 1e6)+" " + answer.getRealm()+":"+ answer.getSourceCode()+":"+answer.getTargetCode()+":"+answer.getAttributeCode());
+						//answer.setId(existingList.get(0).getId());
+						
+//						Answer existing = existingList.get(0);
+						
+//						existing.setChangeEvent(answer.getChangeEvent());
+//						existing.setExpired(answer.getExpired());
+//						existing.setInferred(answer.getInferred());
+//						existing.setRefused(answer.getRefused());
+//						existing.setValue(answer.getValue());
+//						existing.setWeight(answer.getWeight());
+//						answer = getEntityManager().merge(existing);
 					}
 
 					// Check if answer represents a link only
@@ -2018,6 +2037,8 @@ public class BaseEntityService2 {
 						EntityEntity ee = addLink(answer.getValue(), answer.getTargetCode(),
 								attribute.getDataType().getTypeName(), "ANSWER", answer.getWeight());
 						msg.getBe().getLinks().add(ee);
+						log.info("Answer processing 5 = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms - Represents a Link");
+										
 					} else {
 
 						// update answerlink
@@ -2026,6 +2047,7 @@ public class BaseEntityService2 {
 						try {
 
 							answerLink = beTarget.addAnswer(beSource, answer, answer.getWeight());
+					//		log.info("Answer processing 6 = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms - Answer Link");
 
 							if (answer.getAttributeCode().equalsIgnoreCase("PRI_NAME")) {
 								beTarget.setName(answer.getValue());
@@ -2091,7 +2113,7 @@ public class BaseEntityService2 {
 								safeOne.setAttributeName(attribute.getName());
 								safeOne.setBaseEntityCode(beTarget.getCode());
 								safeOne.setInferred(optNewEA.get().getInferred());
-								safeOne.setInferred(optNewEA.get().getPrivacyFlag());
+								safeOne.setPrivacyFlag(optNewEA.get().getPrivacyFlag());
 
 								safeOne.setLoopValue(optNewEA.get().getLoopValue());
 								safeOne.setAttribute(attribute);
@@ -2113,19 +2135,26 @@ public class BaseEntityService2 {
 					}
 
 				} catch (final EntityExistsException e) {
-					log.debug("Answer Insert EntityExistsException");
+					log.debug("Answer Insert EntityExistsException "+answer.getRealm()+":"+ answer.getSourceCode()+":"+answer.getTargetCode()+":"+answer.getAttributeCode());
 
-				}
-			} catch (Exception transactionException) {
-				log.error("Transaction Exception in saving Answer" + answer);
+				} catch (Exception transactionException) {
+				log.error("Transaction Exception in saving Answer -> " + answer.getSourceCode()+":"+answer.getTargetCode()+":"+answer.getAttributeCode());
 			}
+				
+//				log.info("Answer processing  = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms "+answer.getRealm()+":"+ answer.getSourceCode()+":"+answer.getTargetCode()+":"+answer.getAttributeCode());
+
 		}
 
+
+//		double difference = (System.nanoTime() - insertStartMs) / 1e6; // get ms
+//		if (answers.length > 1) {
+//			log.info("Answer[]s finished processing = "+difference+" ms , now updating entity");
+//		}
 		if (entityChanged) {
 
 			try {
 				beTarget = getEntityManager().merge(beTarget); // if nothing changed then no need to merge beTarget
-				log.info("Merged " + beTarget);
+//				log.info("Merged " + beTarget);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -2139,9 +2168,10 @@ public class BaseEntityService2 {
 			}
 		}
 
+		log.info("Answer final processing  = "+((System.nanoTime() - insertStartMs) / 1e6)+" ms - Finished updating "+beTarget.getCode());
+
 		return 0L;
 	}
-
 //	@Transactional
 	public void insert(Answer answer) {
 
