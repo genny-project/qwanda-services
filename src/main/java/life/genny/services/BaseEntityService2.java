@@ -2135,7 +2135,7 @@ public class BaseEntityService2 {
 					}
 
 				} catch (final EntityExistsException e) {
-					log.debug("Answer Insert EntityExistsException "+answer.getRealm()+":"+ answer.getSourceCode()+":"+answer.getTargetCode()+":"+answer.getAttributeCode());
+					log.debug("Answer Insert EntityExistsException "+answer.getSourceCode()+":"+answer.getTargetCode()+":"+answer.getAttributeCode());
 
 				} catch (Exception transactionException) {
 				log.error("Transaction Exception in saving Answer -> " + answer.getSourceCode()+":"+answer.getTargetCode()+":"+answer.getAttributeCode());
