@@ -1307,6 +1307,13 @@ public class BaseEntityService2 {
 	private String createSearchSQL(String prefix, String stakeholderCode, String sourceStakeholderCode, String linkCode,
 			String linkValue, Double linkWeight, String linkWeightFilter, String sourceCode, String targetCode,
 			String filterStrings, String filterStringsQ, String orderString, String codeFilter, String realmsStr) {
+		
+		if (!StringUtils.isBlank(filterStrings)) {
+			if (!filterStrings.startsWith(",")) {
+				filterStrings = ","+filterStrings;
+			}
+		}
+		
 		String sql = "select " + prefix + " from EntityAttribute ea "
 				+ (stakeholderCode != null ? " ,EntityEntity ff " : "")
 				+ (sourceStakeholderCode != null ? " ,EntityEntity gg " : "")
@@ -3578,7 +3585,7 @@ public class BaseEntityService2 {
 
 		} else {
 			log.debug("findChildrenByAttributeLink PAIR COUNT  " + pairCount);
-			String eaStrings = "";
+			String eaStrings = ",";
 			String eaStringsQ = "";
 			if (pairCount > 0) {
 				eaStringsQ = "(";
@@ -3588,6 +3595,9 @@ public class BaseEntityService2 {
 				}
 				eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
 				eaStringsQ += ") and ";
+			}
+			if (eaStrings.equals(",")) {
+				eaStrings = "";
 			}
 
 			String queryStr = "SELECT count(distinct be) FROM BaseEntity be," + stakeholderFilter1 + " EntityEntity ee"
@@ -3611,7 +3621,7 @@ public class BaseEntityService2 {
 						valueList.add(valueIndex, value);
 						valueIndex++;
 					}
-					// remove last or
+					// remove last or 
 
 					valueQuery = valueQuery.substring(0, valueQuery.length() - 4);
 
@@ -3677,6 +3687,11 @@ public class BaseEntityService2 {
 			eaStringsQ = eaStringsQ.substring(0, eaStringsQ.length() - 4);
 			eaStringsQ += ") and ";
 		}
+		
+		if (eaStrings.equals(",")) {
+			eaStrings = "";
+		}
+
 
 		String queryStr = "SELECT count(distinct be) FROM BaseEntity be,EntityEntity ee" + eaStrings + "  where "
 				+ eaStringsQ
