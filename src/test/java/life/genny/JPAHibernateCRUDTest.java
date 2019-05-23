@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import javax.persistence.Query;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 import org.apache.logging.log4j.Logger;
 import org.javamoney.moneta.Money;
@@ -71,6 +72,19 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   private static final Logger log = org.apache.logging.log4j.LogManager
       .getLogger(MethodHandles.lookup().lookupClass().getCanonicalName());
 
+  @Test
+  public void searchCountTest()
+  {
+	  SearchEntity searchBE = new SearchEntity("SBE_ALL_COMAPNIES","Search Test Count");
+	  searchBE.addFilter("PRI_CODE", SearchEntity.StringFilter.LIKE, "CPY_%");
+	  searchBE.addColumn("PRI_EMAIL", "Email");
+	  
+
+	  Long count = service.findBySearchBECount(searchBE);
+	  log.info("The search count = "+count);
+  }
+  
+  
  // @Test
    public void qsearchEntityMessageTest()
    {

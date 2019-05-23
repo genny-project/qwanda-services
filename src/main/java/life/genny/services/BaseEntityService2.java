@@ -47,6 +47,7 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.Filter;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.jpa.QueryHints;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.KeycloakSecurityContext;
 import org.mortbay.log.Log;
@@ -141,7 +142,7 @@ public class BaseEntityService2 {
 		query = getEntityManager().createQuery(hql);
 		query.setFirstResult(0).setMaxResults(1000);
 
-		results = query.getResultList();
+		results = query.setHint(QueryHints.HINT_READONLY, true).getResultList();
 		log.debug("RESULTS=" + results);
 		return results;
 	}
@@ -153,7 +154,7 @@ public class BaseEntityService2 {
 		query = getEntityManager().createQuery(hql);
 		query.setFirstResult(0).setMaxResults(1000);
 
-		results = query.getResultList();
+		results = query.setHint(QueryHints.HINT_READONLY, true).getResultList();
 		log.debug("RESULTS=" + results);
 		return results;
 	}
@@ -323,7 +324,7 @@ public class BaseEntityService2 {
 
 		realms.add(getRealm());
 
-		realms.add("genny");
+	//	realms.add("genny");
 		String realmsStr = getRealmsStr(realms);
 
 		String sql = createSearchSQL("count(distinct ea.pk.baseEntity)", stakeholderCode, sourceStakeholderCode,
@@ -377,7 +378,8 @@ public class BaseEntityService2 {
 				query.setParameter(value._1, value._2);
 			}
 		}
-		Object count1 = query.getSingleResult();
+		Long count1 = 100L;
+		//Object count1 = query.getSingleResult();
 		log.info("The Count Object is :: " + count1.toString());
 		count = (Long) count1;
 
@@ -647,7 +649,7 @@ public class BaseEntityService2 {
 
 			}
 		}
-		results = query.getResultList();
+		results = query.setHint(QueryHints.HINT_READONLY, true).getResultList();
 
 		// Work out associated Columns
 		List<Column> columns = ss.getColumnList();
@@ -1251,7 +1253,7 @@ public class BaseEntityService2 {
 				query.setParameter(value._1, value._2);
 			}
 		}
-		results = query.getResultList();
+		results = query.setHint(QueryHints.HINT_READONLY, true).getResultList();
 
 		// Set simple sort index for frontend to use
 		Integer index = 0;
@@ -3014,7 +3016,7 @@ public class BaseEntityService2 {
 
 			result = (Attribute) getEntityManager()
 					.createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr")
-					.setParameter("code", code.toUpperCase()).setParameter("realmStr", getRealm()).getSingleResult();
+					.setParameter("code", code.toUpperCase()).setParameter("realmStr", userRealmStr).getSingleResult();
 		} catch (javax.persistence.NoResultException e) {
 			log.warn("Could not find Attribute: " + code);
 		}
