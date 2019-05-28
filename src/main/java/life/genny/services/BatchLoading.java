@@ -394,7 +394,7 @@ public class BatchLoading {
    * 
    * @param project
    */
-  @Transactional
+
   public void questionQuestions(Map<String, Object> project) {
     if (project.get("questionQuestions") == null) {
       return;

@@ -1586,7 +1586,7 @@ public class BaseEntityService2 {
 	 *
 	 * @throws IllegalStateException when removing {@link BaseEntity} at given index
 	 */
-	@Transactional
+	//@Transactional
 	public void removeBaseEntity(final String code) {
 		final BaseEntity be = findBaseEntityByCode(code);
 		if (be != null) {
@@ -1715,7 +1715,7 @@ public class BaseEntityService2 {
 	 * Inserts
 	 */
 
-	@Transactional
+	//@Transactional
 	public Long insert(final Ask ask) {
 		// Fetch the associated BaseEntitys and Question
 
@@ -1773,7 +1773,7 @@ public class BaseEntityService2 {
 		return ask.getId();
 	}
 
-	@Transactional
+	//@Transactional
 	public Long insert(final GPS entity) {
 		try {
 			getEntityManager().persist(entity);
@@ -1787,7 +1787,7 @@ public class BaseEntityService2 {
 		return entity.getId();
 	}
 
-	@Transactional
+	//@Transactional
 	public Long insert(final Question question) {
 		// always check if question exists through check for unique code
 		try {
@@ -1822,7 +1822,7 @@ public class BaseEntityService2 {
 		return question.getId();
 	}
 
-	@Transactional
+	//@Transactional
 	public Long insert(final Rule rule) {
 		// always check if rule exists through check for unique code
 		try {
@@ -1843,7 +1843,7 @@ public class BaseEntityService2 {
 		return rule.getId();
 	}
 
-	@Transactional
+	//@Transactional
 	public Long insert(final Validation validation) {
 		// always check if rule exists through check for unique code
 		try {
@@ -1925,7 +1925,7 @@ public class BaseEntityService2 {
 		return answerLink;
 	}
 
-	@Transactional(dontRollbackOn = { PersistenceException.class })
+	//@Transactional(dontRollbackOn = { PersistenceException.class })
 	public Long insert(BaseEntity entity) {
 
 		// always check if baseentity exists through check for unique code
@@ -2268,7 +2268,7 @@ public class BaseEntityService2 {
 		return 0L;
 	}
 
-	@Transactional(dontRollbackOn = { Exception.class })
+	//@Transactional(dontRollbackOn = { Exception.class })
 	public void insert(Answer answer) {
 
 		log.info("insert(Answer):" + answer.getSourceCode() + ":" + answer.getTargetCode() + ":"
@@ -2279,7 +2279,7 @@ public class BaseEntityService2 {
 
 	}
 
-	@Transactional
+
 	public Long insert(final Attribute attribute) {
 		// always check if baseentity exists through check for unique code
 		try {
@@ -2342,7 +2342,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+
 	public EntityEntity insertEntityEntity(final EntityEntity ee) {
 
 		try {
@@ -2366,7 +2366,7 @@ public class BaseEntityService2 {
 	 * updates
 	 */
 
-	@Transactional
+
 	public Long update(BaseEntity entity) {
 		// always check if baseentity exists through check for unique code
 		Long result = 0L;
@@ -2390,7 +2390,7 @@ public class BaseEntityService2 {
 		return entity.getId();
 	}
 
-	@Transactional
+
 	public Long updateRealm(BaseEntity entity) {
 		Long result = 0L;
 
@@ -2407,7 +2407,7 @@ public class BaseEntityService2 {
 		return result;
 	}
 
-	@Transactional
+
 	public Long updateRealm(Attribute attr) {
 		Long result = 0L;
 
@@ -2423,7 +2423,7 @@ public class BaseEntityService2 {
 		return result;
 	}
 
-	@Transactional
+
 	public Long updateRealm(Question que) {
 		Long result = 0L;
 
@@ -2439,7 +2439,7 @@ public class BaseEntityService2 {
 		return result;
 	}
 
-	@Transactional
+
 	public Long updateRealm(QuestionQuestion qq) {
 		Long result = 0L;
 
@@ -2455,7 +2455,7 @@ public class BaseEntityService2 {
 		return result;
 	}
 
-	@Transactional
+
 	public Long updateRealm(Validation val) {
 		Long result = 0L;
 
@@ -2471,7 +2471,7 @@ public class BaseEntityService2 {
 		return result;
 	}
 
-	@Transactional
+
 	public Long updateRealm(QBaseMSGMessageTemplate msg) {
 		Long result = 0L;
 
@@ -2488,7 +2488,7 @@ public class BaseEntityService2 {
 	}
 
 
-	@Transactional
+
 	public Long updateWithAttributes(BaseEntity entity) {
 		entity.setRealm(getRealm());
 
@@ -2569,7 +2569,7 @@ public class BaseEntityService2 {
 	 * Upserts
 	 */
 
-	@Transactional
+
 
 	public Ask upsert(Ask ask) {
 
@@ -2585,7 +2585,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+
 	public QuestionQuestion upsert(QuestionQuestion qq) {
 		try {
 			QuestionQuestion existing = findQuestionQuestionByCode(qq.getPk().getSource().getCode(),
@@ -2603,7 +2603,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+
 	public Validation upsert(Validation validation) {
 		try {
 			String code = validation.getCode();
@@ -2652,7 +2652,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+
 	public Attribute upsert(Attribute attr) {
 		try {
 			String code = attr.getCode();
@@ -2692,7 +2692,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+
 	public Question upsert(Question q) {
 		try {
 			String code = q.getCode();
@@ -2734,7 +2734,7 @@ public class BaseEntityService2 {
 	}
 
 
-	@Transactional
+
 	public BaseEntity upsert(BaseEntity be) {
 		String realm = getRealm();
 		try {
@@ -2775,7 +2775,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+
 	public Long upsert(final BaseEntity be, Set<EntityAttribute> ba) {
 		try {
 			out.println("****3*****"
@@ -3009,21 +3009,8 @@ public class BaseEntityService2 {
 
 	public Attribute findAttributeByCode(@NotNull final String code) throws NoResultException {
 
-		final String userRealmStr = getRealm();
-		Attribute result = null;
-
-		try {
-
-			result = (Attribute) getEntityManager()
-					.createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr")
-					.setParameter("code", code.toUpperCase()).setParameter("realmStr", userRealmStr).getSingleResult();
-		} catch (javax.persistence.NoResultException e) {
-			log.warn("Could not find Attribute: " + code);
-		}
-
-
-
-		return result;
+		
+		return findAttributeByCode(code,getRealm());
 	}
 
 	public Attribute findAttributeByCode(@NotNull final String code, @NotNull final String realm)
@@ -4661,7 +4648,7 @@ public class BaseEntityService2 {
 		return ee;
 	}
 
-	@Transactional
+
 	public Integer updateEntityEntity(final Link link) throws NoResultException {
 		Integer result = 0;
 
@@ -4691,7 +4678,7 @@ public class BaseEntityService2 {
 		return result;
 	}
 
-	@Transactional
+
 	public Integer updateEntityEntity(final EntityEntity ee) {
 		Integer result = 0;
 
@@ -4741,7 +4728,7 @@ public class BaseEntityService2 {
 
 	}
 
-	@Transactional
+	//@Transactional
 	public void removeEntityEntity(final String code, final EntityEntity ee) {
 		try {
 			Link oldLink = ee.getLink();
@@ -4758,7 +4745,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+	//@Transactional
 	public void removeAnswerLink(final String code, final AnswerLink answerLink) {
 		try {
 			BaseEntity source = findBaseEntityByCode(code);
@@ -4772,7 +4759,7 @@ public class BaseEntityService2 {
 
 	}
 
-	@Transactional
+	//@Transactional
 	public void removeQuestionQuestion(final String parentCode, final String targetCode) {
 		QuestionQuestion qq = null;
 		try {
@@ -4783,7 +4770,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+	//@Transactional
 	public void removeQuestionQuestion(final QuestionQuestion qq) {
 		try {
 			Question question = findQuestionByCode(qq.getPk().getSourceCode());
@@ -4795,7 +4782,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+	//@Transactional
 	public void removeEntityAttribute(final String baseEntityCode, final String attributeCode) {
 		EntityAttribute ea = null;
 		try {
@@ -4806,7 +4793,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+	//@Transactional
 	public void removeEntityAttribute(final EntityAttribute ea) {
 		try {
 			BaseEntity source = findBaseEntityByCode(ea.getBaseEntityCode());
@@ -4819,7 +4806,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+	//@Transactional
 	public void removeEntityAttributes(final String attributeCode) {
 		try {
 			Query query = getEntityManager().createQuery(
@@ -4842,7 +4829,7 @@ public class BaseEntityService2 {
 		return addLink(sourceCode, targetCode, linkCode, value, weight, true);
 	}
 
-	@Transactional
+	//@Transactional
 	public EntityEntity addLink(final String sourceCode, final String targetCode, final String linkCode, Object value,
 			Double weight, final boolean changeEvent) throws IllegalArgumentException, BadDataException {
 		EntityEntity ee = null;
@@ -4891,7 +4878,7 @@ public class BaseEntityService2 {
 		return ee;
 	}
 
-	@Transactional
+	//@Transactional
 	public void removeLink(final Link link) {
 		EntityEntity ee = null;
 
@@ -4908,7 +4895,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+	//@Transactional
 	public void removeLink(final String sourceCode, final String targetCode, final String linkCode) {
 		EntityEntity ee = null;
 
@@ -4921,7 +4908,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	@Transactional
+	//@Transactional
 	public EntityEntity updateLink(final Link link) throws IllegalArgumentException, BadDataException {
 		EntityEntity ee = null;
 
@@ -5322,7 +5309,7 @@ public class BaseEntityService2 {
 		return null;
 	}
 
-	@Transactional
+	//@Transactional
 	public Long update(final QBaseMSGMessageTemplate template) {
 
 	    template.setRealm(getRealm());
@@ -5332,7 +5319,7 @@ public class BaseEntityService2 {
 		return template.getId();
 	}
 
-	@Transactional
+	//@Transactional
 	public Long insert(final QBaseMSGMessageTemplate template) {
 
 		template.setRealm(getRealm());
