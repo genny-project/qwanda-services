@@ -250,7 +250,7 @@ public class BatchLoading {
     ((HashMap<String, HashMap>) project.get("baseEntitys")).entrySet().stream().forEach(data -> {
       Map<String, Object> baseEntitys = data.getValue();
       String code = ((String) baseEntitys.get("code")).replaceAll("^\"|\"$", "");;
-      String name = ((String) baseEntitys.get("name")).replaceAll("^\"|\"$", "");;
+      String name = getNameFromMap(baseEntitys,"name", code);
       BaseEntity be = new BaseEntity(code, name);
 
 
@@ -270,7 +270,15 @@ public class BatchLoading {
     });
   }
 
-  /**
+  private String getNameFromMap(Map<String, Object> baseEntitys, String key, String defaultString) {
+	String ret = defaultString;
+	  if (baseEntitys.containsKey(key)) {
+		  return  ((String) baseEntitys.get("name")).replaceAll("^\"|\"$", "");;
+	  }
+	  return ret;
+}
+
+/**
    * Upsert BaseEntities with Attributes
    * 
    * @param project
