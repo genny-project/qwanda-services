@@ -273,7 +273,9 @@ public class BatchLoading {
   private String getNameFromMap(Map<String, Object> baseEntitys, String key, String defaultString) {
 	String ret = defaultString;
 	  if (baseEntitys.containsKey(key)) {
-		  return  ((String) baseEntitys.get("name")).replaceAll("^\"|\"$", "");;
+		  if (baseEntitys.get("name") != null) {
+		  ret =   ((String) baseEntitys.get("name")).replaceAll("^\"|\"$", "");;
+		  }
 	  }
 	  return ret;
 }
