@@ -740,6 +740,11 @@ public class BatchLoading {
       String sheetID = (String) data.get("sheetID");
       String name = (String) data.get("name");
       String module = (String) data.get("module");
+      Boolean disable = Boolean.valueOf((String)data.get("disable"));
+      
+      System.out.println("Hellooooooooooooooooooooooooooooooooooooooooooooooo" + disable);
+      if(disable)
+          System.out.println("heyheyheyhey this is project is disabled"+ name);
       final List<Map<String, Object>> map = new ArrayList<>();
       System.out.printf("%-80s%s%n", "["+this.mainRealm+"] Loading Project \033[31;1m" + name
           + "\033[0m and module \033[31;1m" + module + "\033[0m please wait...", "\uD83D\uDE31\t");
@@ -772,18 +777,21 @@ public class BatchLoading {
         countDown--;
       }
     }
-    return projectsConfig.stream().map(data -> {
-      String sheetID = (String) data.get("sheetID");
-      if ("1tgefqD-33yFAn4PXlQa0UJOzFnKVK9ehT47nLxmqoXU".equals(sheetID)) {
-    	  log.info("compliance docs");
-      }
-      sheets.setSheetId(sheetID);
-      List<Map<String, Object>> listModuleProject = getModules();
-      return listModuleProject;
-    }).reduce((ac, acc) -> {
-      ac.addAll(acc);
-      return ac;
-    }).get();
+    return projectsConfig.stream()
+        .peek(d -> System.out.println((String)d.get("disable")))
+        .filter(prj -> !Boolean.valueOf((String)prj.get("disable")))
+        .map(data -> {
+            String sheetID = (String) data.get("sheetID");
+            if ("1tgefqD-33yFAn4PXlQa0UJOzFnKVK9ehT47nLxmqoXU".equals(sheetID)) {
+        	  log.info("compliance docs");
+            }
+            sheets.setSheetId(sheetID);
+            List<Map<String, Object>> listModuleProject = getModules();
+            return listModuleProject;
+        }).reduce((ac, acc) -> {
+            ac.addAll(acc);
+            return ac;
+        }).get();
   }
 
   /**
