@@ -66,7 +66,10 @@ public class ProjectsLoading {
 	    
 	    Map<String,Map> returnMap = new HashMap<String,Map>();
 	    for (Map data : dataMaps) {
-	    	returnMap.put((String)data.get("code"), data);
+	    	String code = (String)data.get("code");
+	    	if (!StringUtils.isBlank(code)) {
+	    		returnMap.put(code, data);
+	    	}
 	    }
 	  
 	  return returnMap;
