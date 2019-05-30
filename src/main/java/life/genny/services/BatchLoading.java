@@ -103,7 +103,7 @@ public class BatchLoading {
       }
       String code = ((String) validations.get("code")).replaceAll("^\"|\"$", "");;
       if ("VLD_AU_DRIVER_LICENCE_NO".equalsIgnoreCase(code)) {
-    	  log.info("detected VLD_AU_DRIVER_LICENCE_NO");
+    	  log.info("["+this.mainRealm+"] detected VLD_AU_DRIVER_LICENCE_NO");
       }
       String name = ((String) validations.get("name")).replaceAll("^\"|\"$", "");;
       String recursiveStr = (String) validations.get("recursive");
@@ -123,7 +123,7 @@ public class BatchLoading {
 
 
       val.setRealm(this.mainRealm);
-      log.info("code " + code + ",name:" + name + ",val:" + val + ", grp="
+      log.info("["+this.mainRealm+"] code " + code + ",name:" + name + ",val:" + val + ", grp="
 
 
           + (groupCodesStr != null ? groupCodesStr : "X"));
@@ -159,7 +159,7 @@ public class BatchLoading {
         try {
         dataType = ((String) attributes.get("dataType")).replaceAll("^\"|\"$", "");;
         } catch (NullPointerException npe) {
-        	log.error("DataType for "+code+" cannot be null");
+        	log.error("["+this.mainRealm+"] DataType for "+code+" cannot be null");
         	throw new Exception("Bad DataType given for code "+code);
         }
         String name = ((String) attributes.get("name")).replaceAll("^\"|\"$", "");;
@@ -171,7 +171,7 @@ public class BatchLoading {
         }
         Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
         if (privacy) {
-        		log.info("Attribute "+code+" has default privacy");
+        		log.info("["+this.mainRealm+"] Attribute "+code+" has default privacy");
         }
         String descriptionStr = (String) attributes.get("description");
         String helpStr = (String) attributes.get("help");
@@ -223,7 +223,7 @@ public class BatchLoading {
 			Validation validation = service.findValidationByCode(validationCode);
 			  validationList.getValidationList().add(validation);
 		} catch (NoResultException e) {
-			log.error("Could not load Validation "+validationCode);
+			log.error("["+this.mainRealm+"] Could not load Validation "+validationCode);
 		}
         }
       }
@@ -262,7 +262,7 @@ public class BatchLoading {
         log.info(constraint.getPropertyPath() + " " + constraint.getMessage());
       }
       if ("SEL_OCCUPATION_SALES".equals(code)) {
-    	  log.info("SEL_OCCUPATION_SALES");
+    	  log.info("["+this.mainRealm+"] SEL_OCCUPATION_SALES");
       }
       if (constraints.isEmpty()) {
     	  service.upsert(be);
@@ -296,7 +296,7 @@ public class BatchLoading {
              try {
 				attributeCode =  ((String) baseEntityAttr.get("attributeCode")).replaceAll("^\"|\"$", "");
 			} catch (Exception e2) {
-				log.error("AttributeCode not found ["+baseEntityAttr+"]");
+				log.error("["+this.mainRealm+"] AttributeCode not found ["+baseEntityAttr+"]");
 			}
           String valueString = (String) baseEntityAttr.get("valueString");
           if (valueString != null) {
@@ -315,8 +315,8 @@ public class BatchLoading {
 		          try {
 		            attribute = service.findAttributeByCode(attributeCode);
 		            if (attribute == null) {
-		              log.error("BASE ENTITY CODE: " + baseEntityCode);
-		            	log.error(attributeCode+" is not in the Attribute Table!!!");
+		              log.error("["+this.mainRealm+"] BASE ENTITY CODE: " + baseEntityCode);
+		            	log.error("["+this.mainRealm+"] "+attributeCode+" is not in the Attribute Table!!!");
 		            } else {
 		            be = service.findBaseEntityByCode(baseEntityCode);
 		            Double weightField = null;
@@ -345,7 +345,7 @@ public class BatchLoading {
 			if (baseEntityAttr != null) {
 				beCode = (String) baseEntityAttr.get("baseEntityCode");
 			}
-			log.error("Error in getting baseEntityAttr  for AttributeCode "+attributeCode+ " and beCode="+beCode);
+			log.error("["+this.mainRealm+"] Error in getting baseEntityAttr  for AttributeCode "+attributeCode+ " and beCode="+beCode);
 		}
 
         });
@@ -390,7 +390,7 @@ public class BatchLoading {
         sbe.addTarget(tbe, linkAttribute, weight, valueString);
         service.updateWithAttributes(sbe);
       } catch (final NoResultException e) {
-    	  log.warn("CODE NOT PRESENT IN LINKING: "+parentCode+" : "+targetCode+" : "+linkAttribute);
+    	  log.warn("["+this.mainRealm+"] CODE NOT PRESENT IN LINKING: "+parentCode+" : "+targetCode+" : "+linkAttribute);
       } catch (final BadDataException e) {
         e.printStackTrace();
       } catch (final NullPointerException e) {
@@ -472,7 +472,7 @@ public class BatchLoading {
 				} 
 				
 			} catch (NullPointerException e) {
-				log.error("Cannot find QuestionQuestion targetCode:"+targetCode+":parentCode:"+parentCode);
+				log.error("["+this.mainRealm+"] Cannot find QuestionQuestion targetCode:"+targetCode+":parentCode:"+parentCode);
 		
 
 
@@ -606,7 +606,7 @@ public class BatchLoading {
       String hiddenStr = (String) asks.get("hidden");
       final Double weight = Double.valueOf(weightStr);
       if ("QUE_USER_SELECT_ROLE".equals(targetCode)) {
-    	  log.info("dummy");
+    	  log.info("["+this.mainRealm+"] dummy");
       }
       Boolean mandatory = "TRUE".equalsIgnoreCase(mandatoryStr);
       Boolean readonly = "TRUE".equalsIgnoreCase(readonlyStr);
@@ -635,7 +635,7 @@ public class BatchLoading {
     Map<String, Object> lastProject = null;
     List<Map<String, Object>> projects = getProjects();
     if (projects.size() <= 1) {
-      log.info("is null");
+      log.info("["+this.mainRealm+"] is null");
       return projects.get(0);
     } else {
       for (int count = 0; count < projects.size(); count++) {
@@ -658,11 +658,11 @@ public class BatchLoading {
    * Call functions named after the classes
    */
   public Map<String, Object> persistProject(boolean isSynchronise, String table, boolean isDelete) {
-    log.info("Persisting Project in BatchLoading");
+    log.info("["+this.mainRealm+"] Persisting Project in BatchLoading");
     BatchLoading.isSynchronise = isSynchronise;
     BatchLoading.table = table;
     if(isSynchronise) {
-      log.info("Table to synchronise: " + table);
+      log.info("["+this.mainRealm+"] Table to synchronise: " + table);
       Map<String, Object> finalProject = project==null?getProject():project;
       if(!isDelete) {
         switch(table) {
@@ -705,15 +705,15 @@ public class BatchLoading {
             savedProjectData.put("messages", finalProject.get("messages"));
             break;
           default:
-            log.info("Error in table name. Please check.");
+            log.info("["+this.mainRealm+"] Error in table name. Please check.");
         }
-        log.info("########## SYNCHRONISED GOOGLE SHEET #############");
+        log.info("["+this.mainRealm+"] ########## SYNCHRONISED GOOGLE SHEET #############");
       }
       return finalProject;
     }
     Map<String, Object> lastProject = getProject();
     savedProjectData = lastProject;
-    log.info("+++++++++ AbouDSDSDSDSDSDSDSDSDSDSSDSDSDt to load Questions +++++++++++++");
+    log.info("["+this.mainRealm+"] +++++++++ AbouDSDSDSDSDSDSDSDSDSDSSDSDSDt to load Questions +++++++++++++");
     validations(lastProject);
     Map<String, DataType> dataTypes = dataType(lastProject);
     attributes(lastProject, dataTypes);
@@ -721,15 +721,15 @@ public class BatchLoading {
     baseEntityAttributes(lastProject);
     attributeLinks(lastProject, dataTypes);
     entityEntitys(lastProject);
-    log.info("+++++++++ About to load Questions +++++++++++++");
+    log.info("["+this.mainRealm+"] +++++++++ About to load Questions +++++++++++++");
     questions(lastProject);
-    log.info("+++++++++ About to load QuestionQuestions +++++++++++++");
+    log.info("["+this.mainRealm+"] +++++++++ About to load QuestionQuestions +++++++++++++");
     questionQuestions(lastProject);
-    log.info("+++++++++ Finished loading QuestionQuestions +++++++++++++");
+    log.info("["+this.mainRealm+"] +++++++++ Finished loading QuestionQuestions +++++++++++++");
     asks(lastProject);
-    log.info("+++++++++ About to load Message Templates +++++++++++++");
+    log.info("["+this.mainRealm+"] +++++++++ About to load Message Templates +++++++++++++");
     messageTemplates(lastProject);
-    log.info("########## LOADED ALL GOOGLE DOC DATA FOR REALM "+mainRealm.toUpperCase()+" #############");
+    log.info("["+this.mainRealm+"] ########## LOADED ALL GOOGLE DOC DATA FOR REALM "+mainRealm.toUpperCase()+" #############");
     return lastProject;
   }
 
@@ -772,7 +772,7 @@ public class BatchLoading {
         break;
       } catch (Exception ee) { // java.util.NoSuchElementException e |
                                // java.net.SocketTimeoutException ee
-        log.error("Load from Google Doc failed, trying again in 3 sec");
+        log.error("["+this.mainRealm+"] Load from Google Doc failed, trying again in 3 sec");
         try {
           Thread.sleep(3000);
         } catch (InterruptedException e1) {
@@ -787,7 +787,7 @@ public class BatchLoading {
         .map(data -> {
             String sheetID = (String) data.get("sheetID");
             if ("1tgefqD-33yFAn4PXlQa0UJOzFnKVK9ehT47nLxmqoXU".equals(sheetID)) {
-        	  log.info("compliance docs");
+        	  log.info("["+this.mainRealm+"] compliance docs");
             }
             sheets.setSheetId(sheetID);
             List<Map<String, Object>> listModuleProject = getModules();
@@ -852,52 +852,52 @@ public class BatchLoading {
               genny.put("messages", messages);
               break;
             default:
-              log.info("Error in table name. Please check.");
+              log.info("["+this.mainRealm+"] Error in table name. Please check.");
           }
           return genny;
         }
         
-      log.info("validatios");
+      log.info("["+this.mainRealm+"] Validations");
         Map<String, Map> validations = sheets.newGetVal();
         genny.put("validations", validations);
-  	  log.info("datatypes");
+  	  log.info("["+this.mainRealm+"] DataTypes");
         Map<String, Map> dataTypes = sheets.newGetDType();
         genny.put("dataType", dataTypes);
-  	  log.info("attrs");
+  	  log.info("["+this.mainRealm+"] Attributes");
         Map<String, Map> attrs = sheets.newGetAttr();
         genny.put("attributes", attrs);
-  	  log.info("bes");
+  	  log.info("["+this.mainRealm+"] BaseEntitys");
         Map<String, Map> bes = sheets.newGetBase();
         genny.put("baseEntitys", bes);
-  	  log.info("eas");
+  	  log.info("["+this.mainRealm+"] EntityAttributes");
         Map<String, Map> attr2Bes = sheets.newGetEntAttr();
         genny.put("attibutesEntity", attr2Bes);
-  	  log.info("attr link");
+  	  log.info("["+this.mainRealm+"] Attribute link");
         Map<String, Map> attrLink = sheets.newGetAttrLink();
         genny.put("attributeLink", attrLink);
-  	  log.info("vee");
+  	  log.info("["+this.mainRealm+"] EntityEntitys");
         Map<String, Map> bes2Bes = sheets.newGetEntEnt();
         genny.put("basebase", bes2Bes);
-  	  log.info("qtns");
+  	  log.info("["+this.mainRealm+"] Questions");
         Map<String, Map> gQuestions = sheets.newGetQtn();
         genny.put("questions", gQuestions);
-  	  log.info("vQQs");
+  	  log.info("["+this.mainRealm+"] Question Groups");
         Map<String, Map> que2Que = sheets.newGetQueQue();
         genny.put("questionQuestions", que2Que);
-  	  log.info("asks");
+  	  log.info("["+this.mainRealm+"] Asks");
         Map<String, Map> asks = sheets.newGetAsk();
         genny.put("ask", asks);
-  	  log.info("templates");
+  	  log.info("["+this.mainRealm+"] Templates");
         Map<String, Map> messages = sheets.getMessageTemplates();
         genny.put("messages", messages);
         break;
       } catch (Exception e) {
-        log.error("Failed to download Google Docs Configuration ... , will retry , trys left="
+        log.error("["+this.mainRealm+"] Failed to download Google Docs Configuration ... , will retry , trys left="
             + numOfTries);
         try {
           Thread.sleep(10000);
         } catch (InterruptedException e1) {
-          log.error("sleep exception..");
+          log.error("["+this.mainRealm+"] sleep exception..");
         } // sleep for 10 secs
       }
 
@@ -905,7 +905,7 @@ public class BatchLoading {
     }
 
     if (numOfTries <= 0) {
-      log.error("Failed to download Google Docs Configuration ... given up ...");
+      log.error("["+this.mainRealm+"] Failed to download Google Docs Configuration ... given up ...");
     }
 
     return genny;
@@ -960,13 +960,13 @@ public class BatchLoading {
   public void messageTemplates(Map<String, Object> project) {
 		
     if (project.get("messages") == null) {
-    	log.info("project.get(messages) is null");
+    	log.info("["+this.mainRealm+"] project.get(messages) is null");
     	return;
     }
       
     ((HashMap<String, HashMap>) project.get("messages")).entrySet().stream().forEach(data -> {
     	
-    	log.info("messages, data ::"+data);
+    	log.info("["+this.mainRealm+"] messages, data ::"+data);
       Map<String, Object> template = data.getValue();
       String code = (String) template.get("code");
       String name = (String) template.get("name");
@@ -987,7 +987,7 @@ public class BatchLoading {
       templateObj.setToast_template(toastTemplate);
       
       if (StringUtils.isBlank(name)) {
-    	  	log.error("Empty Name");
+    	  	log.error("["+this.mainRealm+"] Empty Name");
       } else {
     	  try {
 			QBaseMSGMessageTemplate msg = service.findTemplateByCode(code);
@@ -1000,14 +1000,14 @@ public class BatchLoading {
 					msg.setSubject(subject);
 					msg.setToast_template(toastTemplate);
 					Long id = service.update(msg);
-					log.info("updated message id ::" + id);
+					log.info("["+this.mainRealm+"] updated message id ::" + id);
 				} else {
 					Long id = service.insert(templateObj);
-					log.info("message id ::" + id);
+					log.info("["+this.mainRealm+"] message id ::" + id);
 				}
 				
 			} catch (Exception e) {
-				log.error("Cannot update QDataMSGMessage " + code);
+				log.error("["+this.mainRealm+"] Cannot update QDataMSGMessage " + code);
 			}
 				} catch (NoResultException e1) {
 				  try {
@@ -1020,16 +1020,16 @@ public class BatchLoading {
 		                }
 		              }
 				    Long id = service.insert(templateObj);
-                    log.info("message id ::" + id);
+                    log.info("["+this.mainRealm+"] message id ::" + id);
 				  } catch (javax.validation.ConstraintViolationException ce)     {
-	                log.error("Error in saving message due to constraint issue:" + templateObj + " :" + ce.getLocalizedMessage());
-	                log.info("Trying to update realm from hidden to genny");
+	                log.error("["+this.mainRealm+"] Error in saving message due to constraint issue:" + templateObj + " :" + ce.getLocalizedMessage());
+	                log.info("["+this.mainRealm+"] Trying to update realm from hidden to genny");
 	                templateObj.setRealm("genny");
 	                service.updateRealm(templateObj);
 	            }
 					
 				} catch (Exception e) {
-			log.error("Cannot add MessageTemplate");
+			log.error("["+this.mainRealm+"] Cannot add MessageTemplate");
 	
 		}
        }
@@ -1099,14 +1099,14 @@ public class BatchLoading {
 	    	  		"  \"policy-enforcer\": {}\n" + 
 	    	  		"}";
 	          
-	    log.info("Loaded keycloak.json... " + keycloakJson);
+	    log.info("["+this.mainRealm+"] Loaded keycloak.json... " + keycloakJson);
 	    return keycloakJson;
 				
 	  } else {
 		log.warn("Could not construct keycloak json as savedProjectData is null due to google doc loading might be skipped...");
 		BaseEntity project = service.findBaseEntityByCode(PROJECT_CODE);
 		if (project == null) {
-			log.error("Error: no Project Setting for " + PROJECT_CODE);
+			log.error("["+this.mainRealm+"] Error: no Project Setting for " + PROJECT_CODE);
 			return null;
 		}
 		Optional<EntityAttribute> entityAttribute1 = project.findEntityAttribute("ENV_KEYCLOAK_JSON");
@@ -1116,7 +1116,7 @@ public class BatchLoading {
 			return keycloakJson;
 
 		} else {
-			log.error("Error: no Project Setting for ENV_KEYCLOAK_JSON ensure PRJ_" + this.mainRealm.toUpperCase()
+			log.error("["+this.mainRealm+"] Error: no Project Setting for ENV_KEYCLOAK_JSON ensure PRJ_" + this.mainRealm.toUpperCase()
 					+ " has entityAttribute value for ENV_KEYCLOAK_JSON");
 			return null;
 		}
@@ -1146,7 +1146,7 @@ public class BatchLoading {
 	    	  		"  \"policy-enforcer\": {}\n" + 
 	    	  		"}";
 	          
-	    log.info("Loaded keycloak.json... " + keycloakJson);
+	    log.info("["+this.mainRealm+"] Loaded keycloak.json... " + keycloakJson);
 	    return keycloakJson;
 	
   }
