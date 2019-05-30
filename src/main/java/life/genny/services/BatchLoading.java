@@ -971,6 +971,14 @@ public class BatchLoading {
       String emailTemplateDocId = (String) template.get("email");
       String smsTemplate = (String) template.get("sms");
       String toastTemplate = (String) template.get("toast");
+      if (StringUtils.isBlank(toastTemplate)) {
+    	  toastTemplate = "-";
+    	  log.error("["+this.mainRealm+"] toastTemplate is empty! for "+code);
+      }
+      if (StringUtils.isBlank(smsTemplate)) {
+    	  smsTemplate = "-";
+    	  log.error("["+this.mainRealm+"] smsTemplate is empty! for "+code);
+      }
 
       final QBaseMSGMessageTemplate templateObj = new QBaseMSGMessageTemplate();
       templateObj.setCode(code);
