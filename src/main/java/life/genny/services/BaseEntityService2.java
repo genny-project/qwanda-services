@@ -37,6 +37,7 @@ import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
@@ -2877,6 +2878,12 @@ public class BaseEntityService2 {
 						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())// .setParameter("flag", false)
 
 						.setParameter("realmStr", realm).getSingleResult();
+			} catch (NonUniqueResultException e) {
+				List<BaseEntity> results = (List<BaseEntity>) getEntityManager().createQuery(sql)
+						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())
+
+						.setParameter("realmStr", realm).getResultList();
+				result = results.get(0);
 			} catch (Exception e) {
 
 				throw new NoResultException("Cannot find " + baseEntityCode + " in db! with realm " + realm);
