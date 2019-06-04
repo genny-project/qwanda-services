@@ -38,6 +38,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -2860,24 +2864,33 @@ public class BaseEntityService2 {
 		// log.info("FIND BASEENTITY BY CODE :"+sql);
 		try {
 
-			Session session = getEntityManager().unwrap(org.hibernate.Session.class);
-			Criteria criteria = session.createCriteria(BaseEntity.class);
-			result = (BaseEntity) criteria.add(Restrictions.eq("code", baseEntityCode.toUpperCase()))
-					.add(Restrictions.eq("realm", realm)).uniqueResult();
+			CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+			CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
+			Root<BaseEntity> root = query.from(BaseEntity.class);
 
-//				result = (BaseEntity) getEntityManager().createQuery(sql)
-//						.setParameter("baseEntityCode", baseEntityCode.toUpperCase())// .setParameter("flag", false)
-//
-//						.setParameter("realmStr", realm).getSingleResult();
+			query = query.select(root).where(cb.equal(root.get("code"), baseEntityCode.toUpperCase()),
+					cb.equal(root.get("realm"), realm));
+				result = getEntityManager().createQuery(query).getSingleResult();
+
+//			
+//			
+//			Session session = getEntityManager().unwrap(org.hibernate.Session.class);
+//			Criteria criteria = session.createCriteria(BaseEntity.class);
+//			result = (BaseEntity) criteria.add(Restrictions.eq("code", baseEntityCode.toUpperCase()))
+//					.add(Restrictions.eq("realm", realm)).uniqueResult();
+
+
 		} catch (Exception e) {
-			Session session = getEntityManager().unwrap(org.hibernate.Session.class);
-			Criteria criteria = session.createCriteria(BaseEntity.class);
 
 			try {
-				List<BaseEntity> results = (List<BaseEntity>) criteria
-						.add(Restrictions.eq("code", baseEntityCode.toUpperCase())).add(Restrictions.eq("realm", realm))
-						.list();
+				CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+				CriteriaQuery<BaseEntity> query = cb.createQuery(BaseEntity.class);
+				Root<BaseEntity> root = query.from(BaseEntity.class);
 
+				query = query.select(root).where(cb.equal(root.get("code"), baseEntityCode.toUpperCase()),
+						cb.equal(root.get("realm"), realm));
+					List<BaseEntity> results = getEntityManager().createQuery(query).getResultList();
+ 
 				result = results.get(0);
 			} catch (NoResultException ee) {
 

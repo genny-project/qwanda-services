@@ -13,5 +13,5 @@ export GOOGLE_CLIENT_SECRET="{\"installed\":{\"client_id\":\"260075856207-9d7a02
 export GOOGLE_HOSTING_SHEET_ID="1OQ3IUdKTCCN-qgMahaNfc3KFOc_iN8l2BAVx7-KdA0A"
  
 
-mvn clean install 
+mvn clean install -DskipTests=true
 mvn eclipse:eclipse
