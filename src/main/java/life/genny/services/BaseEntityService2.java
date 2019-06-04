@@ -2890,7 +2890,9 @@ public class BaseEntityService2 {
 				query = query.select(root).where(cb.equal(root.get("code"), baseEntityCode.toUpperCase()),
 						cb.equal(root.get("realm"), realm));
 					List<BaseEntity> results = getEntityManager().createQuery(query).getResultList();
- 
+					if (results.isEmpty()) {
+						throw new NoResultException("Cannot find " + baseEntityCode + " in db! with realm " + realm);
+					}
 				result = results.get(0);
 			} catch (NoResultException ee) {
 
