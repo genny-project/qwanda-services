@@ -2870,7 +2870,7 @@ public class BaseEntityService2 {
 
 			query = query.select(root).where(cb.equal(root.get("code"), baseEntityCode.toUpperCase()),
 					cb.equal(root.get("realm"), realm));
-				result = getEntityManager().createQuery(query).getSingleResult();
+			result = getEntityManager().createQuery(query).getSingleResult();
 
 //			
 //			
@@ -2878,7 +2878,6 @@ public class BaseEntityService2 {
 //			Criteria criteria = session.createCriteria(BaseEntity.class);
 //			result = (BaseEntity) criteria.add(Restrictions.eq("code", baseEntityCode.toUpperCase()))
 //					.add(Restrictions.eq("realm", realm)).uniqueResult();
-
 
 		} catch (Exception e) {
 
@@ -2889,10 +2888,10 @@ public class BaseEntityService2 {
 
 				query = query.select(root).where(cb.equal(root.get("code"), baseEntityCode.toUpperCase()),
 						cb.equal(root.get("realm"), realm));
-					List<BaseEntity> results = getEntityManager().createQuery(query).getResultList();
-					if (results.isEmpty()) {
-						throw new NoResultException("Cannot find " + baseEntityCode + " in db! with realm " + realm);
-					}
+				List<BaseEntity> results = getEntityManager().createQuery(query).getResultList();
+				if (results.isEmpty()) {
+					throw new NoResultException("Cannot find " + baseEntityCode + " in db! with realm " + realm);
+				}
 				result = results.get(0);
 			} catch (NoResultException ee) {
 
@@ -3913,7 +3912,7 @@ public class BaseEntityService2 {
 			ask.setMandatory(mandatory);
 			ask.setReadonly(readonly);
 		} else {
-			ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory, 0.0, false, false, readonly);
+			ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory, 1.0, false, false, readonly);
 
 			ask.setRealm(getRealm());
 
@@ -3932,13 +3931,15 @@ public class BaseEntityService2 {
 				String qCode = qq.getPk().getTargetCode();
 				log.info(qq.getPk().getSourceCode() + " -> Child Question -> " + qCode);
 				Question childQuestion = findQuestionByCode(qCode);
-				List<Ask> askChildren = null;
-				try {
-					askChildren = findAsks2(childQuestion, source, target, qq.getMandatory(), qq.getReadonly());
-				} catch (Exception e) {
-					e.printStackTrace();
+				if (childQuestion != null) {
+					List<Ask> askChildren = null;
+					try {
+						askChildren = findAsks2(childQuestion, source, target, qq.getMandatory(), qq.getReadonly());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					childAsks.addAll(askChildren);
 				}
-				childAsks.addAll(askChildren);
 			}
 			Ask[] asksArray = childAsks.toArray(new Ask[0]);
 			ask.setChildAsks(asksArray);
