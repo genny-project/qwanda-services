@@ -5338,6 +5338,10 @@ public class BaseEntityService2 {
 	public void writeToDDT(final BaseEntity be) {
 		ddtCacheMock.put(be.getCode(), JsonUtils.toJson(be));
 	}
+	
+	public void writeToDDT(final Question q) {
+		ddtCacheMock.put(q.getCode(), JsonUtils.toJson(q));
+	}
 
 	public void updateDDT(final String key, final String value) {
 		log.info("Update DDT " + key);
@@ -5356,6 +5360,13 @@ public class BaseEntityService2 {
 		log.info("Pushing baseentitys to DDT cache");
 		for (BaseEntity be : bes) {
 			writeToDDT(be);
+		}
+	}
+	
+	public void writeQuestionsToDDT(final List<Question> qs) {
+		log.info("Pushing Questions to DDT cache");
+		for (Question q : qs) {
+			writeToDDT(q);
 		}
 	}
 
