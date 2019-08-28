@@ -3901,6 +3901,10 @@ public class BaseEntityService2 {
 
 	public List<Ask> findAsks2(final Question rootQuestion, final BaseEntity source, final BaseEntity target,
 			Boolean childQuestionIsMandatory, Boolean childQuestionIsReadonly) {
+		if (rootQuestion == null) {
+			log.error("rootQuestion for findAsks2 is null - source="+source.getCode()+": target "+target.getCode());
+			return new ArrayList<Ask>();
+		}
 		List<Ask> asks = new ArrayList<>();
 		Boolean mandatory = rootQuestion.getMandatory() || childQuestionIsMandatory;
 		Boolean readonly = rootQuestion.getReadonly() || childQuestionIsReadonly;
