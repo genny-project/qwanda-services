@@ -545,6 +545,7 @@ public class BatchLoading {
 			Boolean mandatory = getBooleanFromString(mandatoryStr);
 			Attribute attr;
 			attr = service.findAttributeByCode(attrCode);
+			if (attr != null) {
 			Question q = new Question(code, name, attr);
 			q.setOneshot(oneshot);
 			q.setHtml(html);
@@ -573,6 +574,9 @@ public class BatchLoading {
 				existing.setReadonly(readonly);
 				existing.setMandatory(mandatory);
 				service.upsert(existing);
+			}
+			} else {
+				log.error("Cannot import Question "+code+" due to missing attribute :["+attrCode+"]");
 			}
 		});
 	}
