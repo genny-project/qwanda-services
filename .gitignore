@@ -19,6 +19,7 @@ src/main/.DS_Store
 .settings/
 .settings
 .settings/org.eclipse.wst.common.component
+.settings/org.eclipse.jdt.core.prefs
 src/main/resources/qwanda-services-git.properties
 /.apt_generated/
 /.apt_generated_tests/
