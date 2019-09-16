@@ -379,8 +379,8 @@ public class BaseEntityService2 {
 				query.setParameter(value._1, value._2);
 			}
 		}
-		Long count1 = 100L;
-		// Object count1 = query.getSingleResult();
+		//Long count1 = 100L;
+		Object count1 = query.getSingleResult();
 		log.info("The Count Object is :: " + count1.toString());
 		count = (Long) count1;
 
