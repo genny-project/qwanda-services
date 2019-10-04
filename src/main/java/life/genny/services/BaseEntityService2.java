@@ -379,7 +379,7 @@ public class BaseEntityService2 {
 				query.setParameter(value._1, value._2);
 			}
 		}
-		//Long count1 = 100L;
+		// Long count1 = 100L;
 		Object count1 = query.getSingleResult();
 		log.info("The Count Object is :: " + count1.toString());
 		count = (Long) count1;
@@ -849,12 +849,16 @@ public class BaseEntityService2 {
 				// Quick and dirty ; check
 				String condition = ea.getAttributeName();
 				if (condition != null) {
-					final String conditionTest = condition.trim();
-					if (!allowedConditions.stream().anyMatch(str -> str.trim().equals(conditionTest))) {
-						throw new IllegalArgumentException("Illegal condition!(" + conditionTest + ") ["
-								+ ea.getAttributeCode() + "] for user " + getUser());
+					if (!priAttributeCode.equals("PRI_TITLE")) {
+
+						final String conditionTest = condition.trim();
+						if (!allowedConditions.stream().anyMatch(str -> str.trim().equals(conditionTest))) {
+							throw new IllegalArgumentException("Illegal condition!(" + conditionTest + ") ["
+									+ ea.getAttributeCode() + "] for user " + getUser());
+						}
 					}
 				}
+
 				String valueString = ea.getValueString();
 				if (valueString != null) {
 					if (valueString.contains(";")) {
@@ -3902,7 +3906,8 @@ public class BaseEntityService2 {
 	public List<Ask> findAsks2(final Question rootQuestion, final BaseEntity source, final BaseEntity target,
 			Boolean childQuestionIsMandatory, Boolean childQuestionIsReadonly) {
 		if (rootQuestion == null) {
-			log.error("rootQuestion for findAsks2 is null - source="+source.getCode()+": target "+target.getCode());
+			log.error(
+					"rootQuestion for findAsks2 is null - source=" + source.getCode() + ": target " + target.getCode());
 			return new ArrayList<Ask>();
 		}
 		List<Ask> asks = new ArrayList<>();
@@ -5342,7 +5347,7 @@ public class BaseEntityService2 {
 	public void writeToDDT(final BaseEntity be) {
 		ddtCacheMock.put(be.getCode(), JsonUtils.toJson(be));
 	}
-	
+
 	public void writeToDDT(final Question q) {
 		ddtCacheMock.put(q.getCode(), JsonUtils.toJson(q));
 	}
@@ -5366,7 +5371,7 @@ public class BaseEntityService2 {
 			writeToDDT(be);
 		}
 	}
-	
+
 	public void writeQuestionsToDDT(final List<Question> qs) {
 		log.info("Pushing Questions to DDT cache");
 		for (Question q : qs) {
