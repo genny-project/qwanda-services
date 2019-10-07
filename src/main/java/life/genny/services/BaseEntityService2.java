@@ -849,14 +849,14 @@ public class BaseEntityService2 {
 				// Quick and dirty ; check
 				String condition = ea.getAttributeName();
 				if (condition != null) {
-					if (!priAttributeCode.equals("PRI_TITLE")) {
+				
 
 						final String conditionTest = condition.trim();
 						if (!allowedConditions.stream().anyMatch(str -> str.trim().equals(conditionTest))) {
 							throw new IllegalArgumentException("Illegal condition!(" + conditionTest + ") ["
 									+ ea.getAttributeCode() + "] for user " + getUser());
 						}
-					}
+				
 				}
 
 				String valueString = ea.getValueString();
