@@ -312,6 +312,9 @@ public class BaseEntityService2 {
 
 		String sourceCode = searchBE.getValue("SCH_SOURCE_CODE", null);
 		String targetCode = searchBE.getValue("SCH_TARGET_CODE", null);
+		
+		searchBE.removeAttribute("PRI_INDEX");
+		searchBE.removeAttribute("PRI_TOTAL_RESULTS"); // ugly
 
 		// Check for bad linkWeight filtering
 		if (!allowedLinkWeightConditions.stream().anyMatch(str -> str.trim().equals(linkWeightFilter))) {
@@ -1005,6 +1008,11 @@ public class BaseEntityService2 {
 		String linkWeightFilter = searchBE.getValue("SCH_LINK_FILTER", ">");
 		String sourceCode = searchBE.getValue("SCH_SOURCE_CODE", null);
 		String targetCode = searchBE.getValue("SCH_TARGET_CODE", null);
+		
+		// remove these because they screw up search , should have been prefixed SCH
+		searchBE.removeAttribute("PRI_INDEX");
+		searchBE.removeAttribute("PRI_TOTAL_RESULTS"); // ugly
+
 
 		// Construct the filters for the attributes
 		String filterStrings = "";
@@ -1026,7 +1034,7 @@ public class BaseEntityService2 {
 		Set<String> attributeCodes = new HashSet<>();
 
 		for (EntityAttribute ea : searchBE.getBaseEntityAttributes()) {
-			if (ea.getAttributeCode().startsWith("SCH_")) {
+			if (ea.getAttributeCode().startsWith("SCH_") || ea.getAttributeCode().equals("PRI_INDEX")|| ea.getAttributeCode().equals("PRI_TOTAL_RESULTS")) {
 				continue;
 			} else if (ea.getAttributeCode().startsWith("SRT_")) {
 				String sortAttributeCode = ea.getAttributeCode().substring("SRT_".length());
