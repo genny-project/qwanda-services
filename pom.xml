@@ -48,10 +48,10 @@
 		<jersey-version>2.13</jersey-version>
 		<version.apache-httpclient>4.5.3</version.apache-httpclient>
 		<version.keycloak>7.0.0</version.keycloak>
-		<version.hibernate>5.4.5.Final</version.hibernate>
+		<version.hibernate>5.3.13.Final</version.hibernate>
 		<version.hibernate-validator>6.0.17.Final</version.hibernate-validator>
 		<version.hsqldb>2.5.0</version.hsqldb>
-		<version.h2db>1.4.198</version.h2db>
+		<version.h2db>1.4.199</version.h2db>
 		<version.resteasy>3.0.10.Final</version.resteasy>
 
 		<m2e.jpa.activation>false</m2e.jpa.activation>
