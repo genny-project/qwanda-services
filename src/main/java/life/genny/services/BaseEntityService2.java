@@ -2754,15 +2754,15 @@ public class BaseEntityService2 {
 			if (val == null) {
 				throw new NoResultException();
 			}
-			BeanNotNullFields copyFields = new BeanNotNullFields();
-			copyFields.copyProperties(val, be);
-			val.setRealm(realm);
+		//	BeanNotNullFields copyFields = new BeanNotNullFields();
+		//	copyFields.copyProperties(val, be);
+		//	val.setRealm(realm);
 			// log.debug("***********" + val);
-
+			val.merge(be);
 			val = getEntityManager().merge(val);
 
 			return val;
-		} catch (NoResultException | IllegalAccessException | InvocationTargetException | NullPointerException e) {
+		} catch (NoResultException  | NullPointerException e) {
 
 			if (BatchLoading.isSynchronise()) {
 				BaseEntity val = findBaseEntityByCode(be.getCode(), REALM_HIDDEN);
