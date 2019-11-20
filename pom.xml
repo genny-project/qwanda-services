@@ -311,7 +311,7 @@
                         <groupId>org.keycloak</groupId>
                         <artifactId>keycloak-admin-client</artifactId>
                         <version>${version.keycloak}</version>
-                        <scope>provided</scope>
+                      <scope>provided</scope>
                 </dependency>
 	</dependencies>
 	<build>
