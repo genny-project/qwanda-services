@@ -4083,8 +4083,15 @@ public class BaseEntityService2 {
 	public List<Ask> createAsksByQuestionCode2(final String questionCode, final String sourceCode,
 			final String targetCode) {
 		Question rootQuestion = findQuestionByCode(questionCode);
-		BaseEntity source = findBaseEntityByCode(sourceCode);
-		BaseEntity target = findBaseEntityByCode(targetCode);
+		BaseEntity source = null;
+		BaseEntity target = null;
+		if ("PER_SOURCE".equals(sourceCode) && "PER_TARGET".equals(targetCode)) {
+			source = new BaseEntity(sourceCode,"SourceCode");
+			target = new BaseEntity(targetCode,"TargetCode");
+		} else {
+			source = findBaseEntityByCode(sourceCode);
+			target = findBaseEntityByCode(targetCode);
+		}
 		return createAsksByQuestion2(rootQuestion, source, target);
 	}
 
