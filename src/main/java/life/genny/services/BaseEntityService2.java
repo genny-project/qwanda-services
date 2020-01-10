@@ -2025,7 +2025,11 @@ public class BaseEntityService2 {
 				// log.info("Answer processing 1 = "+((System.nanoTime() - answerStartMs) /
 				// 1e6)+" ms");
 				// check that the codes exist
+				try {
 				attribute = findAttributeByCode(answer.getAttributeCode());
+				} catch (NoResultException nre) {
+					log.error("Attribute not found in database - "+answer.getAttributeCode());
+				}
 				if (attribute == null && (answer.getAttributeCode().startsWith("SRT_")
 						|| answer.getAttributeCode().startsWith("SCH_"))) {
 					attribute = new AttributeText(answer.getAttributeCode(), answer.getAttributeCode());
@@ -2035,7 +2039,7 @@ public class BaseEntityService2 {
 							+ " ms - saving SEARCH Attribute " + attribute.getCode());
 				}
 				if (attribute == null) {
-					log.error("Attribute not found in database - "+answer.getAttributeCode());
+					
 					if (answer.getAttributeCode().startsWith("PRI_IS_")) {
 						attribute = new AttributeBoolean(answer.getAttributeCode(),
 								StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
