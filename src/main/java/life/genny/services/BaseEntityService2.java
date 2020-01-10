@@ -3042,22 +3042,23 @@ public class BaseEntityService2 {
 
 	public Attribute findAttributeByCode(@NotNull final String code, @NotNull final String realm)
 			throws NoResultException {
-		Attribute result = null;
-		List<Attribute> results = null;
+		Attribute result = null;	
+//		List<Attribute> results = null;
 		String cleanCode = code.trim().toUpperCase();
 		try {
-			results =getEntityManager()
+			result = (Attribute) getEntityManager()
 					.createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr")
-					.setParameter("realmStr", realm).setParameter("code", cleanCode).getResultList();
+					.setParameter("realmStr", realm).setParameter("code", cleanCode).getSingleResult();
 
 		} catch (Exception e) {
 			 e.printStackTrace();;
 		}
-		if (results == null || results.isEmpty()) {
-			return null;
-		} else {
-			return results.get(0); // return first one for now TODO
-		}
+//		if (results == null || results.isEmpty()) {
+//			return null;
+//		} else {
+//			return results.get(0); // return first one for now TODO
+//		}
+		return result;
 	}
 
 	public AnswerLink findAnswerLinkByCodes(@NotNull final String targetCode, @NotNull final String sourceCode,
