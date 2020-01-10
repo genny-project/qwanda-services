@@ -2035,6 +2035,7 @@ public class BaseEntityService2 {
 							+ " ms - saving SEARCH Attribute " + attribute.getCode());
 				}
 				if (attribute == null) {
+					log.error("Attribute not found in database - "+answer.getAttributeCode());
 					if (answer.getAttributeCode().startsWith("PRI_IS_")) {
 						attribute = new AttributeBoolean(answer.getAttributeCode(),
 								StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
@@ -2099,6 +2100,8 @@ public class BaseEntityService2 {
 					insert(attribute);
 					log.info("Answer processing 2.2 = " + ((System.nanoTime() - answerStartMs) / 1e6)
 							+ " ms - saving SEARCH Attribute " + attribute.getCode());
+				} else {
+					
 				}
 
 				answer.setAttribute(attribute);
@@ -3040,15 +3043,21 @@ public class BaseEntityService2 {
 	public Attribute findAttributeByCode(@NotNull final String code, @NotNull final String realm)
 			throws NoResultException {
 		Attribute result = null;
+		List<Attribute> results = null;
+		String cleanCode = code.trim().toUpperCase();
 		try {
-			result = (Attribute) getEntityManager()
+			results =getEntityManager()
 					.createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr")
-					.setParameter("realmStr", realm).setParameter("code", code.toUpperCase()).getSingleResult();
+					.setParameter("realmStr", realm).setParameter("code", cleanCode).getResultList();
 
 		} catch (Exception e) {
-			return null;
+			 e.printStackTrace();;
 		}
-		return result;
+		if (results == null || results.isEmpty()) {
+			return null;
+		} else {
+			return results.get(0); // return first one for now TODO
+		}
 	}
 
 	public AnswerLink findAnswerLinkByCodes(@NotNull final String targetCode, @NotNull final String sourceCode,
