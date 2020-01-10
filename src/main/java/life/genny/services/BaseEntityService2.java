@@ -2028,7 +2028,14 @@ public class BaseEntityService2 {
 				try {
 				attribute = findAttributeByCode(answer.getAttributeCode());
 				} catch (NoResultException nre) {
-					log.error("Attribute not found in database - "+answer.getAttributeCode());
+					log.error("Attribute not found in attribute table - "+answer.getAttributeCode());
+					try {
+						attribute = findAttributeLinkByCode(answer.getAttributeCode());
+					}
+					catch (NoResultException nre2) {
+						log.error("Attribute not found in attribute table - "+answer.getAttributeCode());
+						
+					}
 				}
 				if (attribute == null && (answer.getAttributeCode().startsWith("SRT_")
 						|| answer.getAttributeCode().startsWith("SCH_"))) {
