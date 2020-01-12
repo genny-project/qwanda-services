@@ -2033,7 +2033,7 @@ public class BaseEntityService2 {
 						attribute = findAttributeLinkByCode(answer.getAttributeCode());
 					}
 					catch (NoResultException nre2) {
-						log.error("Attribute not found in attribute table - "+answer.getAttributeCode());
+						log.error("Attribute not found in attribute link table - "+answer.getAttributeCode());
 						
 					}
 				}
@@ -3062,7 +3062,7 @@ public class BaseEntityService2 {
 					.setParameter("realmStr", realm).setParameter("code", cleanCode).getSingleResult();
 
 		} catch (Exception e) {
-			 e.printStackTrace();;
+			 throw new NoResultException("Attribute Code :"+code+" not found in db");
 		}
 //		if (results == null || results.isEmpty()) {
 //			return null;
