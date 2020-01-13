@@ -3062,7 +3062,7 @@ public class BaseEntityService2 {
 					.setParameter("realmStr", realm).setParameter("code", cleanCode).getSingleResult();
 
 		} catch (Exception e) {
-			 throw new NoResultException("Attribute Code :"+code+" not found in db");
+			// throw new NoResultException("Attribute Code :"+code+" not found in db");
 		}
 //		if (results == null || results.isEmpty()) {
 //			return null;
