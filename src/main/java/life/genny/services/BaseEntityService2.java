@@ -2028,16 +2028,20 @@ public class BaseEntityService2 {
 				// check that the codes exist
 				try {
 				attribute = findAttributeByCode(answer.getAttributeCode());
-				} catch (NoResultException nre) {
-					log.error("Attribute not found in attribute table - "+answer.getAttributeCode());
-					try {
-						attribute = findAttributeLinkByCode(answer.getAttributeCode());
-					}
-					catch (NoResultException nre2) {
-						log.error("Attribute not found in attribute link table - "+answer.getAttributeCode());
-						
-					}
+				} catch (Exception e)
+				{
+					log.error("@@@@@@@@@@@@@ Attribute not found in attribute table when saving answers- "+answer.getAttributeCode());
 				}
+//				} catch (NoResultException nre) {
+//					log.error("Attribute not found in attribute table - "+answer.getAttributeCode());
+//					try {
+//						attribute = findAttributeLinkByCode(answer.getAttributeCode());
+//					}
+//					catch (NoResultException nre2) {
+//						log.error("Attribute not found in attribute link table - "+answer.getAttributeCode());
+//						
+//					}
+//				}
 				if (attribute == null && (answer.getAttributeCode().startsWith("SRT_")
 						|| answer.getAttributeCode().startsWith("SCH_"))) {
 					attribute = new AttributeText(answer.getAttributeCode(), answer.getAttributeCode());
@@ -2142,7 +2146,9 @@ public class BaseEntityService2 {
 				// List<Answer> existingList = findAnswersByRawAnswer(answer);
 				// if (existingList.isEmpty()) {
 				try {
-					getEntityManager().persist(answer);
+					if ((!answer.getAttributeCode().startsWith("RUL_"))&& (!answer.getAttributeCode().startsWith("PRI_HASHCODE"))&& (!answer.getAttributeCode().startsWith("PRI_KIE_TEXT")))  {
+						//getEntityManager().persist(answer);
+					}
 					// log.info("Answer processing 4 = "+((System.nanoTime() - answerStartMs) /
 					// 1e6)+" ms - Persisted Answer");
 
