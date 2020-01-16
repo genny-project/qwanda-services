@@ -1961,6 +1961,7 @@ public class BaseEntityService2 {
 		return entity.getId();
 	}
 
+	
 	public Long insert(Answer[] answers) throws IllegalArgumentException {
 		long insertStartMs = System.nanoTime();
 		;
@@ -2272,8 +2273,12 @@ public class BaseEntityService2 {
 						+ ":" + answer.getTargetCode() + ":" + answer.getAttributeCode());
 
 			} catch (Exception transactionException) {
+				String answerStr = "";
+				if (answer.getValue()!=null) {
+					answerStr = StringUtils.abbreviate(answer.getValue().toString(), 25);
+				}
 				log.error("Transaction Exception in saving Answer -> " + answer.getSourceCode() + ":"
-						+ answer.getTargetCode() + ":" + answer.getAttributeCode());
+						+ answer.getTargetCode() + ":" + answer.getAttributeCode()+" : "+(answerStr));
 			}
 
 //				log.info("Answer processing  = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms "+answer.getRealm()+":"+ answer.getSourceCode()+":"+answer.getTargetCode()+":"+answer.getAttributeCode());
