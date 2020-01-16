@@ -2301,7 +2301,8 @@ public class BaseEntityService2 {
 				beTarget = getEntityManager().merge(beTarget); // if nothing changed then no need to merge beTarget
 //				log.info("Merged " + beTarget);
 			} catch (Exception e) {
-				e.printStackTrace();
+				//e.printStackTrace();
+				log.error("Transaction is required to perform this operation (either use a transaction or extended persistence context) for "+beTarget.getCode());
 			}
 			String json = JsonUtils.toJson(beTarget);
 			writeToDDT(beTarget.getCode(), json); // Update the DDT
