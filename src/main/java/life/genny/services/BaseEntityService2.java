@@ -2780,15 +2780,21 @@ public class BaseEntityService2 {
 			if (val == null) {
 				throw new NoResultException();
 			}
-		//	BeanNotNullFields copyFields = new BeanNotNullFields();
-		//	copyFields.copyProperties(val, be);
+			BeanNotNullFields copyFields = new BeanNotNullFields();
+			copyFields.copyProperties(val, be);
 		//	val.setRealm(realm);
 			// log.debug("***********" + val);
+      		System.out.println("*^*^*^*^*^*^*^*^**^*^*^*^*^*^*^*^*^*^*^ 0 " + val);
+      		System.out.println("*^*^*^*^*^*^*^*^**^*^*^*^*^*^*^*^*^*^*^ 1 " + be);
 			val.merge(be);
+      		System.out.println("*^*^*^*^*^*^*^*^**^*^*^*^*^*^*^*^*^*^*^ 2 " + val);
+      		System.out.println("*^*^*^*^*^*^*^*^**^*^*^*^*^*^*^*^*^*^*^ 3 " + be);
 			val = getEntityManager().merge(val);
+      		System.out.println("*^*^*^*^*^*^*^*^**^*^*^*^*^*^*^*^*^*^*^ 4 " + val);
+      		System.out.println("*^*^*^*^*^*^*^*^**^*^*^*^*^*^*^*^*^*^*^ 5 " + be);
 
 			return val;
-		} catch (NoResultException  | NullPointerException e) {
+		} catch (NoResultException  | NullPointerException | IllegalAccessException | InvocationTargetException e) {
 
 			if (BatchLoading.isSynchronise()) {
 				BaseEntity val = findBaseEntityByCode(be.getCode(), REALM_HIDDEN);
