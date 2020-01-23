@@ -2784,14 +2784,8 @@ public class BaseEntityService2 {
 			copyFields.copyProperties(val, be);
 		//	val.setRealm(realm);
 			// log.debug("***********" + val);
-      		System.out.println("*^*^*^*^*^*^*^*^**^*^*^*^*^*^*^*^*^*^*^ 0 " + val);
-      		System.out.println("*^*^*^*^*^*^*^*^**^*^*^*^*^*^*^*^*^*^*^ 1 " + be);
 			val.merge(be);
-      		System.out.println("*^*^*^*^*^*^*^*^**^*^*^*^*^*^*^*^*^*^*^ 2 " + val);
-      		System.out.println("*^*^*^*^*^*^*^*^**^*^*^*^*^*^*^*^*^*^*^ 3 " + be);
 			val = getEntityManager().merge(val);
-      		System.out.println("*^*^*^*^*^*^*^*^**^*^*^*^*^*^*^*^*^*^*^ 4 " + val);
-      		System.out.println("*^*^*^*^*^*^*^*^**^*^*^*^*^*^*^*^*^*^*^ 5 " + be);
 
 			return val;
 		} catch (NoResultException  | NullPointerException | IllegalAccessException | InvocationTargetException e) {
