@@ -35,6 +35,11 @@ public class QwandaUpserts {
     this.em = em;
   }
 
+  public EntityManager getEntityManager()
+  {
+	  return this.em;
+  }
+  
   public Ask findAskById(final Long id) {
     return em.find(Ask.class, id);
   }
