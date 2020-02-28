@@ -738,9 +738,9 @@ public class BatchLoading {
 			String module = (String) data.get("module");
 			Boolean disable = Boolean.valueOf((String) data.get("disable"));
 
-			System.out.println("Hellooooooooooooooooooooooooooooooooooooooooooooooo" + disable);
+			log.info("Hellooooooooooooooooooooooooooooooooooooooooooooooo" + disable);
 			if (disable)
-				System.out.println("heyheyheyhey this is project is disabled" + name);
+				log.info("heyheyheyhey this is project is disabled" + name);
 			final List<Map<String, Object>> map = new ArrayList<>();
 			System.out.printf("%-80s%s%n", "[" + this.mainRealm + "] Loading Project \033[31;1m" + name
 					+ "\033[0m and module \033[31;1m" + module + "\033[0m please wait...", "\uD83D\uDE31\t");
@@ -774,7 +774,7 @@ public class BatchLoading {
 				countDown--;
 			}
 		}
-		return projectsConfig.stream().peek(d -> System.out.println((String) d.get("disable")))
+		return projectsConfig.stream().peek(d -> log.info((String) d.get("disable")))
 				.filter(prj -> !Boolean.valueOf((String) prj.get("disable"))).map(data -> {
 					String sheetID = (String) data.get("sheetID");
 					if ("1tgefqD-33yFAn4PXlQa0UJOzFnKVK9ehT47nLxmqoXU".equals(sheetID)) {

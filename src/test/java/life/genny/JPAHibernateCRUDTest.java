@@ -395,37 +395,37 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
           }
           queryStr +=
               " bee.attributeCode=:attributeCode" + attributeCodeIndex + " and " + valueQuery;
-          System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+          log.info("Key : " + entry.getKey() + " Value : " + entry.getValue());
         }
         attributeCodeIndex++;
 
       }
-      System.out.println("Query=" + queryStr);
+      log.info("Query=" + queryStr);
       final Query query = em.createQuery(queryStr);
       int index = 0;
       for (final String attributeParm : attributeCodeList) {
         query.setParameter("attributeCode" + index, attributeParm);
-        System.out.println("attributeCode" + index + "=:" + attributeParm);
+        log.info("attributeCode" + index + "=:" + attributeParm);
         index++;
       }
       index = 0;
       for (final String valueParm : valueList) {
         query.setParameter("valueString" + index, valueParm);
-        System.out.println("valueString" + index + "=:" + valueParm);
+        log.info("valueString" + index + "=:" + valueParm);
         index++;
       }
       query.setFirstResult(pageStart).setMaxResults(pageSize).getResultList();
       eeResults = query.getResultList();
     }
     if (eeResults.isEmpty()) {
-      System.out.println("EEE IS EMPTY");
+      log.info("EEE IS EMPTY");
     } else {
-      System.out.println("EEE Count" + eeResults.size());
-      System.out.println("EEE" + eeResults);
+      log.info("EEE Count" + eeResults.size());
+      log.info("EEE" + eeResults);
     }
     for (final BaseEntity be : eeResults) {
-      System.out.println(be.getCode() + " + attributes");
-      be.getBaseEntityAttributes().stream().forEach(p -> System.out.println(p.getAttributeCode()));
+      log.info(be.getCode() + " + attributes");
+      be.getBaseEntityAttributes().stream().forEach(p -> log.info(p.getAttributeCode()));
     }
 
     // TODO: improve
@@ -436,7 +436,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
   // @Test
   public void getChildrenWithAttributesPaged() {
-    System.out.println("\n\n******************* KIDS WITH ATTRIBUTE!**************");
+    log.info("\n\n******************* KIDS WITH ATTRIBUTE!**************");
     final MultivaluedMap<String, String> qparams = new MultivaluedMapImpl<>();
     qparams.add("pageStart", "0");
     qparams.add("pageSize", "10");
@@ -486,7 +486,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
 
       } else {
-        System.out.println("PAIR COUNT IS NOT ZERO " + pairCount);
+        log.info("PAIR COUNT IS NOT ZERO " + pairCount);
         String eaStrings = "";
         String eaStringsQ = "";
         if (pairCount > 0) {
@@ -531,23 +531,23 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
             }
             queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
                 + attributeCodeIndex + " and " + valueQuery;
-            System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+            log.info("Key : " + entry.getKey() + " Value : " + entry.getValue());
           }
           attributeCodeIndex++;
 
         }
-        System.out.println("KIDS + ATTRIBUTE Query=" + queryStr);
+        log.info("KIDS + ATTRIBUTE Query=" + queryStr);
         final Query query = em.createQuery(queryStr);
         int index = 0;
         for (final String attributeParm : attributeCodeList) {
           query.setParameter("attributeCode" + index, attributeParm);
-          System.out.println("attributeCode" + index + "=:" + attributeParm);
+          log.info("attributeCode" + index + "=:" + attributeParm);
           index++;
         }
         index = 0;
         for (final String valueParm : valueList) {
           query.setParameter("valueString" + index, valueParm);
-          System.out.println("valueString" + index + "=:" + valueParm);
+          log.info("valueString" + index + "=:" + valueParm);
           index++;
         }
         query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
@@ -571,7 +571,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 
 
       } else {
-        System.out.println("PAIR COUNT  " + pairCount);
+        log.info("PAIR COUNT  " + pairCount);
         String eaStrings = "";
         String eaStringsQ = "";
         if (pairCount > 0) {
@@ -617,23 +617,23 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
             }
             queryStr += " ea" + attributeCodeIndex + ".attributeCode=:attributeCode"
                 + attributeCodeIndex + " and " + valueQuery;
-            System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
+            log.info("Key : " + entry.getKey() + " Value : " + entry.getValue());
           }
           attributeCodeIndex++;
 
         }
-        System.out.println("KIDS + ATTRIBUTE Query=" + queryStr);
+        log.info("KIDS + ATTRIBUTE Query=" + queryStr);
         final Query query = em.createQuery(queryStr);
         int index = 0;
         for (final String attributeParm : attributeCodeList) {
           query.setParameter("attributeCode" + index, attributeParm);
-          System.out.println("attributeCode" + index + "=:" + attributeParm);
+          log.info("attributeCode" + index + "=:" + attributeParm);
           index++;
         }
         index = 0;
         for (final String valueParm : valueList) {
           query.setParameter("valueString" + index, valueParm);
-          System.out.println("valueString" + index + "=:" + valueParm);
+          log.info("valueString" + index + "=:" + valueParm);
           index++;
         }
         query.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode);
@@ -647,7 +647,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
       }
 
     }
-    System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    log.info("+++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     // TODO: improve
 
     // final List<BaseEntity> results = beMap.values().stream().collect(Collectors.toList());
@@ -698,15 +698,15 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
         final LinkedHashMap map = (LinkedHashMap) user;
         final Map<String, Object> userMap = new HashMap<>();
         for (final Object key : map.keySet()) {
-          // System.out.println(key + ":" + map.get(key));
+          // log.info(key + ":" + map.get(key));
           userMap.put((String) key, map.get(key));
 
         }
         usersMap.put((String) userMap.get("username"), userMap);
-        System.out.println();
+        
       }
 
-      System.out.println("finished");
+      log.info("finished");
     } catch (final IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -749,7 +749,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
           user.addAttribute(usernameAtt, 0.0, username);
           service.insert(user);
 
-          System.out.println("BE:" + user);
+          log.info("BE:" + user);
         } catch (final BadDataException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
@@ -794,7 +794,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     templateEntityMap.put("JOB", dashboardBaseEnt);
 
     String mergedString = MergeUtil.merge(teststr, templateEntityMap);
-    System.out.println("merged string in template ::" + mergedString);
+    log.info("merged string in template ::" + mergedString);
     
     String testStr1 = "Welcome {{OWNER.PRI_FIRSTNAME}} {{OWNER.PRI_LASTNAME}} ! Your load of type {{LOAD.PRI_LOAD_TYPE}} has been picked from {{LOAD.PRI_FULL_PICKUP_ADDRESS}} by {{DRIVER.PRI_FIRSTNAME}}. It will be delivered at {{LOAD.PRI_FULL_DROPOFF_ADDRESS}}";
 
@@ -807,7 +807,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
     templateEntityMap1.put("DRIVER", driverEnt);
     
     String mergedString1 = MergeUtil.merge(testStr1, templateEntityMap1);
-    System.out.println("merged string in template ::" + mergedString1);
+    log.info("merged string in template ::" + mergedString1);
     
   }
 
@@ -896,11 +896,11 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
   
 //  @Test
 //  public <T extends CoreEntity> void testGen() {
-//    System.out.println("\n\n\n\n******222*******\n\n\n\n\n\n");
+//    log.info("\n\n\n\n******222*******\n\n\n\n\n\n");
 //    getEm().getTransaction().begin();
 //    T object = (T) new BaseEntity("PER_1","codi");
-//    System.out.println("ooo b j e c t "+service.upsert(object));
-//    System.out.println("ooo b j e c t "+service.findBaseEntityByCode("PER_1"));
+//    log.info("ooo b j e c t "+service.upsert(object));
+//    log.info("ooo b j e c t "+service.findBaseEntityByCode("PER_1"));
 //    getEm().getTransaction().commit();
 //  }
   
@@ -954,7 +954,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 			  service.upsert(person2);
 			  getEm().getTransaction().commit();
 			  
-			  System.out.println(person2);
+			  log.info(person2);
 
 			      
 			  Question questionFirstname2 = new Question(Question.getDefaultCodePrefix() + "FIRSTNAME2", "Firstname:",
@@ -1011,8 +1011,8 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 			 
 			 getEm().getTransaction().commit();
 			 
-			 System.out.println("Question Name:"+questionName);
-			 System.out.println("Question Address:"+questionAddress);
+			 log.info("Question Name:"+questionName);
+			 log.info("Question Address:"+questionAddress);
 			 
 			 // Now find recursive Asks
 			 
@@ -1035,12 +1035,12 @@ public void questionGroupTest()
 	getEm().getTransaction().begin();
 	Question addressGroupQuestion = service.findQuestionByCode("QUE_ADDRESS_GRP");
 	
-	System.out.println("Question Address group = "+addressGroupQuestion);
+	log.info("Question Address group = "+addressGroupQuestion);
 	
 	List<Ask> asks = service.createAsksByQuestionCode2(addressGroupQuestion.getCode(), "PER_USER1","PER_USER1");
 	getEm().getTransaction().commit();
 	
-	System.out.println("Asks:"+asks);
+	log.info("Asks:"+asks);
 	
 	
 }
@@ -1049,7 +1049,7 @@ public void questionGroupTest()
 	public void messageTemplateTest() {
 
 	//	QBaseMSGMessageTemplate template = service.findTemplateByCode("TST_TEMPLATES");
-	//	System.out.println("template description ::"+template.getDescription());
+	//	log.info("template description ::"+template.getDescription());
 
 	}
 	
@@ -1057,7 +1057,7 @@ public void questionGroupTest()
 	@Test
 	public void findAsks2Test()
 	{
-		System.out.println("FIND ASKS 2 TEST ");
+		log.info("FIND ASKS 2 TEST ");
 		Question rootQuestion = service.findQuestionByCode("QUE_NEW_USER_PROFILE_GRP");
 		 BaseEntity source = service.findBaseEntityByCode("PER_USER1");
 		getEm().getTransaction().begin();
@@ -1065,31 +1065,31 @@ public void questionGroupTest()
 				false, false,false,false) ;
 		getEm().getTransaction().commit();
 		
-		System.out.println("Asks:"+asks);
-		System.out.println("Number of asks=" + asks.size());
-		System.out.println("Number of asks=" + asks);
+		log.info("Asks:"+asks);
+		log.info("Number of asks=" + asks.size());
+		log.info("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
-		System.out.println("askMsgs=" + askMsgs);
+		log.info("askMsgs=" + askMsgs);
 
 		GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(Money.class, new MoneyDeserializer());
 		Gson gson = null;
 
 		gsonBuilder.registerTypeAdapter(LocalDateTime.class, new DateTimeDeserializer());
 		gson = gsonBuilder.excludeFieldsWithoutExposeAnnotation().create();
-		System.out.println("Performing JSON conversion ...");
+		log.info("Performing JSON conversion ...");
 		int i=0;
 		for (Ask ask : askMsgs.getItems()) {
 			for (Ask ask2 : ask.getChildAsks()) {
-		//	System.out.println(ask2);
+		//	log.info(ask2);
 //			for (Ask ask3 : ask2.getChildAsks()) 
 			try {
 				if (i>-1) {
 				String j = gson.toJson(ask2);
-		//		System.out.println("Json="+j);
+		//		log.info("Json="+j);
 				}
 				i++;
 			} catch (Exception e) {
-				System.out.println(ask2.getQuestionCode()+" crapped itri ");
+				log.info(ask2.getQuestionCode()+" crapped itri ");
 			}
 			}
 		}
@@ -1099,7 +1099,7 @@ public void questionGroupTest()
 //		askMsgs.getItems()[0].getChildAsks()[2] = null;
 //		askMsgs.getItems()[0].getChildAsks()[1] = null;
 		String json = gson.toJson(askMsgs);
-	//	System.out.println("json:"+json);
+	//	log.info("json:"+json);
 		
 		
 	}
@@ -1107,7 +1107,7 @@ public void questionGroupTest()
 	//@Test  memberhub no longer exists
 	public void findAsks2SelectionTest()
 	{
-		System.out.println("FIND ASKS 2 TEST MEMBERHUB SELECTION");
+		log.info("FIND ASKS 2 TEST MEMBERHUB SELECTION");
 		Question rootQuestion = service.findQuestionByCode("QUE_MEMBERHUB_GRP");
 		 BaseEntity source = service.findBaseEntityByCode("PER_USER1");
 		getEm().getTransaction().begin();
@@ -1115,26 +1115,26 @@ public void questionGroupTest()
 				false, true,false,false) ;
 		getEm().getTransaction().commit();
 		
-		System.out.println("Asks:"+asks);
-		System.out.println("Number of asks=" + asks.size());
-		System.out.println("Number of asks=" + asks);
+		log.info("Asks:"+asks);
+		log.info("Number of asks=" + asks.size());
+		log.info("Number of asks=" + asks);
 		final QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
-		System.out.println("askMsgs=" + askMsgs);
+		log.info("askMsgs=" + askMsgs);
 
-		System.out.println("Performing JSON conversion ...");
+		log.info("Performing JSON conversion ...");
 		int i=0;
 		for (Ask ask : askMsgs.getItems()) {
 			for (Ask ask2 : ask.getChildAsks()) {
-			System.out.println(ask2);
+			log.info(ask2);
 //			for (Ask ask3 : ask2.getChildAsks()) 
 			try {
 				if (i>-1) {
 				String j = JsonUtils.toJson(ask2);
-				System.out.println("Json="+j);
+				log.info("Json="+j);
 				}
 				i++;
 			} catch (Exception e) {
-				System.out.println(ask2.getQuestionCode()+" crapped itri ");
+				log.info(ask2.getQuestionCode()+" crapped itri ");
 			}
 			}
 		}
@@ -1144,7 +1144,7 @@ public void questionGroupTest()
 //		askMsgs.getItems()[0].getChildAsks()[2] = null;
 //		askMsgs.getItems()[0].getChildAsks()[1] = null;
 		String json = JsonUtils.toJson(askMsgs);
-		System.out.println("json:"+json);
+		log.info("json:"+json);
 		
 		
 	}
@@ -1155,19 +1155,19 @@ public void questionGroupTest()
 		// http://10.0.0.197:8280/qwanda/baseentitys/PER_USER1/asks2/QUE_NEW_USER_PROFILE_GRP/PER_USER1
 		// http://localhost:8280/qwanda/baseentitys/PER_USER1/asks2/QUE_OFFER_DETAILS_GRP/OFR_OFFER1
 		List<Ask> asks = service.createAsksByQuestionCode2("QUE_NEW_USER_PROFILE_GRP", "PER_USER1", "PER_USER1");
-		System.out.println("Number of asks=" + asks.size());
-		System.out.println("Number of asks=" + asks);
+		log.info("Number of asks=" + asks.size());
+		log.info("Number of asks=" + asks);
 		QDataAskMessage askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
 		String json = JsonUtils.toJson(askMsgs);
-		System.out.println("askMsgs=" + json);
+		log.info("askMsgs=" + json);
 
 //		asks = service.createAsksByQuestionCode2("QUE_NEW_USER_PROFILE_GRP", "PER_USER1", "OFR_OFFER1");
-//		System.out.println("Number of asks=" + asks.size());
-//		System.out.println("Number of asks=" + asks);
+//		log.info("Number of asks=" + asks.size());
+//		log.info("Number of asks=" + asks);
 //		askMsgs = new QDataAskMessage(asks.toArray(new Ask[0]));
 //
 //		json = JsonUtils.toJson(askMsgs);
-//		System.out.println("askMsgs 2=" + json);
+//		log.info("askMsgs 2=" + json);
 	}
 	
 	@Test
@@ -1187,7 +1187,7 @@ public void questionGroupTest()
 
 		for (final BaseEntity be : targets) {
 			log.info("\n" + be.getCode() + " + attributes");
-			be.getBaseEntityAttributes().stream().forEach(p -> System.out.println(p.getAttributeCode()));
+			be.getBaseEntityAttributes().stream().forEach(p -> log.info(p.getAttributeCode()));
 		}
 
 	}
@@ -1202,7 +1202,7 @@ public void questionGroupTest()
 	      List<BaseEntity> baseEntityList = Arrays.asList(user, company);
 	      QDataAskMessage askMsg = new QDataAskMessage(asksArray);
 		  Boolean result = QwandaUtils.isMandatoryFieldsCompleted(askMsg, baseEntityList);
-		 System.out.println("The Test Result for isMandatoryCompleted is  ::    "+result);
+		 log.info("The Test Result for isMandatoryCompleted is  ::    "+result);
 	   }
 	 
 	 
