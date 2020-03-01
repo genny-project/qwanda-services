@@ -2739,8 +2739,11 @@ public class BaseEntityService2 {
 			copyFields.copyProperties(val, q);
 
 			val.setRealm(getRealm());
-
-			val = getEntityManager().merge(val);
+			if (val.getAttribute() == null) {
+				log.error("BaseEntityService2: attribute in Question is null for attributeCode -"+val.getAttributeCode());
+			} else {
+				val = getEntityManager().merge(val);
+			}
 			return val;
 		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
 			try {
@@ -2754,7 +2757,7 @@ public class BaseEntityService2 {
 						return val;
 					}
 				}
-
+				
 				getEntityManager().persist(q);
 			} catch (javax.validation.ConstraintViolationException ce) {
 				log.error("Error in saving question due to constraint issue:" + q + " :" + ce.getLocalizedMessage());
