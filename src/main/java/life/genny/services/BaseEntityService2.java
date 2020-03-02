@@ -42,6 +42,9 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -131,6 +134,10 @@ public class BaseEntityService2 {
 
 	Set<String> realms = new HashSet<>(Arrays.asList("genny", "hidden"));
 	String realmsStr = getRealmsStr(realms);
+	
+	ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+	Validator validator = factory.getValidator();
+
 
 	public List<BaseEntity> findBySearchBE2(@NotNull final String hql) {
 		List<BaseEntity> results = null;
@@ -2739,12 +2746,18 @@ public class BaseEntityService2 {
 			copyFields.copyProperties(val, q);
 
 			val.setRealm(getRealm());
-			if (val.getAttribute() == null) {
-				log.error("BaseEntityService2: attribute in Question is null for attributeCode -"+val.getAttributeCode());
-			} else {
-				val = getEntityManager().merge(val);
+			Set<ConstraintViolation<Question>> constraints = validator.validate(val);
+			for (ConstraintViolation<Question> constraint : constraints) {
+				log.error(constraint.getPropertyPath() + " " + constraint.getMessage());
 			}
-			return val;
+			if (constraints.isEmpty()) {
+				val = getEntityManager().merge(val);
+				return val;
+			} else {
+				log.error("Error in Hibernate Validation for quesiton "+q.getCode()+" with attribute code :"+q.getAttributeCode());
+			}
+			return null; // TODO throw an error
+			
 		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
 			try {
 
@@ -2792,6 +2805,7 @@ public class BaseEntityService2 {
 			// val.setRealm(realm);
 			// log.debug("***********" + val);
 			val.merge(be);
+			
 			val = getEntityManager().merge(val);
 
 			return val;
