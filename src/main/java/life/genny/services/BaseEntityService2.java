@@ -1947,7 +1947,9 @@ public class BaseEntityService2 {
 
 		// always check if baseentity exists through check for unique code
 		try {
-
+			if (StringUtils.isBlank(entity.getName())) {
+				entity.setName(entity.getCode());
+			}
 			entity.setRealm(getRealm());
 
 			getEntityManager().persist(entity);
