@@ -5758,8 +5758,8 @@ public class BaseEntityService2 {
 		if (validationList.size() == 0) return;
 		int index = 1;
 		EntityManager em = getEntityManager();
-		EntityTransaction transaction = em.getTransaction();
-		if (!transaction.isActive()) transaction.begin();
+//		EntityTransaction transaction = em.getTransaction();
+//		if (!transaction.isActive()) transaction.begin();
 
 		for (Validation validation : validationList) {
 			em.persist(validation);
@@ -5770,15 +5770,15 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
-		transaction.commit();
+//		transaction.commit();
 	}
 
 	public void insertAttributes(ArrayList<Attribute> attributeList) {
 		if (attributeList.size() == 0) return;
 		int index = 1;
 		EntityManager em = getEntityManager();
-		EntityTransaction transaction = em.getTransaction();
-		if (!transaction.isActive()) transaction.begin();
+//		EntityTransaction transaction = em.getTransaction();
+//		if (!transaction.isActive()) transaction.begin();
 
 		for (Attribute attribute : attributeList) {
 			em.persist(attribute);
@@ -5789,7 +5789,7 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
-		transaction.commit();
+//		transaction.commit();
 
 	}
 
@@ -5797,8 +5797,8 @@ public class BaseEntityService2 {
 		if (entityAttributeList.size() == 0) return;
 		int index = 1;
 		EntityManager em = getEntityManager();
-		EntityTransaction transaction = em.getTransaction();
-		if (!transaction.isActive()) transaction.begin();
+//		EntityTransaction transaction = em.getTransaction();
+//		if (!transaction.isActive()) transaction.begin();
 
 		for (EntityAttribute entityAttribute : entityAttributeList) {
 			em.persist(entityAttribute);
@@ -5809,7 +5809,7 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
-		transaction.commit();
+//		transaction.commit();
 	}
 
 	private void saveToDDT(BaseEntity baseEntity) {
@@ -5831,8 +5831,8 @@ public class BaseEntityService2 {
 		if (baseEntityList.size() == 0) return;
 		int index = 1;
 		EntityManager em = getEntityManager();
-		EntityTransaction transaction = em.getTransaction();
-		if (!transaction.isActive()) transaction.begin();
+//		EntityTransaction transaction = em.getTransaction();
+//		if (!transaction.isActive()) transaction.begin();
 
 		for (BaseEntity baseEntity : baseEntityList) {
 			em.persist(baseEntity);
@@ -5844,7 +5844,7 @@ public class BaseEntityService2 {
 			saveToDDT(baseEntity);
 			index += 1;
 		}
-		transaction.commit();
+//		transaction.commit();
 
 	}
 
@@ -5852,8 +5852,8 @@ public class BaseEntityService2 {
 		if (entityEntityList.size() == 0) return;
 		int index = 1;
 		EntityManager em = getEntityManager();
-		EntityTransaction transaction = em.getTransaction();
-		if (!transaction.isActive()) transaction.begin();
+//		EntityTransaction transaction = em.getTransaction();
+//		if (!transaction.isActive()) transaction.begin();
 
 		for (EntityEntity entityEntity : entityEntityList) {
 			em.persist(entityEntity);
@@ -5864,15 +5864,15 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
-		transaction.commit();
+//		transaction.commit();
 	}
 
 	public void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList) {
 		if (attributeLinkList.size() == 0) return;
 		int index = 1;
 		EntityManager em = getEntityManager();
-		EntityTransaction transaction = em.getTransaction();
-		if (!transaction.isActive()) transaction.begin();
+//		EntityTransaction transaction = em.getTransaction();
+//		if (!transaction.isActive()) transaction.begin();
 
 		for (AttributeLink attributeLink : attributeLinkList) {
 			em.persist(attributeLink);
@@ -5883,15 +5883,15 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
-		transaction.commit();
+//		transaction.commit();
 	}
 
 	public void insertQuestions(ArrayList<Question> questionList) {
 		if (questionList.size() == 0) return;
 		int index = 1;
 		EntityManager em = getEntityManager();
-		EntityTransaction transaction = em.getTransaction();
-		if (!transaction.isActive()) transaction.begin();
+//		EntityTransaction transaction = em.getTransaction();
+//		if (!transaction.isActive()) transaction.begin();
 
 		for (Question question : questionList) {
 			em.persist(question);
@@ -5902,15 +5902,15 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
-		transaction.commit();
+//		transaction.commit();
 	}
 
 	public void insertQuestionQuestions(ArrayList<QuestionQuestion> questionQuestionList) {
 		if (questionQuestionList.size() == 0) return;
 		int index = 1;
 		EntityManager em = getEntityManager();
-		EntityTransaction transaction = em.getTransaction();
-		if (!transaction.isActive()) transaction.begin();
+//		EntityTransaction transaction = em.getTransaction();
+//		if (!transaction.isActive()) transaction.begin();
 
 		for (QuestionQuestion questionQuestion : questionQuestionList) {
 			em.persist(questionQuestion);
@@ -5921,15 +5921,15 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
-		transaction.commit();
+//		transaction.commit();
 	}
 
 	public void insertAsks(ArrayList<Ask> askList) {
 		if (askList.size() == 0) return;
 		int index = 1;
 		EntityManager em = getEntityManager();
-		EntityTransaction transaction = em.getTransaction();
-		if (!transaction.isActive()) transaction.begin();
+//		EntityTransaction transaction = em.getTransaction();
+//		if (!transaction.isActive()) transaction.begin();
 
 		for (Ask ask : askList) {
 			em.persist(ask);
@@ -5940,15 +5940,15 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
-		transaction.commit();
+//		transaction.commit();
 	}
 
 	public void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList) {
 		if (messageList.size() == 0) return;
 		int index = 1;
 		EntityManager em = getEntityManager();
-		EntityTransaction transaction = em.getTransaction();
-		if (!transaction.isActive()) transaction.begin();
+//		EntityTransaction transaction = em.getTransaction();
+//		if (!transaction.isActive()) transaction.begin();
 
 		for (QBaseMSGMessageTemplate message : messageList) {
 			em.persist(message);
@@ -5959,6 +5959,6 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
-		transaction.commit();
+//		transaction.commit();
 	}
 }
