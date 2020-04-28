@@ -2734,7 +2734,10 @@ public class BaseEntityService2 {
 
 	public Question upsert(Question q) {
 		try {
+			assert(q.getAttributeCode().equals(q.getAttribute().getCode()));
 			String code = q.getCode();
+			String attributeCode = q.getAttributeCode();
+			log.info("1New question:" + code + " with AttributeCode:" + attributeCode);
 			Question val = findQuestionByCode(code);
 			BeanNotNullFields copyFields = new BeanNotNullFields();
 			if (val == null) {
@@ -2747,7 +2750,14 @@ public class BaseEntityService2 {
 			for (ConstraintViolation<Question> constraint : constraints) {
 				log.error(constraint.getPropertyPath() + " " + constraint.getMessage());
 			}
+
 			if (constraints.isEmpty()) {
+				log.info("2New question:" + val.getCode() + " with AttributeCode:" + val.getAttributeCode());
+				Attribute attr = findAttributeByCode(val.getAttributeCode(), val.getRealm());
+				assert(val.getAttributeCode().equals(val.getAttribute().getCode()));
+				if (attr == null) {
+					log.error("3Can't find attributeCode:" + val.getAttributeCode() +",Realm:" +  val.getRealm() + " in DB");
+				}
 				val = getEntityManager().merge(val);
 				return val;
 			} else {
@@ -3083,23 +3093,35 @@ public class BaseEntityService2 {
 
 	public Attribute findAttributeByCode(@NotNull final String code, @NotNull final String realm)
 			throws NoResultException {
-		Attribute result = null;
-//		List<Attribute> results = null;
+		List<Attribute> results = Collections.emptyList();
 		String cleanCode = code.trim().toUpperCase();
-		try {
-			result = (Attribute) getEntityManager()
-					.createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr")
-					.setParameter("realmStr", realm).setParameter("code", cleanCode).getSingleResult();
+//		Query query = getEntityManager().createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr");
+//		query.setParameter("realmStr", realm);
+//		query.setParameter("code", cleanCode);
 
-		} catch (Exception e) {
-			// throw new NoResultException("Attribute Code :"+code+" not found in db");
-		}
-//		if (results == null || results.isEmpty()) {
-//			return null;
-//		} else {
-//			return results.get(0); // return first one for now TODO
+//		try {
+//			results = query.getResultList();
+//		} catch (Exception e) {
+//			log.error("DEBUG Query Attribute table Error:" + e.getMessage());
 //		}
-		return result;
+//
+
+		String queryString = "SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr";
+
+		TypedQuery<Attribute> query = getEntityManager().createQuery(queryString, Attribute.class);
+		query.setParameter("realmStr", realm);
+		query.setParameter("code", cleanCode);
+		try {
+			results = query.getResultList();
+		} catch (Exception e) {
+			log.error("DEBUG Query Attribute table Error:" + e.getMessage());
+		}
+
+		if (results.isEmpty()) {
+			return null;
+		} else {
+			return results.get(0);
+		}
 	}
 
 	public AnswerLink findAnswerLinkByCodes(@NotNull final String targetCode, @NotNull final String sourceCode,
@@ -5754,10 +5776,17 @@ public class BaseEntityService2 {
 		return result;
 	}
 
+
+    private EntityManager getem() {
+		EntityManager em = getEntityManager();
+		em.setFlushMode(FlushModeType.COMMIT);
+		return em;
+    }
+
 	public void insertValidations(ArrayList<Validation> validationList) {
 		if (validationList.size() == 0) return;
 		int index = 1;
-		EntityManager em = getEntityManager();
+		EntityManager em = getem();
 //		EntityTransaction transaction = em.getTransaction();
 //		if (!transaction.isActive()) transaction.begin();
 
@@ -5770,13 +5799,14 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
+		em.flush();
 //		transaction.commit();
 	}
 
 	public void insertAttributes(ArrayList<Attribute> attributeList) {
 		if (attributeList.size() == 0) return;
 		int index = 1;
-		EntityManager em = getEntityManager();
+		EntityManager em = getem();
 //		EntityTransaction transaction = em.getTransaction();
 //		if (!transaction.isActive()) transaction.begin();
 
@@ -5789,6 +5819,7 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
+		em.flush();
 //		transaction.commit();
 
 	}
@@ -5796,7 +5827,7 @@ public class BaseEntityService2 {
 	public void insertEntityAttribute(ArrayList<EntityAttribute> entityAttributeList) {
 		if (entityAttributeList.size() == 0) return;
 		int index = 1;
-		EntityManager em = getEntityManager();
+		EntityManager em = getem();
 //		EntityTransaction transaction = em.getTransaction();
 //		if (!transaction.isActive()) transaction.begin();
 
@@ -5809,6 +5840,7 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
+		em.flush();
 //		transaction.commit();
 	}
 
@@ -5830,7 +5862,7 @@ public class BaseEntityService2 {
 	public void insertBaseEntitys(ArrayList<BaseEntity> baseEntityList) {
 		if (baseEntityList.size() == 0) return;
 		int index = 1;
-		EntityManager em = getEntityManager();
+		EntityManager em = getem();
 //		EntityTransaction transaction = em.getTransaction();
 //		if (!transaction.isActive()) transaction.begin();
 
@@ -5844,6 +5876,7 @@ public class BaseEntityService2 {
 			saveToDDT(baseEntity);
 			index += 1;
 		}
+		em.flush();
 //		transaction.commit();
 
 	}
@@ -5851,7 +5884,7 @@ public class BaseEntityService2 {
 	public void insertEntityEntitys(ArrayList<EntityEntity> entityEntityList) {
 		if (entityEntityList.size() == 0) return;
 		int index = 1;
-		EntityManager em = getEntityManager();
+		EntityManager em = getem();
 //		EntityTransaction transaction = em.getTransaction();
 //		if (!transaction.isActive()) transaction.begin();
 
@@ -5864,13 +5897,14 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
+		em.flush();
 //		transaction.commit();
 	}
 
 	public void insertAttributeLinks(ArrayList<AttributeLink> attributeLinkList) {
 		if (attributeLinkList.size() == 0) return;
 		int index = 1;
-		EntityManager em = getEntityManager();
+		EntityManager em = getem();
 //		EntityTransaction transaction = em.getTransaction();
 //		if (!transaction.isActive()) transaction.begin();
 
@@ -5883,6 +5917,7 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
+		em.flush();
 //		transaction.commit();
 	}
 
@@ -5890,6 +5925,7 @@ public class BaseEntityService2 {
 		if (questionList.size() == 0) return;
 		int index = 1;
 		EntityManager em = getEntityManager();
+		getEntityManager().setFlushMode(FlushModeType.COMMIT);
 //		EntityTransaction transaction = em.getTransaction();
 //		if (!transaction.isActive()) transaction.begin();
 
@@ -5902,13 +5938,14 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
+		em.flush();
 //		transaction.commit();
 	}
 
 	public void insertQuestionQuestions(ArrayList<QuestionQuestion> questionQuestionList) {
 		if (questionQuestionList.size() == 0) return;
 		int index = 1;
-		EntityManager em = getEntityManager();
+		EntityManager em = getem();
 //		EntityTransaction transaction = em.getTransaction();
 //		if (!transaction.isActive()) transaction.begin();
 
@@ -5921,13 +5958,14 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
+		em.flush();
 //		transaction.commit();
 	}
 
 	public void insertAsks(ArrayList<Ask> askList) {
 		if (askList.size() == 0) return;
 		int index = 1;
-		EntityManager em = getEntityManager();
+		EntityManager em = getem();
 //		EntityTransaction transaction = em.getTransaction();
 //		if (!transaction.isActive()) transaction.begin();
 
@@ -5940,13 +5978,14 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
+		em.flush();
 //		transaction.commit();
 	}
 
 	public void inserTemplate(ArrayList<QBaseMSGMessageTemplate> messageList) {
 		if (messageList.size() == 0) return;
 		int index = 1;
-		EntityManager em = getEntityManager();
+		EntityManager em = getem();
 //		EntityTransaction transaction = em.getTransaction();
 //		if (!transaction.isActive()) transaction.begin();
 
@@ -5959,6 +5998,7 @@ public class BaseEntityService2 {
 			}
 			index += 1;
 		}
+		em.flush();
 //		transaction.commit();
 	}
 }
