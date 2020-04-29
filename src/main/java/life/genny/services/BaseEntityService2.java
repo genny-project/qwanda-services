@@ -1950,6 +1950,7 @@ public class BaseEntityService2 {
 			getEntityManager().persist(entity);
 			String json = JsonUtils.toJson(entity);
 			writeToDDT(entity.getCode(), json);
+			log.debug("DEBUG: BaseEntity:" + entity.getCode() + " Persisted and write to cache");
 		} catch (javax.validation.ConstraintViolationException e) {
 			log.error("Cannot save BaseEntity with code " + entity.getCode() + "! " + e.getLocalizedMessage());
 			return -1L;
