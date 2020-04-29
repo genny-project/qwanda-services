@@ -2773,17 +2773,17 @@ public class BaseEntityService2 {
 			if (constraints.isEmpty()) {
 				EntityManager em = getEntityManager();
 				log.info("2New question:" + val.getCode() + " with AttributeCode:" + val.getAttributeCode());
-				Attribute attr = queryAttributeByCode(em, val.getAttributeCode(), val.getRealm());
-				assert(val.getAttributeCode().equals(val.getAttribute().getCode()));
-				if (attr == null) {
-					log.error("3Can't find attributeCode:" + val.getAttributeCode() +",Realm:" +  val.getRealm() + " in DB");
-				}
-				try {
-					val = em.merge(val);
-				} catch (Exception ex) {
-					log.error("Merge Question failed, QuestionCode:" + val.getCode() + ", AttributeCode:" + val.getAttribute().getCode() +  ",Eexeption:"  + ex.getMessage());
-					throw ex;
-				}
+//				Attribute attr = queryAttributeByCode(em, val.getAttributeCode(), val.getRealm());
+//				assert(val.getAttributeCode().equals(val.getAttribute().getCode()));
+//				if (attr == null) {
+//					log.error("3Can't find attributeCode:" + val.getAttributeCode() +",Realm:" +  val.getRealm() + " in DB");
+//				}
+//				try {
+//					val = em.merge(val);
+//				} catch (Exception ex) {
+//					log.error("Merge Question failed, QuestionCode:" + val.getCode() + ", AttributeCode:" + val.getAttribute().getCode() +  ",Eexeption:"  + ex.getMessage());
+//					throw ex;
+//				}
 				return val;
 			} else {
 				log.error("Error in Hibernate Validation for quesiton "+q.getCode()+" with attribute code :"+q.getAttributeCode());
