@@ -2732,6 +2732,25 @@ public class BaseEntityService2 {
 		}
 	}
 
+	private Attribute queryAttributeByCode(EntityManager em, String code, String realm) {
+		List<Attribute> results = Collections.emptyList();
+		String cleanCode = code.trim().toUpperCase();
+
+		Query query = em.createNativeQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr");
+		query.setParameter("realmStr", realm);
+		query.setParameter("code", cleanCode);
+		try {
+			results = query.getResultList();
+		} catch (Exception e) {
+			log.error("DEBUG Query Attribute table Error:" + e.getMessage());
+		}
+		if (results.isEmpty()) {
+			return null;
+		} else {
+			return results.get(0);
+		}
+	}
+
 	public Question upsert(Question q) {
 		try {
 			assert(q.getAttributeCode().equals(q.getAttribute().getCode()));
@@ -2752,13 +2771,19 @@ public class BaseEntityService2 {
 			}
 
 			if (constraints.isEmpty()) {
+				EntityManager em = getEntityManager();
 				log.info("2New question:" + val.getCode() + " with AttributeCode:" + val.getAttributeCode());
-				Attribute attr = findAttributeByCode(val.getAttributeCode(), val.getRealm());
+				Attribute attr = queryAttributeByCode(em, val.getAttributeCode(), val.getRealm());
 				assert(val.getAttributeCode().equals(val.getAttribute().getCode()));
 				if (attr == null) {
 					log.error("3Can't find attributeCode:" + val.getAttributeCode() +",Realm:" +  val.getRealm() + " in DB");
 				}
-				val = getEntityManager().merge(val);
+				try {
+					val = em.merge(val);
+				} catch (Exception ex) {
+					log.error("Merge Question failed, QuestionCode:" + val.getCode() + ", AttributeCode:" + val.getAttribute().getCode() +  ",Eexeption:"  + ex.getMessage());
+					throw ex;
+				}
 				return val;
 			} else {
 				log.error("Error in Hibernate Validation for quesiton "+q.getCode()+" with attribute code :"+q.getAttributeCode());
@@ -3095,26 +3120,15 @@ public class BaseEntityService2 {
 			throws NoResultException {
 		List<Attribute> results = Collections.emptyList();
 		String cleanCode = code.trim().toUpperCase();
-//		Query query = getEntityManager().createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr");
-//		query.setParameter("realmStr", realm);
-//		query.setParameter("code", cleanCode);
-
-//		try {
-//			results = query.getResultList();
-//		} catch (Exception e) {
-//			log.error("DEBUG Query Attribute table Error:" + e.getMessage());
-//		}
-//
-
-		String queryString = "SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr";
-
-		TypedQuery<Attribute> query = getEntityManager().createQuery(queryString, Attribute.class);
+		EntityManager em = getEntityManager();
+		Query query = em.createQuery("SELECT a FROM Attribute a where a.code=:code and a.realm=:realmStr");
 		query.setParameter("realmStr", realm);
 		query.setParameter("code", cleanCode);
+
 		try {
 			results = query.getResultList();
 		} catch (Exception e) {
-			log.error("DEBUG Query Attribute table Error:" + e.getMessage());
+			log.error("DEBUG: Query Attribute table Error:" + e.getMessage() + "AttributeCode:" + code + ", Realm:" + realm);
 		}
 
 		if (results.isEmpty()) {
