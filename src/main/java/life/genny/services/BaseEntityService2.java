@@ -399,6 +399,7 @@ public class BaseEntityService2 {
 			}
 		}
 		// Long count1 = 100L;
+		
 		Object count1 = query.getSingleResult();
 		log.info("The Count Object is :: " + count1.toString());
 		count = (Long) count1;
@@ -1303,7 +1304,10 @@ public class BaseEntityService2 {
 	private String updateFilterStringsQ(String filterStringsQ, Integer filterIndex, EntityAttribute ea,
 			String condition, String attributeCodeEA, String typeName) {
 		if (ea.getAttributeName() == null) {
-			filterStringsQ += " and " + attributeCodeEA + ".value" + typeName + "=:v" + filterIndex + " ";
+			String newString = " and " + attributeCodeEA + ".value" + typeName + "=:v" + filterIndex + " ";
+			if (!filterStringsQ.contains(newString)) { // don't double up
+				filterStringsQ +=  newString; 
+			}
 		} else {
 			if (condition.equalsIgnoreCase(SearchEntity.Filter.BIT_MASK_POSITIVE.toString())) {
 				filterStringsQ += " and (bitwise_and(" + attributeCodeEA + ".value" + typeName + " , :v" + filterIndex
@@ -1312,8 +1316,12 @@ public class BaseEntityService2 {
 				filterStringsQ += " and (bitwise_and(" + attributeCodeEA + ".value" + typeName + " , :v" + filterIndex
 						+ ") = 0) ";
 			} else {
-				filterStringsQ += " and " + attributeCodeEA + ".value" + typeName + " " + condition + " :v"
+				String newString = filterStringsQ += " and " + attributeCodeEA + ".value" + typeName + " " + condition + " :v"
 						+ filterIndex + " ";
+				if (!filterStringsQ.contains(newString)) { // don't double up
+					filterStringsQ +=  newString; 
+				}
+
 			}
 		}
 		return filterStringsQ;
@@ -1343,6 +1351,10 @@ public class BaseEntityService2 {
 			}
 		}
 
+		filterStringsQ = filterStringsQ.replace("(", "").replace(")","").replaceAll("  ", " ");
+		codeFilter = codeFilter.replaceAll("  ", " ");
+		
+		
 		String sql = "select " + prefix + " from EntityAttribute ea "
 				+ (stakeholderCode != null ? " ,EntityEntity ff " : "")
 				+ (sourceStakeholderCode != null ? " ,EntityEntity gg " : "")
@@ -1366,7 +1378,8 @@ public class BaseEntityService2 {
 				+ (sourceStakeholderCode != null
 						? " and ((gg.pk.targetCode=:sourceStakeholderCode and gg.pk.source.code=ee.pk.source.code) or (gg.pk.targetCode=:sourceStakeholderCode and gg.pk.targetCode=ee.pk.source.code)  ) "
 						: "")
-				+ filterStringsQ + orderString;
+				+ ((!codeFilter.contains(filterStringsQ ))?filterStringsQ:" ")
+				+ orderString;
 
 		// Ugly
 		if (StringUtils.isBlank(orderString)) {
