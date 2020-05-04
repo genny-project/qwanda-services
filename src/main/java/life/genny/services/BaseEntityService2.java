@@ -372,8 +372,11 @@ public class BaseEntityService2 {
 		}
 		//
 		for (Tuple2<String, Object> value : ss.valueList) {
-			log.debug("Value: " + value._1 + " =: " + value._2);
-			if (value._2 instanceof Boolean) {
+			log.info("Value: " + value._1 + " =: " + value._2);
+			if (value._2 instanceof String) {
+				String result = (String) value._2;
+				query.setParameter(value._1, result);
+			} else if (value._2 instanceof Boolean) {
 				Boolean result = (Boolean) value._2;
 				query.setParameter(value._1, result);
 			} else if (value._2 instanceof LocalDateTime) {
@@ -381,6 +384,12 @@ public class BaseEntityService2 {
 				query.setParameter(value._1, result);
 			} else if (value._2 instanceof LocalDate) {
 				LocalDate result = (LocalDate) value._2;
+				query.setParameter(value._1, result);
+			} else if (value._2 instanceof Long) {
+				Long result = (Long) value._2;
+				query.setParameter(value._1, result);
+			} else if (value._2 instanceof Integer) {
+				Integer result = (Integer) value._2;
 				query.setParameter(value._1, result);
 			} else if (value._2 instanceof LocalTime) {
 				LocalTime result = (LocalTime) value._2;
