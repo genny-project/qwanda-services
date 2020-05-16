@@ -139,6 +139,21 @@ public class BaseEntityService2 {
 	Validator validator = factory.getValidator();
 
 
+	public List<EntityAttribute> findBySearchEA22(@NotNull final String hql) {
+		List<EntityAttribute> results = null;
+
+		Query query = null;
+	//	Set<String> attributeCodes = new HashSet<>(Arrays.asList("PRI_NAME"));
+	//	Filter filter = getEntityManager().unwrap(Session.class).enableFilter("filterAttribute");
+	//	filter.setParameterList("attributeCodes", attributeCodes);
+		query = getEntityManager().createQuery(hql);
+		query.setFirstResult(0).setMaxResults(10000);
+
+		results = query.setHint(QueryHints.HINT_READONLY, true).getResultList();
+		log.info("RESULTS=" + results);
+		return results;
+	}
+	
 	public List<BaseEntity> findBySearchBE2(@NotNull final String hql) {
 		List<BaseEntity> results = null;
 
