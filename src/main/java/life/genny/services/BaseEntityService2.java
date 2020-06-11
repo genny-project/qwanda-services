@@ -103,6 +103,7 @@ import life.genny.qwanda.message.QBaseMSGMessageTemplate;
 import life.genny.qwanda.message.QDataSubLayoutMessage;
 import life.genny.qwanda.message.QEventAttributeValueChangeMessage;
 import life.genny.qwanda.message.QEventLinkChangeMessage;
+import life.genny.qwanda.message.QSearchBeResult;
 import life.genny.qwanda.message.QSearchEntityMessage;
 import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.validation.Validation;
@@ -139,7 +140,7 @@ public class BaseEntityService2 {
 	Validator validator = factory.getValidator();
 
 
-	public List<EntityAttribute> findBySearchEA22(@NotNull final String hql) {
+	public List<EntityAttribute> findBySearchEA22(@NotNull final String hql, final Integer pageStart, final Integer pageSize) {
 		List<EntityAttribute> results = null;
 
 		Query query = null;
@@ -147,11 +148,60 @@ public class BaseEntityService2 {
 	//	Filter filter = getEntityManager().unwrap(Session.class).enableFilter("filterAttribute");
 	//	filter.setParameterList("attributeCodes", attributeCodes);
 		query = getEntityManager().createQuery(hql);
-		query.setFirstResult(0).setMaxResults(10000);
+		query.setFirstResult(pageStart).setMaxResults(pageSize);
 
 		results = query.setHint(QueryHints.HINT_READONLY, true).getResultList();
 		log.info("RESULTS=" + results);
 		return results;
+	}
+	
+	
+	public QSearchBeResult  findBySearchEA24(@NotNull final String hql, final Integer pageStart, final Integer pageSize) {
+		QSearchBeResult result = null;
+
+		Query query = null;
+	//	Set<String> attributeCodes = new HashSet<>(Arrays.asList("PRI_NAME"));
+	//	Filter filter = getEntityManager().unwrap(Session.class).enableFilter("filterAttribute");
+	//	filter.setParameterList("attributeCodes", attributeCodes);
+		query = getEntityManager().createQuery(hql);
+		query.setFirstResult(pageStart).setMaxResults(pageSize);
+
+		List<String> results = query.setHint(QueryHints.HINT_READONLY, true).getResultList();
+		//log.info("RESULTS=" + results);
+		
+		// now update the hql to look for count
+		
+		Integer fromIndex = hql.indexOf("from");
+		String hqlGuts = hql.substring(fromIndex);
+		String hqlStart = hql.substring(0,fromIndex);
+		
+		String[] afterSelect = hqlStart.split(" ", 2);
+		String hqlCount = "select count ("+afterSelect[1]+") ";
+		String hql3 = hqlCount + hqlGuts;
+	
+		query = getEntityManager().createQuery(hql3);
+		Long count = (Long)query.getSingleResult();
+		
+		result = new QSearchBeResult(results,count);
+		return result;
+	}
+	
+	public Long findBySearchEA24Count(@NotNull final String hql) {
+		QSearchBeResult result = null;
+
+		Query query = null;
+			
+		Integer fromIndex = hql.indexOf("from");
+		String hqlGuts = hql.substring(fromIndex);
+		String hqlStart = hql.substring(0,fromIndex);
+		
+		String[] afterSelect = hqlStart.split(" ", 2);
+		String hqlCount = "select count ("+afterSelect[1]+") ";
+		String hql3 = hqlCount + hqlGuts;
+	
+		query = getEntityManager().createQuery(hql3);
+		Long count = (Long)query.getSingleResult();
+		return count;
 	}
 	
 	public List<BaseEntity> findBySearchBE2(@NotNull final String hql) {
