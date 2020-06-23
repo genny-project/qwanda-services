@@ -1003,12 +1003,12 @@ public class BaseEntityService2 {
 						ss.valueList.add(Tuple.of("v" + ss.filterIndex, ea.getValueDouble()));
 						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDouble");
 						break;
-					case "range.LocalDate":
-						Range<LocalDate> rangeLocalDate = ea.getValueDateRange();
-						ss.filterStringsQ += getHQL(rangeLocalDate, attributeCodeEA, "valueDate", ss.filterIndex,
-								ss.valueList);
-						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
-						break;
+//					case "range.LocalDate":
+//						Range<LocalDate> rangeLocalDate = ea.getValueDateRange();
+//						ss.filterStringsQ += getHQL(rangeLocalDate, attributeCodeEA, "valueDate", ss.filterIndex,
+//								ss.valueList);
+//						ss.attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
+//						break;
 					case "java.lang.Boolean":
 					case "Boolean":
 						ss.filterStringsQ += " and " + attributeCodeEA + ".valueBoolean=:v" + ss.filterIndex + " ";
@@ -1230,11 +1230,11 @@ public class BaseEntityService2 {
 						valueList.add(Tuple.of("v" + filterIndex, ea.getValueDouble()));
 						attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDouble");
 						break;
-					case "range.LocalDate":
-						Range<LocalDate> rangeLocalDate = ea.getValueDateRange();
-						filterStringsQ += getHQL(rangeLocalDate, attributeCodeEA, "valueDate", filterIndex, valueList);
-						attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
-						break;
+//					case "range.LocalDate":
+//						Range<LocalDate> rangeLocalDate = ea.getValueDateRange();
+//						filterStringsQ += getHQL(rangeLocalDate, attributeCodeEA, "valueDate", filterIndex, valueList);
+//						attributeCodeMap.put(priAttributeCode, attributeCodeEA + ".valueDate");
+//						break;
 					case "java.lang.Boolean":
 					case "Boolean":
 						filterStringsQ += " and " + attributeCodeEA + ".valueBoolean=:v" + filterIndex + " ";
