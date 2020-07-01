@@ -177,7 +177,7 @@ public class BaseEntityService2 {
 		
 		String[] afterSelect = hqlStart.split(" ", 2);
 		String hqlCount = "select count ("+afterSelect[1]+") ";
-		hqlCount.replaceAll(",ed.valueString",""); // TODO, ugly
+		hqlCount = hqlCount.replaceAll(",ed.valueString",""); // TODO, ugly
 		String hql3 = hqlCount + hqlGuts;
 	
 		query = getEntityManager().createQuery(hql3);
