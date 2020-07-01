@@ -108,7 +108,7 @@ public class SearchTest {
 	@Test
 	public void fixSearchHqlTest()
 	{
-		String hql = "select count (distinct ea.baseEntityCode ,ed.valueString  ) from life.genny.qwanda.attribute.EntityAttribute ea , life.genny.qwanda.attribute.EntityAttribute eb , life.genny.qwanda.attribute.EntityAttribute ec , life.genny.qwanda.attribute.EntityAttribute ed  where  ea.baseEntityCode=eb.baseEntityCode  and (ea.baseEntityCode like 'CPY_%'  )   and eb.attributeCode = 'PRI_STATUS' and  eb.valueString = 'ACTIVE' and ea.baseEntityCode=ec.baseEntityCode  and ec.attributeCode = 'PRI_IS_EDU_PROVIDER' and  ec.valueBoolean = true and ea.baseEntityCode=ed.baseEntityCode and ed.attributeCode='PRI_NAME'  order by ed.valueString ASC"
+		String hql = "select count (distinct ea.baseEntityCode ,ed.valueString  ) from life.genny.qwanda.attribute.EntityAttribute ea , life.genny.qwanda.attribute.EntityAttribute eb , life.genny.qwanda.attribute.EntityAttribute ec , life.genny.qwanda.attribute.EntityAttribute ed  where  ea.baseEntityCode=eb.baseEntityCode  and (ea.baseEntityCode like 'CPY_%'  )   and eb.attributeCode = 'PRI_STATUS' and  eb.valueString = 'ACTIVE' and ea.baseEntityCode=ec.baseEntityCode  and ec.attributeCode = 'PRI_IS_EDU_PROVIDER' and  ec.valueBoolean = true and ea.baseEntityCode=ed.baseEntityCode and ed.attributeCode='PRI_NAME'  order by ed.valueString ASC";
 				hql = hql.replaceAll(",ed.valueString",""); // TODO, ugly
 		System.out.println(hql);
 
