@@ -160,13 +160,17 @@ public class BaseEntityService2 {
 		QSearchBeResult result = null;
 
 		Query query = null;
+		List<String> codes = new ArrayList<String>();
 	//	Set<String> attributeCodes = new HashSet<>(Arrays.asList("PRI_NAME"));
 	//	Filter filter = getEntityManager().unwrap(Session.class).enableFilter("filterAttribute");
 	//	filter.setParameterList("attributeCodes", attributeCodes);
 		query = getEntityManager().createQuery(hql);
 		query.setFirstResult(pageStart).setMaxResults(pageSize);
 
-		List<String> results = query.setHint(QueryHints.HINT_READONLY, true).getResultList();
+		List<Object[]> results = query.setHint(QueryHints.HINT_READONLY, true).getResultList();
+		for (Object[] row : results) {
+			codes.add((String)row[0]);
+		}
 		//log.info("RESULTS=" + results);
 		
 		// now update the hql to look for count
@@ -177,13 +181,13 @@ public class BaseEntityService2 {
 		
 		String[] afterSelect = hqlStart.split(" ", 2);
 		String hqlCount = "select count ("+afterSelect[1]+") ";
-		hqlCount = hqlCount.replaceAll(",ed.valueString",""); // TODO, ugly
+		//hqlCount = hqlCount.replaceAll(",ed.valueString",""); // TODO, ugly
 		String hql3 = hqlCount + hqlGuts;
 	
 		query = getEntityManager().createQuery(hql3);
 		Long count = (Long)query.getSingleResult();
 		
-		result = new QSearchBeResult(results,count);
+		result = new QSearchBeResult(codes,count);
 		return result;
 	}
 	
