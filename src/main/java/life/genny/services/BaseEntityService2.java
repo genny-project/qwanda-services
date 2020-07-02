@@ -167,10 +167,12 @@ public class BaseEntityService2 {
 		query = getEntityManager().createQuery(hql);
 		query.setFirstResult(pageStart).setMaxResults(pageSize);
 
-		List<Object[]> results = query.setHint(QueryHints.HINT_READONLY, true).getResultList();
-		for (Object[] row : results) {
-			codes.add((String)row[0]);
-		}
+		codes = query.setHint(QueryHints.HINT_READONLY, true).getResultList();
+
+//		List<Object[]> results = query.setHint(QueryHints.HINT_READONLY, true).getResultList();
+//		for (Object[] row : results) {
+//			codes.add((String)row[0]);
+//		}
 		//log.info("RESULTS=" + results);
 		
 		// now update the hql to look for count
