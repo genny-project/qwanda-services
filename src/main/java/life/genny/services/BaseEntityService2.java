@@ -1164,7 +1164,7 @@ public class BaseEntityService2 {
 				// Check no nasty SQL injection
 				// Need named procedures
 				// Quick and dirty ; check
-				String condition = ea.getAttributeName();
+				String condition = SearchEntity.convertFromSaveable(ea.getAttributeName());
 				if (condition != null) {
 					final String conditionTest = condition.trim();
 					if (!allowedConditions.stream().anyMatch(str -> str.trim().equals(conditionTest))) {
