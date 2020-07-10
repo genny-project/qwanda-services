@@ -941,7 +941,7 @@ public class BaseEntityService2 {
 				// Quick and dirty ; check
 				String condition = ea.getAttributeName();
 				if (condition != null) {
-
+					condition = SearchEntity.convertFromSaveable(condition);
 					final String conditionTest = condition.trim();
 					if (!allowedConditions.stream().anyMatch(str -> str.trim().equals(conditionTest))) {
 						throw new IllegalArgumentException("Illegal condition!(" + conditionTest + ") ["
