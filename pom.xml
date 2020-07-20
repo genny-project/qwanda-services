@@ -149,7 +149,7 @@
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
-			<version>4.8.0.211706111038-r</version>
+			<version>4.8.0.201706111038-r</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate.validator</groupId>
