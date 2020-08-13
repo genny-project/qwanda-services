@@ -2293,7 +2293,19 @@ public class BaseEntityService2 {
 						// 1e6)+" ms - Answer Link");
 
 						if (answer.getAttributeCode().equalsIgnoreCase("PRI_NAME")) {
-							beTarget.setName(answer.getValue());
+							if (answer.getValue() != null) {
+								beTarget.setName(answer.getValue());
+							} else {
+								log.error(String.format("Answer value is null, won't set target name. " +
+												"Answer target code:%s, source code:%s, attributeCode:%s. " +
+												"TargetBaseEntity Code: %s, name:%s.",
+												answer.getTargetCode(),
+												answer.getSourceCode(),
+												answer.getAttributeCode(),
+												beTarget.getCode(),
+												beTarget.getName()
+												));
+							}
 						}
 
 						boolean sendAttributeChangeEvent = false;
