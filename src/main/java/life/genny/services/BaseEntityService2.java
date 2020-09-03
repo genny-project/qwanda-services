@@ -2653,6 +2653,7 @@ public class BaseEntityService2 {
 			entity = getEntityManager().merge(entity);
 		} catch (final Exception e) {
 			// so persist otherwise
+			if (entity.getName()== null) { entity.setName(entity.getCode());}
 			getEntityManager().persist(entity);
 		}
 		String json = JsonUtils.toJson(entity);
