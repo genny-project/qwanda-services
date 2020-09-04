@@ -209,10 +209,10 @@ public class BatchLoading {
 			Map<String, Object> dataType = data.getValue();
 			String validations = (String) dataType.get("validations");
 			String code = ((String) dataType.get("code")).replaceAll("^\"|\"$", "");
-			;
+			String className = ((String)dataType.get("classname")).replaceAll("^\"|\"$", "");
 			String name = ((String) dataType.get("name")).replaceAll("^\"|\"$", "");
-			;
 			String inputmask = (String) dataType.get("inputmask");
+			String component = (String) dataType.get("component");
 			final ValidationList validationList = new ValidationList();
 			validationList.setValidationList(new ArrayList<Validation>());
 			if (validations != null) {
@@ -227,7 +227,12 @@ public class BatchLoading {
 				}
 			}
 			if (!dataTypeMap.containsKey(code)) {
-				final DataType dataTypeRecord = new DataType(name, validationList, name, inputmask);
+				DataType dataTypeRecord;
+				if (component == null) {
+					dataTypeRecord = new DataType(name, validationList, name, inputmask);
+				} else {
+					dataTypeRecord = new DataType(name, validationList, name, inputmask, component);
+				}
 				dataTypeMap.put(code, dataTypeRecord);
 			}
 		});
