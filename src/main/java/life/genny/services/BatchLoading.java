@@ -463,6 +463,7 @@ public class BatchLoading {
 						qq = service.upsert(qq);
 					} catch (Exception e) {
 						existing.setMandatory(qq.getMandatory());
+						existing.setDependency(qq.getDependency());
 						existing.setOneshot(qq.getOneshot());
 						existing.setWeight(qq.getWeight());
 						existing.setReadonly(qq.getReadonly());

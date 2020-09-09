@@ -2745,6 +2745,7 @@ public class BaseEntityService2 {
 			existing.setMandatory(qq.getMandatory());
 			existing.setWeight(qq.getWeight());
 			existing.setReadonly(qq.getReadonly());
+			existing.setDependency(qq.getDependency());
 			existing = getEntityManager().merge(existing);
 			return existing;
 		} catch (NoResultException e) {
