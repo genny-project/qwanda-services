@@ -1112,7 +1112,7 @@ public void questionGroupTest()
 		 BaseEntity source = service.findBaseEntityByCode("PER_USER1");
 		getEm().getTransaction().begin();
 		List<Ask> asks = service.findAsks2(rootQuestion, source,  source,
-				false, true,false,false) ;
+				false, true,false,false, null) ;
 		getEm().getTransaction().commit();
 		
 		log.info("Asks:"+asks);
