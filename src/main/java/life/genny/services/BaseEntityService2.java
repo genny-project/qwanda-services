@@ -2423,13 +2423,14 @@ public class BaseEntityService2 {
 			}
 			String json = JsonUtils.toJson(beTarget);
 			writeToDDT(beTarget.getCode(), json); // Update the DDT
-		}
-		if (!msg.getBe().getBaseEntityAttributes().isEmpty()) {
-			// Don't send service events
-			if (!msg.getBe().getCode().equals("PER_SERVICE")) {
-				sendQEventAttributeValueChangeMessage(msg);
+			if (!msg.getBe().getBaseEntityAttributes().isEmpty()) {
+				// Don't send service events
+				if (!msg.getBe().getCode().equals("PER_SERVICE")) {
+					sendQEventAttributeValueChangeMessage(msg);
+				}
 			}
 		}
+
 
 		log.info("Answer final processing  = " + ((System.nanoTime() - insertStartMs) / 1e6)
 				+ " ms - Finished updating " + beTarget.getCode());
