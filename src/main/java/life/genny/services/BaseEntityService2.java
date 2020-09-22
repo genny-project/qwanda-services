@@ -2124,6 +2124,12 @@ public class BaseEntityService2 {
 						continue;
 					}
 				}
+				
+				if ((answer.getAttributeCode().equals("PRI_SUBMIT")&&(answer.getAttributeCode().equals("QQQ_QUESTION_GROUP")))) {
+					log.error("Trying to save a submit button!");
+					continue;
+				}
+				
 				// log.info("Answer processing 1 = "+((System.nanoTime() - answerStartMs) /
 				// 1e6)+" ms");
 				// check that the codes exist
