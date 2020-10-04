@@ -2299,12 +2299,13 @@ public class BaseEntityService2 {
 						// 1e6)+" ms - Answer Link");
 
 						if (answer.getAttributeCode().equalsIgnoreCase("PRI_NAME")) {
-							if (answer.getValue() != null) {
+							if (!StringUtils.isBlank(answer.getValue())) {
 								beTarget.setName(answer.getValue());
 							} else {
-								log.error(String.format("Answer value is null, won't set target name. " +
+								log.error(String.format("Answer's value is %s, won't set target name. " +
 												"Answer target code:%s, source code:%s, attributeCode:%s. " +
 												"TargetBaseEntity Code: %s, name:%s.",
+												answer.getValue() == null ? "NULL": "empty",
 												answer.getTargetCode(),
 												answer.getSourceCode(),
 												answer.getAttributeCode(),
@@ -2752,6 +2753,7 @@ public class BaseEntityService2 {
 			existing.setMandatory(qq.getMandatory());
 			existing.setWeight(qq.getWeight());
 			existing.setReadonly(qq.getReadonly());
+			existing.setDependency(qq.getDependency());
 			existing = getEntityManager().merge(existing);
 			return existing;
 		} catch (NoResultException e) {
@@ -4083,12 +4085,12 @@ public class BaseEntityService2 {
 	}
 
 	public List<Ask> findAsks2(final Question rootQuestion, final BaseEntity source, final BaseEntity target) {
-		return findAsks2(rootQuestion, source, target, false, false, false, false);
+		return findAsks2(rootQuestion, source, target, false, false, false, false, null);
 	}
 
 	public List<Ask> findAsks2(final Question rootQuestion, final BaseEntity source, final BaseEntity target,
 			Boolean childQuestionIsMandatory, Boolean childQuestionIsReadonly, Boolean childQuestionIsFormTrigger,
-			Boolean childQuestionIsCreateOnTrigger) {
+			Boolean childQuestionIsCreateOnTrigger, String childQuestionDependency) {
 		if (rootQuestion == null) {
 			log.error(
 					"rootQuestion for findAsks2 is null - source=" + source.getCode() + ": target " + target.getCode());
@@ -4106,9 +4108,11 @@ public class BaseEntityService2 {
 			ask.setReadonly(readonly);
 			ask.setFormTrigger(childQuestionIsFormTrigger);
 			ask.setCreateOnTrigger(childQuestionIsCreateOnTrigger);
+			ask.setDependency(childQuestionDependency);
 
 		} else {
 			ask = new Ask(rootQuestion, source.getCode(), target.getCode(), mandatory, 1.0, false, false, readonly);
+			ask.setDependency(childQuestionDependency);
 			ask.setCreateOnTrigger(childQuestionIsMandatory);
 			ask.setFormTrigger(childQuestionIsFormTrigger);
 			ask.setRealm(getRealm());
@@ -4132,7 +4136,7 @@ public class BaseEntityService2 {
 					List<Ask> askChildren = null;
 					try {
 						askChildren = findAsks2(childQuestion, source, target, qq.getMandatory(), qq.getReadonly(),
-								qq.getFormTrigger(), qq.getCreateOnTrigger());
+								qq.getFormTrigger(), qq.getCreateOnTrigger(), qq.getDependency());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
