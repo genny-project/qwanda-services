@@ -106,7 +106,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
    }
   
    //TODO Fix this test-failure
-	//@Test
+   @Test
 	public void searchBETest() {
 
 		   QSearchEntityMessage searchBE = new QSearchEntityMessage.Builder("SBE_SEARCH_TEST","Search Test")
@@ -120,7 +120,7 @@ public class JPAHibernateCRUDTest extends JPAHibernateTest {
 				   .column("PRI_CODE", "Code")
 				   .column("PRI_NAME", "Name")
 				   .column("PRI_DOB", "Date Of Birth")	
-				   .column("LNK_CORE",QSearchEntityMessage.LinkType.CHILD,"PRI_NAME", "Referer Name")	
+				   .column("LNK_CORE",QSearchEntityMessage.LinkType.CHILD,"PRI_NAME", "Referer Name", null)	
 				   
 				   .build();
 
