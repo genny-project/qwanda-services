@@ -4988,7 +4988,9 @@ public class BaseEntityService2 {
 
 			query.setParameter("realmStr", getRealm());
 
-			query.executeUpdate();
+			int total = query.executeUpdate();
+			log.info(String.format("DEBUG, Removed %d records from table EntityAttribute for Attribute code:%s, realm:%s.",
+						total, attributeCode, getRealm()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
