@@ -4980,8 +4980,9 @@ public class BaseEntityService2 {
 	// @Transactional
 	public void removeEntityAttributes(final String attributeCode) {
 		try {
-			Query query = getEntityManager().createQuery(
-					"delete from EntityAttribute ea where  ea.attributeCode=:attributeCode  and ea.pk.baseEntity.realm=:realmStr");
+			String hql ="delete from EntityAttribute ea where ea.attributeCode = :attributeCode and ea.realm = :realmStr";
+
+			Query query = getEntityManager().createQuery(hql);
 
 			query.setParameter("attributeCode", attributeCode);
 
