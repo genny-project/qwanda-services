@@ -544,6 +544,7 @@ public class BatchLoading {
 			String readonlyStr = (String) questions.get("readonly");
 			String hiddenStr = (String) questions.get("hidden");
 			String mandatoryStr = (String) questions.get("mandatory");
+			String helper = (String) questions.get("helper");
 
 			Boolean oneshot = getBooleanFromString(oneshotStr);
 			Boolean readonly = getBooleanFromString(readonlyStr);
@@ -556,6 +557,7 @@ public class BatchLoading {
 			q.setHtml(html);
 			q.setReadonly(readonly);
 			q.setMandatory(mandatory);
+			q.setHelper(helper);
 
 			q.setRealm(mainRealm);
 
@@ -575,6 +577,7 @@ public class BatchLoading {
 			} else {
 				existing.setName(name);
 				existing.setHtml(html);
+				existing.setHelper(helper);
 				existing.setOneshot(oneshot);
 				existing.setReadonly(readonly);
 				existing.setMandatory(mandatory);
