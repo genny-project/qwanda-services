@@ -4686,6 +4686,30 @@ public class BaseEntityService2 {
 		return beMap.values().stream().collect(Collectors.toList());
 	}
 
+	public List<Link> findLinks(@NotNull final String targetCode) {
+
+		final List<Link> eeResults;
+		eeResults = getEntityManager().createQuery(
+
+				"SELECT ee.link FROM EntityEntity ee where  ee.pk.targetCode=:targetCode and ee.pk.source.realm=:realmStr")
+				.setParameter("targetCode", targetCode)
+				.setParameter("realmStr", getRealm()).getResultList();
+
+		return eeResults;
+	}
+
+	public Long findLinksCount(@NotNull final String targetCode) {
+
+		Query query = getEntityManager().createQuery(
+
+				"SELECT count(ee.link) FROM EntityEntity ee where  ee.pk.targetCode=:targetCode and ee.pk.source.realm=:realmStr")
+				.setParameter("targetCode", targetCode)
+				.setParameter("realmStr", getRealm());
+
+		Long count = (Long) query.getSingleResult();
+		return count;
+	}
+
 	public List<Link> findLinks(@NotNull final String targetCode, final String linkCode) {
 
 		final List<Link> eeResults;
@@ -4708,6 +4732,30 @@ public class BaseEntityService2 {
 
 		Long count = (Long) query.getSingleResult();
 		return count;
+	}
+
+	public List<Link> findParentLinks(@NotNull final String targetCode) {
+
+		final List<Link> eeResults;
+		eeResults = getEntityManager().createQuery(
+
+				"SELECT ee.link FROM EntityEntity ee where  ee.pk.targetCode=:targetCode and ee.pk.source.realm=:realmStr")
+				.setParameter("targetCode", targetCode)
+				.setParameter("realmStr", getRealm()).getResultList();
+
+		return eeResults;
+	}
+
+	public Long findParentLinksCount(@NotNull final String targetCode) {
+
+		Long eeResults;
+		eeResults = (Long) getEntityManager().createQuery(
+
+				"SELECT count(ee.link) FROM EntityEntity ee where  ee.pk.targetCode=:targetCode and ee.pk.source.realm=:realmStr")
+				.setParameter("targetCode", targetCode)
+				.setParameter("realmStr", getRealm()).getSingleResult();
+
+		return eeResults;
 	}
 
 	public List<Link> findParentLinks(@NotNull final String targetCode, final String linkCode) {
@@ -4801,6 +4849,30 @@ public class BaseEntityService2 {
 
 				"SELECT count(ee.link) FROM EntityEntity ee where  ee.pk.source.code=:sourceCode and ee.pk.attribute.code=:linkAttributeCode and ee.pk.source.realm=:realmStr")
 				.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
+				.setParameter("realmStr", getRealm()).getSingleResult();
+
+		return eeResults;
+	}
+
+	public List<Link> findChildLinks(@NotNull final String sourceCode) {
+
+		final List<Link> eeResults;
+		eeResults = getEntityManager().createQuery(
+
+				"SELECT ee.link FROM EntityEntity ee where  ee.pk.source.code=:sourceCode and ee.pk.source.realm=:realmStr")
+				.setParameter("sourceCode", sourceCode)
+				.setParameter("realmStr", getRealm()).getResultList();
+
+		return eeResults;
+	}
+
+	public Long findChildLinksCount(@NotNull final String sourceCode) {
+
+		final Long eeResults;
+		eeResults = (Long) getEntityManager().createQuery(
+
+				"SELECT count(ee.link) FROM EntityEntity ee where  ee.pk.source.code=:sourceCode and ee.pk.source.realm=:realmStr")
+				.setParameter("sourceCode", sourceCode)
 				.setParameter("realmStr", getRealm()).getSingleResult();
 
 		return eeResults;
