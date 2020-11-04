@@ -4786,7 +4786,7 @@ public class BaseEntityService2 {
 
 		final List<Link> eeResults;
 		eeResults = getEntityManager().createQuery(
-				"SELECT ee.link FROM EntityEntity ee where  ee.link.targetCode=:targetCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode ")
+				"SELECT ee.link FROM EntityEntity ee where  ee.link.targetCode=:targetCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode and ee.pk.source.realm=:realmStr")
 				.setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode)
 
 				.setParameter("linkValue", value).setParameter("realmStr", getRealm()).getResultList();
@@ -4798,7 +4798,7 @@ public class BaseEntityService2 {
 
 		final Long eeResults;
 		eeResults = (Long) getEntityManager().createQuery(
-				"SELECT count(ee.link) FROM EntityEntity ee where  ee.link.targetCode=:targetCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode ")
+				"SELECT count(ee.link) FROM EntityEntity ee where  ee.link.targetCode=:targetCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode and ee.pk.source.realm=:realmStr")
 				.setParameter("targetCode", targetCode).setParameter("linkAttributeCode", linkCode)
 
 				.setParameter("linkValue", value).setParameter("realmStr", getRealm()).getSingleResult();
@@ -4810,7 +4810,7 @@ public class BaseEntityService2 {
 
 		final List<Link> eeResults;
 		eeResults = getEntityManager().createQuery(
-				"SELECT ee.link FROM EntityEntity ee where  ee.link.sourceCode=:sourceCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode ")
+				"SELECT ee.link FROM EntityEntity ee where  ee.link.sourceCode=:sourceCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode and ee.pk.source.realm=:realmStr")
 				.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
 
 				.setParameter("linkValue", value).setParameter("realmStr", getRealm()).getResultList();
@@ -4822,7 +4822,7 @@ public class BaseEntityService2 {
 
 		final Long eeResults;
 		eeResults = (Long) getEntityManager().createQuery(
-				"SELECT count(ee.link) FROM EntityEntity ee where  ee.link.sourceCode=:targetCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode ")
+				"SELECT count(ee.link) FROM EntityEntity ee where  ee.link.sourceCode=:targetCode and ee.link.linkValue=:linkValue and ee.link.attributeCode=:linkAttributeCode and ee.pk.source.realm=:realmStr")
 				.setParameter("sourceCode", sourceCode).setParameter("linkAttributeCode", linkCode)
 
 				.setParameter("linkValue", value).setParameter("realmStr", getRealm()).getSingleResult();
