@@ -4132,11 +4132,16 @@ public class BaseEntityService2 {
 				String qCode = qq.getPk().getTargetCode();
 				log.info(qq.getPk().getSourceCode() + " -> Child Question -> " + qCode);
 				Question childQuestion = findQuestionByCode(qCode);
+				// Grab whatever icon the QuestionQuestion has set
+				childQuestion.setIcon(qq.getIcon());
 				if (childQuestion != null) {
 					List<Ask> askChildren = null;
 					try {
 						askChildren = findAsks2(childQuestion, source, target, qq.getMandatory(), qq.getReadonly(),
 								qq.getFormTrigger(), qq.getCreateOnTrigger());
+						for (Ask child : askChildren) {
+							child.setQuestion(childQuestion);
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
