@@ -2855,6 +2855,55 @@ public class BaseEntityService2 {
 		}
 	}
 
+	public Question upsert(Question q, HashMap<String, Question> mapping) {
+		try {
+			String code = q.getCode();
+			Question val = mapping.get(code);
+			BeanNotNullFields copyFields = new BeanNotNullFields();
+			if (val == null) {
+				throw new NoResultException();
+			}
+			copyFields.copyProperties(val, q);
+
+			val.setRealm(getRealm());
+			Set<ConstraintViolation<Question>> constraints = validator.validate(val);
+			for (ConstraintViolation<Question> constraint : constraints) {
+				log.error(constraint.getPropertyPath() + " " + constraint.getMessage());
+			}
+			if (constraints.isEmpty()) {
+				val = getEntityManager().merge(val);
+				return val;
+			} else {
+				log.error("Error in Hibernate Validation for quesiton "+q.getCode()+" with attribute code :"+q.getAttributeCode());
+			}
+			return null; // TODO throw an error
+
+		} catch (NoResultException | IllegalAccessException | InvocationTargetException e) {
+			try {
+
+				q.setRealm(getRealm());
+				if (BatchLoading.isSynchronise()) {
+					Question val = findQuestionByCode(q.getCode(), REALM_HIDDEN);
+					if (val != null) {
+						val.setRealm(getRealm());
+						updateRealm(val);
+						return val;
+					}
+				}
+
+				getEntityManager().persist(q);
+			} catch (javax.validation.ConstraintViolationException ce) {
+				log.error("Error in saving question due to constraint issue:" + q + " :" + ce.getLocalizedMessage());
+			} catch (javax.persistence.PersistenceException pe) {
+				log.error("Error in saving question :" + q + " :" + pe.getLocalizedMessage());
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+			Long id = q.getId();
+			return q;
+		}
+	}
+
 	public Question upsert(Question q) {
 		try {
 			String code = q.getCode();
