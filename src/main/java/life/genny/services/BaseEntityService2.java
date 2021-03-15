@@ -2307,7 +2307,7 @@ public class BaseEntityService2 {
 							if (answer.getValue() != null && !answer.getValue().equals("")) {
 								beTarget.setName(answer.getValue());
 							} else {
-								log.error(String.format("Answer value is null, won't set target name. " +
+								log.error(String.format("Answer value is " +  answer.getValue() + " , won't set target name. " +
 												"Answer target code:%s, source code:%s, attributeCode:%s. " +
 												"TargetBaseEntity Code: %s, name:%s.",
 												answer.getTargetCode(),
