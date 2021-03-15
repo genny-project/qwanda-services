@@ -2303,7 +2303,8 @@ public class BaseEntityService2 {
 						// 1e6)+" ms - Answer Link");
 
 						if (answer.getAttributeCode().equalsIgnoreCase("PRI_NAME")) {
-							if (answer.getValue() != null) {
+						//name can not be null or empty string
+							if (answer.getValue() != null && !answer.getValue().equals("")) {
 								beTarget.setName(answer.getValue());
 							} else {
 								log.error(String.format("Answer value is null, won't set target name. " +
