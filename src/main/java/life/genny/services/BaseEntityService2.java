@@ -2673,6 +2673,12 @@ public class BaseEntityService2 {
 		return entity.getId();
 	}
 
+	public void bulkUpdateWithAttributes(List<BaseEntity> entities) {
+		for (BaseEntity entity : entities) {
+			updateWithAttributes(entity);
+		}
+	}
+
 	public Long update(Attribute attribute) {
 		// always check if attribute exists through check for unique code
 
