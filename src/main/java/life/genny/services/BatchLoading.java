@@ -310,6 +310,8 @@ public class BatchLoading {
 				String weight = (String) baseEntityAttr.get("weight");
 				String privacyStr = (String) baseEntityAttr.get("privacy");
 				Boolean privacy = "TRUE".equalsIgnoreCase(privacyStr);
+				String confirmationStr= (String) baseEntityAttr.get("confirmation");
+				Boolean confirmation = "TRUE".equalsIgnoreCase(confirmationStr);
 				Attribute attribute = null;
 				BaseEntity be = null;
 				try {
@@ -329,6 +331,10 @@ public class BatchLoading {
 							EntityAttribute ea = be.addAttribute(attribute, weightField, valueString);
 							if (privacy || attribute.getDefaultPrivacyFlag()) {
 								ea.setPrivacyFlag(true);
+							}
+
+							if (confirmation) {
+								ea.setConfirmationFlag(true);
 							}
 						} catch (final BadDataException e) {
 							e.printStackTrace();
@@ -801,7 +807,6 @@ public class BatchLoading {
 	 * Import records from google sheets
 	 * 
 	 * @param projectType
-	 * @param path
 	 * @return
 	 */
 	public Map<String, Object> project(final String projectType) {
