@@ -1706,23 +1706,12 @@ public class BaseEntityService2 {
 	public void removeBaseEntity(final String code) {
 		final BaseEntity be = findBaseEntityByCode(code);
 		if (be != null) {
-
-			// remove all answers
-
-			// remove all answerlinks
-			List<AnswerLink> answers = findAnswersByTargetOrSourceBaseEntityCode(be.getCode());
-			log.info("Answers count: " + answers.size());
-
 			// remove all attributes - It is automatically removed by Hibernate.
 
 			// remove all links
 			List<EntityEntity> links = findLinksBySourceOrTargetBaseEntityCode(be.getCode());
 			log.info("Links count: " + links.size());
 			// removeEntityEntity(be.getCode());
-
-			for (final AnswerLink answerLink : answers) {
-				removeAnswerLink(code, answerLink);
-			}
 
 			for (final EntityEntity entityEntity : links) {
 				removeEntityEntity(code, entityEntity);
@@ -4425,14 +4414,6 @@ public class BaseEntityService2 {
 
 		return results;
 
-	}
-
-	public List<AnswerLink> findAnswersByTargetOrSourceBaseEntityCode(final String baseEntityCode) {
-		final List<AnswerLink> results = getEntityManager().createQuery(
-				"SELECT ea FROM AnswerLink ea where ea.sourceCode=:baseEntityCode or ea.targetCode=:baseEntityCode  and ea.realm=:realmStr")
-				.setParameter("realmStr", getRealm()).setParameter("baseEntityCode", baseEntityCode).getResultList();
-
-		return results;
 	}
 
 	public List<EntityEntity> findLinksBySourceOrTargetBaseEntityCode(final String baseEntityCode) {
