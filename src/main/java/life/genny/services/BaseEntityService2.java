@@ -42,11 +42,24 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Fetch;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Predicate;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.MultivaluedMap;
+
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.core.types.dsl.ComparableExpressionBase;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.core.types.dsl.BooleanPath;
+import com.querydsl.core.types.dsl.DatePath;
+import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.jpa.sql.JPASQLQuery;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -90,6 +103,7 @@ import life.genny.qwanda.attribute.AttributeMoney;
 import life.genny.qwanda.attribute.AttributeText;
 import life.genny.qwanda.attribute.AttributeTime;
 import life.genny.qwanda.attribute.EntityAttribute;
+import life.genny.qwanda.attribute.QEntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.entity.Company;
@@ -109,6 +123,11 @@ import life.genny.qwanda.rule.Rule;
 import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.MergeUtil;
+import life.genny.qwandautils.GennySettings;
+import life.genny.utils.BaseEntityUtils;
+import life.genny.utils.RulesUtils;
+import life.genny.models.GennyToken;
+
 
 /**
  * This Service bean demonstrate various JPA manipulations of {@link BaseEntity}
@@ -191,6 +210,222 @@ public class BaseEntityService2 {
 		
 		result = new QSearchBeResult(codes,count);
 		return result;
+	}
+
+	/**
+	 * Perform a safe search using named parameters to
+	 * protect from SQL Injection
+	*/
+	public QSearchBeResult findBySearch25(String passedToken, @NotNull final SearchEntity searchBE) {
+	
+		// Init necessary vars
+		QSearchBeResult result = null;
+		List<String> codes = new ArrayList<String>();
+		// Get page start and page size from SBE
+		Integer pageStart = searchBE.getPageStart(0);
+		Integer pageSize = searchBE.getPageSize(GennySettings.defaultPageSize);
+		// Get the hql string and param map from SBE
+		// ------------------------
+		SQLTemplates templates = new DerbyTemplates();
+		JPASQLQuery<?> query = new JPASQLQuery<Void>(getEntityManager(), templates);
+
+		QEntityAttribute entityAttribute = QEntityAttribute.entityAttribute;
+
+		List<EntityAttribute> andAttributes = searchBE.findPrefixEntityAttributes("AND_");
+		List<EntityAttribute> orAttributes = searchBE.findPrefixEntityAttributes("OR_");
+
+		Integer joinCounter = 0;
+
+		for (EntityAttribute ea : searchBE.getBaseEntityAttributes()) {
+
+			String attributeCode = ea.getAttributeCode();
+			// String attributeCode = removePrefixFromCode(ea.getAttributeCode(), "OR");
+			// attributeCode = removePrefixFromCode(attributeCode, "AND");
+
+			// Create where condition for the BE Code Filter
+			if (attributeCode.equals("PRI_CODE")) {
+				query.where(entityAttribute.baseEntityCode.like(ea.getAsString()));
+
+			// Create a Join for each attribute filters
+			} else if ((attributeCode.startsWith("PRI_") || attributeCode.startsWith("LNK_"))
+					&& (!attributeCode.equals("PRI_CODE")) && (!attributeCode.equals("PRI_TOTAL_RESULTS"))
+					&& (!attributeCode.equals("PRI_INDEX"))) {
+					
+				REntityAttribute eaFilterJoin = new REntityAttribute("eaFilterJoin_"+joinCounter.toString());
+				joinCounter++;
+				query.leftJoin(eaFilterJoin, eaFilterJoin)
+					.on(eaFilterJoin.baseEntityCode.eq(entityAttribute.baseEntityCode));
+
+				String attributeFilterValue = ea.getValue().toString();
+				System.out.println("attributeFilterValue = " + attributeFilterValue);
+
+				String condition = SearchEntity.convertFromSaveable(ea.getAttributeName());
+				System.out.println("condition = " + condition);
+
+				// LIKE
+				if (condition.equals("LIKE")) {
+					query.where(eaFilterJoin.valueString.like(ea.getValueString()));
+				// LIKE
+				} else if (condition.equals("NOT LIKE")) {
+					query.where(eaFilterJoin.valueString.notLike(ea.getValueString()));
+				// EQUALS
+				} else if (condition.equals("=")) {
+					query.where(eaFilterJoin.valueString.eq(ea.getValueString()));
+				// NOT EQUALS
+				} else if (condition.equals("!=")) {
+					query.where(eaFilterJoin.valueString.ne(ea.getValueString()));
+				// GREATER THAN OR EQUAL TO
+				} else if (condition.equals(">=")) {
+					if (ea.getValueDouble() != null) {
+						query.where(eaFilterJoin.valueDouble.goe(ea.getValueDouble()));
+					} else if (ea.getValueInteger() != null) {
+						query.where(eaFilterJoin.valueInteger.goe(ea.getValueInteger()));
+					} else if (ea.getValueDate() != null) {
+						query.where(eaFilterJoin.valueDate.after(ea.getValueDate()));
+					} else if (ea.getValueDateTime() != null) {
+						query.where(eaFilterJoin.valueDateTime.after(ea.getValueDateTime()));
+					}
+				// LESS THAN OR EQUAL TO
+				} else if (condition.equals("<=")) {
+					if (ea.getValueDouble() != null) {
+						query.where(eaFilterJoin.valueDouble.loe(ea.getValueDouble()));
+					} else if (ea.getValueInteger() != null) {
+						query.where(eaFilterJoin.valueInteger.loe(ea.getValueInteger()));
+					} else if (ea.getValueDate() != null) {
+						query.where(eaFilterJoin.valueDate.before(ea.getValueDate()));
+					} else if (ea.getValueDateTime() != null) {
+						query.where(eaFilterJoin.valueDateTime.before(ea.getValueDateTime()));
+					}
+				// GREATER THAN
+				} else if (condition.equals(">")) {
+					if (ea.getValueDouble() != null) {
+						query.where(eaFilterJoin.valueDouble.gt(ea.getValueDouble()));
+					} else if (ea.getValueInteger() != null) {
+						query.where(eaFilterJoin.valueInteger.gt(ea.getValueInteger()));
+					} else if (ea.getValueDate() != null) {
+						query.where(eaFilterJoin.valueDate.after(ea.getValueDate()));
+					} else if (ea.getValueDateTime() != null) {
+						query.where(eaFilterJoin.valueDateTime.after(ea.getValueDateTime()));
+					}
+				// LESS THAN
+				} else if (condition.equals("<")) {
+					if (ea.getValueDouble() != null) {
+						query.where(eaFilterJoin.valueDouble.lt(ea.getValueDouble()));
+					} else if (ea.getValueInteger() != null) {
+						query.where(eaFilterJoin.valueInteger.lt(ea.getValueInteger()));
+					} else if (ea.getValueDate() != null) {
+						query.where(eaFilterJoin.valueDate.before(ea.getValueDate()));
+					} else if (ea.getValueDateTime() != null) {
+						query.where(eaFilterJoin.valueDateTime.before(ea.getValueDateTime()));
+					}
+				} else {
+					// Default to equals
+					query.where(eaFilterJoin.valueString.eq(ea.getValueString()));
+				}
+
+				// Check for OR/AND attributes with same code
+				// for (EntityAttribute andAttr : andAttributes) {
+				// 	if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").equals(attributeCode)) {
+				// 		query.and(eaFilterJoin.valueString.eq(andAttr.getAttributeCode()));
+				// 	}
+				// }
+				// for (EntityAttribute orAttr : orAttributes) {
+				// 	if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals(attributeCode)) {
+				// 		query.and(eaFilterJoin.valueString.eq(orAttr.getAttributeCode()));
+				// 	}
+				// }
+
+			// Create a filter for wildcard
+			} else if (attributeCode.startsWith("SCH_WILDCARD")) {
+				if (ea.getValueString() != null) {
+					if (!StringUtils.isBlank(ea.getValueString())) {
+						String wildcardValue = ea.getValueString();
+						wildcardValue = wildcardValue.replaceAll(("[^A-Za-z0-9 ]"), "");
+						wildcardValue = "%" + wildcardValue + "%";
+
+						REntityAttribute eaWildcardJoin = new REntityAttribute("eaWildcardJoin");
+						query.leftJoin(entityAttribute, eaWildcardJoin)
+							.on(eaWildcardJoin.baseEntityCode.eq(entityAttribute.baseEntityCode));
+
+						query.where(eaWildcardJoin.valueString.like(wildcardValue));
+					}
+				}
+
+			// Create a Join for each sort if necessary
+			} else if (attributeCode.startsWith("SRT_")) {
+
+				REntityAttribute eaOrderJoin = new REntityAttribute("eaOrderJoin_"+joinCounter.toString());
+				joinCounter++;
+				query.leftJoin(eaOrderJoin, eaOrderJoin)
+					.on(eaOrderJoin.baseEntityCode.eq(entityAttribute.baseEntityCode));
+
+				ComparableExpressionBase orderColumn = null;
+				if (attributeCode.startsWith("SRT_PRI_CREATED")) {
+					orderColumn = eaOrderJoin.created;
+				} else if (attributeCode.startsWith("SRT_PRI_UPDATED")) {
+					orderColumn = eaOrderJoin.updated;
+				} else if (attributeCode.startsWith("SRT_PRI_CODE")) {
+					orderColumn = eaOrderJoin.baseEntityCode;
+				} else if (attributeCode.startsWith("SRT_PRI_NAME")) {
+					orderColumn = eaOrderJoin.pk.baseEntity.name;
+				} else {
+					Attribute attr = RulesUtils.getAttribute(attributeCode.substring("SRT_".length()), passedToken);
+					String dtt = attr.getDataType().getClassName();
+
+					if (dtt.equals("Text")) {
+						orderColumn = eaOrderJoin.valueString;
+					} else if (dtt.equals("java.lang.String") || dtt.equals("String")) {
+						orderColumn = eaOrderJoin.valueString;
+					} else if (dtt.equals("java.lang.Boolean") || dtt.equals("Boolean")) {
+						orderColumn = eaOrderJoin.valueBoolean;
+					} else if (dtt.equals("java.lang.Double") || dtt.equals("Double")) {
+						orderColumn = eaOrderJoin.valueDouble;
+					} else if (dtt.equals("java.lang.Integer") || dtt.equals("Integer")) {
+						orderColumn = eaOrderJoin.valueInteger;
+					} else if (dtt.equals("java.lang.Long") || dtt.equals("Long")) {
+						orderColumn = eaOrderJoin.valueLong;
+					} else if (dtt.equals("java.time.LocalDateTime") || dtt.equals("LocalDateTime")) {
+						orderColumn = eaOrderJoin.valueDateTime;
+					} else if (dtt.equals("java.time.LocalDate") || dtt.equals("LocalDate")) {
+						orderColumn = eaOrderJoin.valueDate;
+					} else if (dtt.equals("java.time.LocalTime") || dtt.equals("LocalTime")) {
+						orderColumn = eaOrderJoin.valueTime;
+					}
+				}
+
+				if (ea.getValueString().equals("ASC")) {
+					query.orderBy(orderColumn.asc());
+				} else {
+					query.orderBy(orderColumn.desc());
+				}
+			}
+		}
+
+		// Fetch the count before setting page size and start
+		long count = query.fetchCount();
+		// Set page start and page size, then fetch codes
+		query.offset(pageStart).limit(pageSize);
+		codes = query.select(entityAttribute.baseEntityCode).fetch();
+		// Return codes and count
+		result = new QSearchBeResult(codes,count);
+		return result;
+	}
+
+	/**
+	 * Quick tool to remove any prefix strings from attribute codes, even if the
+	 * prefix occurs multiple times.
+	 * 
+	 * @param code   The attribute code
+	 * @param prefix The prefix to remove
+	 * @return formatted The formatted code
+	 */
+	public String removePrefixFromCode(String code, String prefix) {
+
+		String formatted = code;
+		while (formatted.startsWith(prefix + "_")) {
+			formatted = formatted.substring(prefix.length() + 1);
+		}
+		return formatted;
 	}
 	
 	public Long findBySearchEA24Count(@NotNull final String hql) {
