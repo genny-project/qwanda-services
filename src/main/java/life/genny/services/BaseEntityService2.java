@@ -2154,7 +2154,7 @@ public class BaseEntityService2 {
 //					}
 //				}
 				if (attribute == null && (answer.getAttributeCode().startsWith("SRT_")
-						|| answer.getAttributeCode().startsWith("SCH_"))) {
+						|| answer.getAttributeCode().startsWith("SCH_")|| answer.getAttributeCode().startsWith("SER_"))) {
 					attribute = new AttributeText(answer.getAttributeCode(), answer.getAttributeCode());
 					attribute.setRealm(getRealm());
 					getEntityManager().persist(attribute);
