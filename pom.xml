@@ -19,8 +19,6 @@
 		<jar.finalName>${project.name}</jar.finalName>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<qwanda-utils.version>${project.version}</qwanda-utils.version>
-
 		<!--java version -->
 		<java-version>11</java-version>
 
@@ -35,12 +33,14 @@
 		<version.maven-jar-plugin>3.1.2</version.maven-jar-plugin>
 		<version.maven-source-plugin>3.1.0</version.maven-source-plugin>
 
+		<qwanda-utils.version>${project.version}</qwanda-utils.version>
+		<genny-rules.version>${project.version}</genny-rules.version>
+
 		<!-- dependency versions -->
 		<javaee-api-version>8.0</javaee-api-version>
 
 		<!-- EJB spec version -->
 		<ejb-spec-version>3.2</ejb-spec-version>
-
 
 
 		<!-- <jackson.version>2.8.7</jackson.version> -->
@@ -56,6 +56,7 @@
 
 		<m2e.jpa.activation>false</m2e.jpa.activation>
 		<gson.version>2.8.5</gson.version>
+		<querydsl.version>4.4.0</querydsl.version>
 
 	</properties>
 
@@ -98,6 +99,24 @@
 	</repositories>
 
 	<dependencies>
+		<!-- These three are for querydsl -->
+		<dependency>
+		  <groupId>com.querydsl</groupId>
+		  <artifactId>querydsl-apt</artifactId>
+		  <version>${querydsl.version}</version>
+		  <scope>provided</scope>
+		</dependency>
+		<dependency>
+		  <groupId>com.querydsl</groupId>
+		  <artifactId>querydsl-jpa</artifactId>
+		  <version>${querydsl.version}</version>
+		</dependency>
+		<dependency>
+		  <groupId>org.slf4j</groupId>
+		  <artifactId>slf4j-log4j12</artifactId>
+		  <version>1.6.1</version>
+		</dependency>
+
 		<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -195,6 +214,12 @@
 			<groupId>life.genny</groupId>
 			<artifactId>qwanda-utils</artifactId>
 			<version>${qwanda-utils.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>life.genny</groupId>
+			<artifactId>genny-rules</artifactId>
+			<version>${genny-rules.version}</version>
 		</dependency>
 
 		<dependency>
