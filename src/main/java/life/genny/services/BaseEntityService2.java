@@ -45,7 +45,6 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Fetch;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
@@ -60,6 +59,10 @@ import com.querydsl.core.types.dsl.BooleanPath;
 import com.querydsl.core.types.dsl.DatePath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.jpa.sql.JPASQLQuery;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
+// import com.querydsl.sql.DerbyTemplates;
+// import com.querydsl.sql.SQLTemplates;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -106,8 +109,10 @@ import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.attribute.QEntityAttribute;
 import life.genny.qwanda.datatype.DataType;
 import life.genny.qwanda.entity.BaseEntity;
+import life.genny.qwanda.entity.QBaseEntity;
 import life.genny.qwanda.entity.Company;
 import life.genny.qwanda.entity.EntityEntity;
+import life.genny.qwanda.entity.QEntityEntity;
 import life.genny.qwanda.entity.Group;
 import life.genny.qwanda.entity.Person;
 import life.genny.qwanda.entity.Product;
@@ -226,115 +231,92 @@ public class BaseEntityService2 {
 		Integer pageSize = searchBE.getPageSize(GennySettings.defaultPageSize);
 		// Get the hql string and param map from SBE
 		// ------------------------
-		SQLTemplates templates = new DerbyTemplates();
-		JPASQLQuery<?> query = new JPASQLQuery<Void>(getEntityManager(), templates);
+		JPAQuery<?> query = new JPAQuery<Void>(getEntityManager());
 
-		QEntityAttribute entityAttribute = QEntityAttribute.entityAttribute;
+		QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute");
+		// Define a join for link searches
+		String linkCode = null;
+		String linkValue = null;
+		String sourceCode = null;
+		String targetCode = null;
 
+		query.from(entityAttribute);
+
+		List<EntityAttribute> sortAttributes = new ArrayList<>();
 		List<EntityAttribute> andAttributes = searchBE.findPrefixEntityAttributes("AND_");
 		List<EntityAttribute> orAttributes = searchBE.findPrefixEntityAttributes("OR_");
+
+		BooleanBuilder builder = new BooleanBuilder();
 
 		Integer joinCounter = 0;
 
 		for (EntityAttribute ea : searchBE.getBaseEntityAttributes()) {
 
 			String attributeCode = ea.getAttributeCode();
-			// String attributeCode = removePrefixFromCode(ea.getAttributeCode(), "OR");
-			// attributeCode = removePrefixFromCode(attributeCode, "AND");
 
 			// Create where condition for the BE Code Filter
 			if (attributeCode.equals("PRI_CODE")) {
-				query.where(entityAttribute.baseEntityCode.like(ea.getAsString()));
+				System.out.println("PRI_CODE like " + ea.getAsString());
 
-			// Create a Join for each attribute filters
-			} else if ((attributeCode.startsWith("PRI_") || attributeCode.startsWith("LNK_"))
-					&& (!attributeCode.equals("PRI_CODE")) && (!attributeCode.equals("PRI_TOTAL_RESULTS"))
-					&& (!attributeCode.equals("PRI_INDEX"))) {
-					
-				REntityAttribute eaFilterJoin = new REntityAttribute("eaFilterJoin_"+joinCounter.toString());
-				joinCounter++;
-				query.leftJoin(eaFilterJoin, eaFilterJoin)
-					.on(eaFilterJoin.baseEntityCode.eq(entityAttribute.baseEntityCode));
+				BooleanBuilder entityCodeBuilder = new BooleanBuilder();
+				entityCodeBuilder.and(entityAttribute.baseEntityCode.like(ea.getAsString()));
 
-				String attributeFilterValue = ea.getValue().toString();
-				System.out.println("attributeFilterValue = " + attributeFilterValue);
-
-				String condition = SearchEntity.convertFromSaveable(ea.getAttributeName());
-				System.out.println("condition = " + condition);
-
-				// LIKE
-				if (condition.equals("LIKE")) {
-					query.where(eaFilterJoin.valueString.like(ea.getValueString()));
-				// LIKE
-				} else if (condition.equals("NOT LIKE")) {
-					query.where(eaFilterJoin.valueString.notLike(ea.getValueString()));
-				// EQUALS
-				} else if (condition.equals("=")) {
-					query.where(eaFilterJoin.valueString.eq(ea.getValueString()));
-				// NOT EQUALS
-				} else if (condition.equals("!=")) {
-					query.where(eaFilterJoin.valueString.ne(ea.getValueString()));
-				// GREATER THAN OR EQUAL TO
-				} else if (condition.equals(">=")) {
-					if (ea.getValueDouble() != null) {
-						query.where(eaFilterJoin.valueDouble.goe(ea.getValueDouble()));
-					} else if (ea.getValueInteger() != null) {
-						query.where(eaFilterJoin.valueInteger.goe(ea.getValueInteger()));
-					} else if (ea.getValueDate() != null) {
-						query.where(eaFilterJoin.valueDate.after(ea.getValueDate()));
-					} else if (ea.getValueDateTime() != null) {
-						query.where(eaFilterJoin.valueDateTime.after(ea.getValueDateTime()));
+				for (EntityAttribute andAttr : andAttributes) {
+					if (andAttr.getAttributeCode().startsWith("AND_")) {
+						if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").equals(attributeCode)) {
+							System.out.println("AND PRI_CODE like " + andAttr.getAsString());
+							// currentAttributeBuilder.and();
+							entityCodeBuilder.and(entityAttribute.baseEntityCode.like(andAttr.getAsString()));
+						}
 					}
-				// LESS THAN OR EQUAL TO
-				} else if (condition.equals("<=")) {
-					if (ea.getValueDouble() != null) {
-						query.where(eaFilterJoin.valueDouble.loe(ea.getValueDouble()));
-					} else if (ea.getValueInteger() != null) {
-						query.where(eaFilterJoin.valueInteger.loe(ea.getValueInteger()));
-					} else if (ea.getValueDate() != null) {
-						query.where(eaFilterJoin.valueDate.before(ea.getValueDate()));
-					} else if (ea.getValueDateTime() != null) {
-						query.where(eaFilterJoin.valueDateTime.before(ea.getValueDateTime()));
-					}
-				// GREATER THAN
-				} else if (condition.equals(">")) {
-					if (ea.getValueDouble() != null) {
-						query.where(eaFilterJoin.valueDouble.gt(ea.getValueDouble()));
-					} else if (ea.getValueInteger() != null) {
-						query.where(eaFilterJoin.valueInteger.gt(ea.getValueInteger()));
-					} else if (ea.getValueDate() != null) {
-						query.where(eaFilterJoin.valueDate.after(ea.getValueDate()));
-					} else if (ea.getValueDateTime() != null) {
-						query.where(eaFilterJoin.valueDateTime.after(ea.getValueDateTime()));
-					}
-				// LESS THAN
-				} else if (condition.equals("<")) {
-					if (ea.getValueDouble() != null) {
-						query.where(eaFilterJoin.valueDouble.lt(ea.getValueDouble()));
-					} else if (ea.getValueInteger() != null) {
-						query.where(eaFilterJoin.valueInteger.lt(ea.getValueInteger()));
-					} else if (ea.getValueDate() != null) {
-						query.where(eaFilterJoin.valueDate.before(ea.getValueDate()));
-					} else if (ea.getValueDateTime() != null) {
-						query.where(eaFilterJoin.valueDateTime.before(ea.getValueDateTime()));
-					}
-				} else {
-					// Default to equals
-					query.where(eaFilterJoin.valueString.eq(ea.getValueString()));
 				}
+				for (EntityAttribute orAttr : orAttributes) {
+					if (orAttr.getAttributeCode().startsWith("OR_")) {
+						if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals(attributeCode)) {
+							System.out.println("OR PRI_CODE like " + orAttr.getAsString());
+							// currentAttributeBuilder.or();
+							entityCodeBuilder.or(entityAttribute.baseEntityCode.like(orAttr.getAsString()));
+						}
+					}
+				}
+				builder.and(entityCodeBuilder);
+			// Create a Join for each attribute filters
+			} else if (
+					(attributeCode.startsWith("PRI_") || attributeCode.startsWith("LNK_"))
+					&& !attributeCode.equals("PRI_CODE") && !attributeCode.equals("PRI_TOTAL_RESULTS")
+					&& !attributeCode.equals("PRI_INDEX")
+					&& !((ea.getValueString() != null) && (ea.getValueString().equals("%"))
+					&& (ea.getAttributeName().equals("LIKE")))
+				) {
+					
+				String filterName = "eaFilterJoin_"+joinCounter.toString();
+				QEntityAttribute eaFilterJoin = new QEntityAttribute(filterName);
+				joinCounter++;
+				query.leftJoin(eaFilterJoin)
+					.on(eaFilterJoin.baseEntityCode.eq(entityAttribute.baseEntityCode)
+					.and(eaFilterJoin.attributeCode.eq(attributeCode)));
 
+				BooleanBuilder currentAttributeBuilder = new BooleanBuilder();
+
+				currentAttributeBuilder.and(getAttributeSearchColumn(ea, eaFilterJoin));
 				// Check for OR/AND attributes with same code
-				// for (EntityAttribute andAttr : andAttributes) {
-				// 	if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").equals(attributeCode)) {
-				// 		query.and(eaFilterJoin.valueString.eq(andAttr.getAttributeCode()));
-				// 	}
-				// }
-				// for (EntityAttribute orAttr : orAttributes) {
-				// 	if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals(attributeCode)) {
-				// 		query.and(eaFilterJoin.valueString.eq(orAttr.getAttributeCode()));
-				// 	}
-				// }
-
+				for (EntityAttribute andAttr : andAttributes) {
+					if (andAttr.getAttributeCode().startsWith("AND_")) {
+						if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").equals(attributeCode)) {
+							// currentAttributeBuilder.and();
+							currentAttributeBuilder.and(getAttributeSearchColumn(andAttr, eaFilterJoin));
+						}
+					}
+				}
+				for (EntityAttribute orAttr : orAttributes) {
+					if (orAttr.getAttributeCode().startsWith("OR_")) {
+						if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals(attributeCode)) {
+							// currentAttributeBuilder.or();
+							currentAttributeBuilder.or(getAttributeSearchColumn(orAttr, eaFilterJoin));
+						}
+					}
+				}
+				builder.and(currentAttributeBuilder);
 			// Create a filter for wildcard
 			} else if (attributeCode.startsWith("SCH_WILDCARD")) {
 				if (ea.getValueString() != null) {
@@ -343,72 +325,209 @@ public class BaseEntityService2 {
 						wildcardValue = wildcardValue.replaceAll(("[^A-Za-z0-9 ]"), "");
 						wildcardValue = "%" + wildcardValue + "%";
 
-						REntityAttribute eaWildcardJoin = new REntityAttribute("eaWildcardJoin");
-						query.leftJoin(entityAttribute, eaWildcardJoin)
-							.on(eaWildcardJoin.baseEntityCode.eq(entityAttribute.baseEntityCode));
+						QEntityAttribute eaWildcardJoin = new QEntityAttribute("eaWildcardJoin");
+						query.leftJoin(eaWildcardJoin).on(eaWildcardJoin.baseEntityCode.eq(entityAttribute.baseEntityCode));
 
-						query.where(eaWildcardJoin.valueString.like(wildcardValue));
+						builder.and(eaWildcardJoin.valueString.like(wildcardValue));
+						System.out.println("WILDCARD like " + wildcardValue);
 					}
 				}
-
-			// Create a Join for each sort if necessary
+			} else if (attributeCode.startsWith("SCH_LINK_CODE")) {
+				linkCode = ea.getValue();
+			} else if (attributeCode.startsWith("SCH_LINK_VALUE")) {
+				linkValue = ea.getValue();
+			} else if (attributeCode.startsWith("SCH_SOURCE_CODE")) {
+				sourceCode = ea.getValue();
+			} else if (attributeCode.startsWith("SCH_TARGET_CODE")) {
+				targetCode = ea.getValue();
+			// Add to sort list if it is a sort attribute
 			} else if (attributeCode.startsWith("SRT_")) {
-
-				REntityAttribute eaOrderJoin = new REntityAttribute("eaOrderJoin_"+joinCounter.toString());
-				joinCounter++;
-				query.leftJoin(eaOrderJoin, eaOrderJoin)
-					.on(eaOrderJoin.baseEntityCode.eq(entityAttribute.baseEntityCode));
-
-				ComparableExpressionBase orderColumn = null;
-				if (attributeCode.startsWith("SRT_PRI_CREATED")) {
-					orderColumn = eaOrderJoin.created;
-				} else if (attributeCode.startsWith("SRT_PRI_UPDATED")) {
-					orderColumn = eaOrderJoin.updated;
-				} else if (attributeCode.startsWith("SRT_PRI_CODE")) {
-					orderColumn = eaOrderJoin.baseEntityCode;
-				} else if (attributeCode.startsWith("SRT_PRI_NAME")) {
-					orderColumn = eaOrderJoin.pk.baseEntity.name;
-				} else {
-					Attribute attr = RulesUtils.getAttribute(attributeCode.substring("SRT_".length()), passedToken);
-					String dtt = attr.getDataType().getClassName();
-
-					if (dtt.equals("Text")) {
-						orderColumn = eaOrderJoin.valueString;
-					} else if (dtt.equals("java.lang.String") || dtt.equals("String")) {
-						orderColumn = eaOrderJoin.valueString;
-					} else if (dtt.equals("java.lang.Boolean") || dtt.equals("Boolean")) {
-						orderColumn = eaOrderJoin.valueBoolean;
-					} else if (dtt.equals("java.lang.Double") || dtt.equals("Double")) {
-						orderColumn = eaOrderJoin.valueDouble;
-					} else if (dtt.equals("java.lang.Integer") || dtt.equals("Integer")) {
-						orderColumn = eaOrderJoin.valueInteger;
-					} else if (dtt.equals("java.lang.Long") || dtt.equals("Long")) {
-						orderColumn = eaOrderJoin.valueLong;
-					} else if (dtt.equals("java.time.LocalDateTime") || dtt.equals("LocalDateTime")) {
-						orderColumn = eaOrderJoin.valueDateTime;
-					} else if (dtt.equals("java.time.LocalDate") || dtt.equals("LocalDate")) {
-						orderColumn = eaOrderJoin.valueDate;
-					} else if (dtt.equals("java.time.LocalTime") || dtt.equals("LocalTime")) {
-						orderColumn = eaOrderJoin.valueTime;
-					}
-				}
-
-				if (ea.getValueString().equals("ASC")) {
-					query.orderBy(orderColumn.asc());
-				} else {
-					query.orderBy(orderColumn.desc());
-				}
+				sortAttributes.add(ea);
 			}
 		}
+		// Order the sorts by weight
+		Comparator<EntityAttribute> compareByWeight = (EntityAttribute a, EntityAttribute b) -> a.getWeight().compareTo(b.getWeight());
+		Collections.sort(sortAttributes, compareByWeight);
+		// Create a Join for each sort
+		for (EntityAttribute sort : sortAttributes) {
 
-		// Fetch the count before setting page size and start
-		long count = query.fetchCount();
+			String attributeCode = sort.getAttributeCode();
+			QEntityAttribute eaOrderJoin = new QEntityAttribute("eaOrderJoin_"+joinCounter.toString());
+			joinCounter++;
+
+			if (!(attributeCode.startsWith("SRT_PRI_CREATED") || attributeCode.startsWith("SRT_PRI_UPDATED")
+				|| attributeCode.startsWith("SRT_PRI_CODE") || attributeCode.startsWith("SRT_PRI_NAME"))) {
+				query.leftJoin(eaOrderJoin)
+					.on(eaOrderJoin.baseEntityCode.eq(entityAttribute.baseEntityCode)
+					.and(eaOrderJoin.attributeCode.eq(attributeCode)));
+			}
+
+			ComparableExpressionBase orderColumn = null;
+			if (attributeCode.startsWith("SRT_PRI_CREATED")) {
+				orderColumn = entityAttribute.created;
+			} else if (attributeCode.startsWith("SRT_PRI_UPDATED")) {
+				orderColumn = entityAttribute.updated;
+			} else if (attributeCode.startsWith("SRT_PRI_CODE")) {
+				orderColumn = entityAttribute.baseEntityCode;
+			} else if (attributeCode.startsWith("SRT_PRI_NAME")) {
+				orderColumn = entityAttribute.pk.baseEntity.name;
+			} else {
+				Attribute attr = RulesUtils.getAttribute(attributeCode.substring("SRT_".length()), passedToken);
+				String dtt = attr.getDataType().getClassName();
+
+				if (dtt.equals("Text")) {
+					orderColumn = eaOrderJoin.valueString;
+				} else if (dtt.equals("java.lang.String") || dtt.equals("String")) {
+					orderColumn = eaOrderJoin.valueString;
+				} else if (dtt.equals("java.lang.Boolean") || dtt.equals("Boolean")) {
+					orderColumn = eaOrderJoin.valueBoolean;
+				} else if (dtt.equals("java.lang.Double") || dtt.equals("Double")) {
+					orderColumn = eaOrderJoin.valueDouble;
+				} else if (dtt.equals("java.lang.Integer") || dtt.equals("Integer")) {
+					orderColumn = eaOrderJoin.valueInteger;
+				} else if (dtt.equals("java.lang.Long") || dtt.equals("Long")) {
+					orderColumn = eaOrderJoin.valueLong;
+				} else if (dtt.equals("java.time.LocalDateTime") || dtt.equals("LocalDateTime")) {
+					orderColumn = eaOrderJoin.valueDateTime;
+				} else if (dtt.equals("java.time.LocalDate") || dtt.equals("LocalDate")) {
+					orderColumn = eaOrderJoin.valueDate;
+				} else if (dtt.equals("java.time.LocalTime") || dtt.equals("LocalTime")) {
+					orderColumn = eaOrderJoin.valueTime;
+				}
+			}
+
+			if (sort.getValueString().equals("ASC")) {
+				query.orderBy(orderColumn.asc());
+			} else {
+				query.orderBy(orderColumn.desc());
+			}
+		}
+		// Build link join if necessary
+		if (sourceCode != null || targetCode != null || linkCode != null || linkValue != null) {
+			QEntityEntity linkJoin = new QEntityEntity("linkJoin");
+			BooleanBuilder linkBuilder = new BooleanBuilder();
+			if (sourceCode != null) {
+				linkBuilder.and(linkJoin.link.sourceCode.like(sourceCode));
+				if (targetCode == null) {
+					linkBuilder.and(linkJoin.link.targetCode.like(entityAttribute.baseEntityCode));
+				}
+			}
+			if (targetCode != null) {
+				linkBuilder.and(linkJoin.link.targetCode.like(targetCode));
+				if (sourceCode == null) {
+					linkBuilder.and(linkJoin.link.sourceCode.like(entityAttribute.baseEntityCode));
+				}
+			}
+			if (linkCode != null) {
+				linkBuilder.and(linkJoin.link.attributeCode.like(linkCode));
+			}
+			if (linkValue != null) {
+				linkBuilder.and(linkJoin.link.linkValue.like(linkValue));
+			}
+			query.leftJoin(linkJoin).on(linkBuilder);
+		}
+		// Search across people and companies if from searchbar
+		if (searchBE.getCode().startsWith("SBE_SEARCHBAR")) {
+			// search across people and companies
+			builder.and(entityAttribute.baseEntityCode.like("PER_%"))
+				.or(entityAttribute.baseEntityCode.like("CPY_%"));
+		}
+		// Add all builder conditions to query
+		query.where(builder);
 		// Set page start and page size, then fetch codes
 		query.offset(pageStart).limit(pageSize);
-		codes = query.select(entityAttribute.baseEntityCode).fetch();
+		// Fetch codes
+		codes = query.select(entityAttribute.baseEntityCode).distinct().fetch();
+		// Fetch the count before setting page size and start
+		long count = query.fetchCount();
 		// Return codes and count
+		System.out.println("SQL = " + query.toString());
 		result = new QSearchBeResult(codes,count);
 		return result;
+	}
+
+	
+	Predicate getAttributeSearchColumn(EntityAttribute ea, QEntityAttribute eaFilterJoin) {
+
+		String attributeFilterValue = ea.getValue().toString();
+		String condition = SearchEntity.convertFromSaveable(ea.getAttributeName());
+		System.out.println(ea.getAttributeCode() + " " + condition + " " + attributeFilterValue);
+
+		String valueString = "";
+		if (ea.getValueString() != null) {
+			valueString = ea.getValueString();
+		}
+		// Null check on condition and default to equals valuestring
+		if (condition == null) {
+			log.error("SQL condition is NULL, " + "EntityAttribute baseEntityCode is:" + ea.getBaseEntityCode()
+					+ ", attributeCode is: " + ea.getAttributeCode());
+		// LIKE
+		} else if (condition.equals("LIKE")) {
+			return eaFilterJoin.valueString.like(valueString);
+		// NOT LIKE
+		} else if (condition.equals("NOT LIKE")) {
+			return eaFilterJoin.valueString.notLike(valueString);
+		// EQUALS
+		} else if (condition.equals("=")) {
+			if (ea.getValueBoolean() != null) {
+				return eaFilterJoin.valueBoolean.eq(ea.getValueBoolean());
+			} else {
+				return eaFilterJoin.valueString.eq(valueString);
+			}
+		// NOT EQUALS
+		} else if (condition.equals("!=")) {
+			if (ea.getValueBoolean() != null) {
+				return eaFilterJoin.valueBoolean.eq(ea.getValueBoolean());
+			} else {
+				return eaFilterJoin.valueString.eq(valueString);
+			}
+		// GREATER THAN OR EQUAL TO
+		} else if (condition.equals(">=")) {
+			if (ea.getValueDouble() != null) {
+				return eaFilterJoin.valueDouble.goe(ea.getValueDouble());
+			} else if (ea.getValueInteger() != null) {
+				return eaFilterJoin.valueInteger.goe(ea.getValueInteger());
+			} else if (ea.getValueDate() != null) {
+				return eaFilterJoin.valueDate.after(ea.getValueDate());
+			} else if (ea.getValueDateTime() != null) {
+				return eaFilterJoin.valueDateTime.after(ea.getValueDateTime());
+			}
+		// LESS THAN OR EQUAL TO
+		} else if (condition.equals("<=")) {
+			if (ea.getValueDouble() != null) {
+				return eaFilterJoin.valueDouble.loe(ea.getValueDouble());
+			} else if (ea.getValueInteger() != null) {
+				return eaFilterJoin.valueInteger.loe(ea.getValueInteger());
+			} else if (ea.getValueDate() != null) {
+				return eaFilterJoin.valueDate.before(ea.getValueDate());
+			} else if (ea.getValueDateTime() != null) {
+				return eaFilterJoin.valueDateTime.before(ea.getValueDateTime());
+			}
+		// GREATER THAN
+		} else if (condition.equals(">")) {
+			if (ea.getValueDouble() != null) {
+				return eaFilterJoin.valueDouble.gt(ea.getValueDouble());
+			} else if (ea.getValueInteger() != null) {
+				return eaFilterJoin.valueInteger.gt(ea.getValueInteger());
+			} else if (ea.getValueDate() != null) {
+				return eaFilterJoin.valueDate.after(ea.getValueDate());
+			} else if (ea.getValueDateTime() != null) {
+				return eaFilterJoin.valueDateTime.after(ea.getValueDateTime());
+			}
+		// LESS THAN
+		} else if (condition.equals("<")) {
+			if (ea.getValueDouble() != null) {
+				return eaFilterJoin.valueDouble.lt(ea.getValueDouble());
+			} else if (ea.getValueInteger() != null) {
+				return eaFilterJoin.valueInteger.lt(ea.getValueInteger());
+			} else if (ea.getValueDate() != null) {
+				return eaFilterJoin.valueDate.before(ea.getValueDate());
+			} else if (ea.getValueDateTime() != null) {
+				return eaFilterJoin.valueDateTime.before(ea.getValueDateTime());
+			}
+		}
+		// Default
+		return eaFilterJoin.valueString.eq(valueString);
 	}
 
 	/**
