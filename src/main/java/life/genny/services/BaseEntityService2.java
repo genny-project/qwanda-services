@@ -221,7 +221,7 @@ public class BaseEntityService2 {
 	 * Perform a safe search using named parameters to
 	 * protect from SQL Injection
 	*/
-	public QSearchBeResult findBySearch25(String passedToken, @NotNull final SearchEntity searchBE) {
+	public QSearchBeResult findBySearch25(String passedToken, @NotNull final SearchEntity searchBE, Boolean countOnly) {
 	
 		// Init necessary vars
 		QSearchBeResult result = null;
@@ -285,18 +285,20 @@ public class BaseEntityService2 {
 					(attributeCode.startsWith("PRI_") || attributeCode.startsWith("LNK_"))
 					&& !attributeCode.equals("PRI_CODE") && !attributeCode.equals("PRI_TOTAL_RESULTS")
 					&& !attributeCode.equals("PRI_INDEX")
-					&& !((ea.getValueString() != null) && (ea.getValueString().equals("%"))
-					&& (ea.getAttributeName().equals("LIKE")))
 				) {
-					
+
+				// Generally don't accept filter LIKE "%", unless other filters present for this attribute
+				Boolean isAnyStringFilter = false;
+				if (ea.getValueString() != null && ea.getValueString().equals("%") && ea.getAttributeName().equals("LIKE")) {
+					isAnyStringFilter = true;
+				}
+
 				String filterName = "eaFilterJoin_"+joinCounter.toString();
 				QEntityAttribute eaFilterJoin = new QEntityAttribute(filterName);
 				joinCounter++;
-				query.leftJoin(eaFilterJoin)
-					.on(eaFilterJoin.baseEntityCode.eq(entityAttribute.baseEntityCode)
-					.and(eaFilterJoin.attributeCode.eq(attributeCode)));
 
 				BooleanBuilder currentAttributeBuilder = new BooleanBuilder();
+				BooleanBuilder extraFilterBuilder = new BooleanBuilder();
 
 				currentAttributeBuilder.and(getAttributeSearchColumn(ea, eaFilterJoin));
 				// Check for OR/AND attributes with same code
@@ -304,7 +306,7 @@ public class BaseEntityService2 {
 					if (andAttr.getAttributeCode().startsWith("AND_")) {
 						if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").equals(attributeCode)) {
 							// currentAttributeBuilder.and();
-							currentAttributeBuilder.and(getAttributeSearchColumn(andAttr, eaFilterJoin));
+							extraFilterBuilder.and(getAttributeSearchColumn(andAttr, eaFilterJoin));
 						}
 					}
 				}
@@ -312,11 +314,24 @@ public class BaseEntityService2 {
 					if (orAttr.getAttributeCode().startsWith("OR_")) {
 						if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals(attributeCode)) {
 							// currentAttributeBuilder.or();
-							currentAttributeBuilder.or(getAttributeSearchColumn(orAttr, eaFilterJoin));
+							extraFilterBuilder.or(getAttributeSearchColumn(orAttr, eaFilterJoin));
 						}
 					}
 				}
-				builder.and(currentAttributeBuilder);
+				// This should get around the bug that occurs with filter LIKE "%"
+				if (!isAnyStringFilter || extraFilterBuilder.hasValue()) {
+
+					query.leftJoin(eaFilterJoin)
+						.on(eaFilterJoin.baseEntityCode.eq(entityAttribute.baseEntityCode)
+						.and(eaFilterJoin.attributeCode.eq(attributeCode)));
+
+					if (!isAnyStringFilter) {
+						builder.and(currentAttributeBuilder);
+					}
+					if (extraFilterBuilder.hasValue()) {
+						builder.and(extraFilterBuilder);
+					}
+				}
 			// Create a filter for wildcard
 			} else if (attributeCode.startsWith("SCH_WILDCARD")) {
 				if (ea.getValueString() != null) {
@@ -436,13 +451,19 @@ public class BaseEntityService2 {
 		query.where(builder);
 		// Set page start and page size, then fetch codes
 		query.offset(pageStart).limit(pageSize);
-		// Fetch codes
-		codes = query.select(entityAttribute.baseEntityCode).distinct().fetch();
-		// Fetch the count before setting page size and start
-		long count = query.fetchCount();
+
+		if (countOnly) {
+			// Fetch only the count
+			long count = query.select(entityAttribute.baseEntityCode).distinct().fetchCount();
+			result = new QSearchBeResult(null, count);
+		} else {
+			// Fetch codes and count
+			codes = query.select(entityAttribute.baseEntityCode).distinct().fetch();
+			long count = query.fetchCount();
+			result = new QSearchBeResult(codes, count);
+		}
 		// Return codes and count
 		System.out.println("SQL = " + query.toString());
-		result = new QSearchBeResult(codes,count);
 		return result;
 	}
 
