@@ -455,7 +455,7 @@ public class BaseEntityService2 {
 		if (countOnly) {
 			// Fetch only the count
 			long count = query.select(entityAttribute.baseEntityCode).distinct().fetchCount();
-			result = new QSearchBeResult(null, count);
+			result = new QSearchBeResult(count);
 		} else {
 			// Fetch codes and count
 			codes = query.select(entityAttribute.baseEntityCode).distinct().fetch();
