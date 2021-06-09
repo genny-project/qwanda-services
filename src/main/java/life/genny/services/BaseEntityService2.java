@@ -221,7 +221,7 @@ public class BaseEntityService2 {
 	 * Perform a safe search using named parameters to
 	 * protect from SQL Injection
 	*/
-	public QSearchBeResult findBySearch25(String passedToken, @NotNull final SearchEntity searchBE, Boolean countOnly) {
+	public QSearchBeResult findBySearch25(String passedToken, String realm, @NotNull final SearchEntity searchBE, Boolean countOnly) {
 	
 		// Init necessary vars
 		QSearchBeResult result = null;
@@ -248,6 +248,10 @@ public class BaseEntityService2 {
 
 		BooleanBuilder builder = new BooleanBuilder();
 
+		// Ensure only Entities from our realm are returned
+		System.out.println("realm is " + realm);
+		builder.and(entityAttribute.pk.baseEntity.realm.eq(realm));
+
 		Integer joinCounter = 0;
 
 		for (EntityAttribute ea : searchBE.getBaseEntityAttributes()) {
@@ -265,7 +269,6 @@ public class BaseEntityService2 {
 					if (andAttr.getAttributeCode().startsWith("AND_")) {
 						if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").equals(attributeCode)) {
 							System.out.println("AND PRI_CODE like " + andAttr.getAsString());
-							// currentAttributeBuilder.and();
 							entityCodeBuilder.and(entityAttribute.baseEntityCode.like(andAttr.getAsString()));
 						}
 					}
@@ -274,12 +277,45 @@ public class BaseEntityService2 {
 					if (orAttr.getAttributeCode().startsWith("OR_")) {
 						if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals(attributeCode)) {
 							System.out.println("OR PRI_CODE like " + orAttr.getAsString());
-							// currentAttributeBuilder.or();
 							entityCodeBuilder.or(entityAttribute.baseEntityCode.like(orAttr.getAsString()));
 						}
 					}
 				}
 				builder.and(entityCodeBuilder);
+
+			// Handle Created Date Filters
+			} else if (attributeCode.equals("PRI_CREATED")) {
+
+				builder.and(getDateTimePredicate(ea, entityAttribute.pk.baseEntity.created));
+
+				for (EntityAttribute andAttr : andAttributes) {
+					if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").equals("PRI_CREATED")) {
+						System.out.println("AND PRI_CREATED like " + andAttr.getAsString());
+						builder.and(getDateTimePredicate(andAttr, entityAttribute.pk.baseEntity.created));
+					}
+				}
+				for (EntityAttribute orAttr : orAttributes) {
+					if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals("PRI_CREATED")) {
+						System.out.println("OR PRI_CODE like " + orAttr.getAsString());
+						builder.or(getDateTimePredicate(orAttr, entityAttribute.pk.baseEntity.created));
+					}
+				}
+
+			// Handle Updated Date Filters
+			} else if (attributeCode.equals("PRI_UPDATED")) {
+				String condition = SearchEntity.convertFromSaveable(ea.getAttributeName());
+				LocalDateTime dateTime = ea.getValueDateTime();
+
+				if (condition.equals(">=") || condition.equals(">")) {
+					builder.and(entityAttribute.pk.baseEntity.updated.after(dateTime));
+				} else if (condition.equals("<=") || condition.equals("<")) {
+					builder.and(entityAttribute.pk.baseEntity.updated.before(dateTime));
+				} else if (condition.equals("=")) {
+					builder.and(entityAttribute.pk.baseEntity.updated.eq(dateTime));
+				} else if (condition.equals("!=")) {
+					builder.and(entityAttribute.pk.baseEntity.updated.ne(dateTime));
+				}
+
 			// Create a Join for each attribute filters
 			} else if (
 					(attributeCode.startsWith("PRI_") || attributeCode.startsWith("LNK_"))
@@ -379,9 +415,9 @@ public class BaseEntityService2 {
 
 			ComparableExpressionBase orderColumn = null;
 			if (attributeCode.startsWith("SRT_PRI_CREATED")) {
-				orderColumn = entityAttribute.created;
+				orderColumn = entityAttribute.pk.baseEntity.created;
 			} else if (attributeCode.startsWith("SRT_PRI_UPDATED")) {
-				orderColumn = entityAttribute.updated;
+				orderColumn = entityAttribute.pk.baseEntity.updated;
 			} else if (attributeCode.startsWith("SRT_PRI_CODE")) {
 				orderColumn = entityAttribute.baseEntityCode;
 			} else if (attributeCode.startsWith("SRT_PRI_NAME")) {
@@ -467,6 +503,21 @@ public class BaseEntityService2 {
 		return result;
 	}
 
+
+	Predicate getDateTimePredicate(EntityAttribute ea, DateTimePath path) {
+		String condition = SearchEntity.convertFromSaveable(ea.getAttributeName());
+		LocalDateTime dateTime = ea.getValueDateTime();
+			
+		if (condition.equals(">=") || condition.equals(">")) {
+			return path.after(dateTime);
+		} else if (condition.equals("<=") || condition.equals("<")) {
+			return path.before(dateTime);
+		} else if (condition.equals("!=")) {
+			return path.ne(dateTime);
+		}
+		// Default to equals
+		return path.eq(dateTime);
+	}
 	
 	Predicate getAttributeSearchColumn(EntityAttribute ea, QEntityAttribute eaFilterJoin) {
 
@@ -498,9 +549,9 @@ public class BaseEntityService2 {
 		// NOT EQUALS
 		} else if (condition.equals("!=")) {
 			if (ea.getValueBoolean() != null) {
-				return eaFilterJoin.valueBoolean.eq(ea.getValueBoolean());
+				return eaFilterJoin.valueBoolean.eq(!ea.getValueBoolean());
 			} else {
-				return eaFilterJoin.valueString.eq(valueString);
+				return eaFilterJoin.valueString.ne(valueString);
 			}
 		// GREATER THAN OR EQUAL TO
 		} else if (condition.equals(">=")) {
