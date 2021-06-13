@@ -447,10 +447,14 @@ public class BaseEntityService2 {
 				}
 			}
 
-			if (sort.getValueString().equals("ASC")) {
-				query.orderBy(orderColumn.asc());
+			if (orderColumn != null) {
+				if (sort.getValueString().equals("ASC")) {
+					query.orderBy(orderColumn.asc());
+				} else {
+					query.orderBy(orderColumn.desc());
+				}
 			} else {
-				query.orderBy(orderColumn.desc());
+				System.out.println("orderColumn is null for attribute " + attributeCode);
 			}
 		}
 		// Build link join if necessary
