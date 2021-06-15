@@ -285,6 +285,7 @@ public class BaseEntityService2 {
 
 			// Handle Created Date Filters
 			} else if (attributeCode.startsWith("PRI_CREATED")) {
+				System.out.println("PRI_CREATED " + ea.getAttributeName() + " " + ea.getAsString());
 
 				builder.and(getDateTimePredicate(ea, entityAttribute.pk.baseEntity.created));
 
@@ -303,6 +304,7 @@ public class BaseEntityService2 {
 
 			// Handle Updated Date Filters
 			} else if (attributeCode.startsWith("PRI_UPDATED")) {
+				System.out.println("PRI_UPDATED " + ea.getAttributeName() + " " + ea.getAsString());
 
 				builder.and(getDateTimePredicate(ea, entityAttribute.pk.baseEntity.updated));
 
@@ -512,10 +514,13 @@ public class BaseEntityService2 {
 		return result;
 	}
 
-
 	Predicate getDateTimePredicate(EntityAttribute ea, DateTimePath path) {
 		String condition = SearchEntity.convertFromSaveable(ea.getAttributeName());
 		LocalDateTime dateTime = ea.getValueDateTime();
+		if (dateTime == null) {
+			LocalDate date = ea.getValueDate();
+			dateTime = date.atStartOfDay();
+		}
 			
 		if (condition.equals(">=") || condition.equals(">")) {
 			return path.after(dateTime);
