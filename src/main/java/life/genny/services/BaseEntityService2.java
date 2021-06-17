@@ -284,42 +284,48 @@ public class BaseEntityService2 {
 				builder.and(entityCodeBuilder);
 
 			// Handle Created Date Filters
-			} else if (attributeCode.equals("PRI_CREATED")) {
+			} else if (attributeCode.startsWith("PRI_CREATED")) {
+				System.out.println("PRI_CREATED " + ea.getAttributeName() + " " + ea.getAsString());
 
 				builder.and(getDateTimePredicate(ea, entityAttribute.pk.baseEntity.created));
 
 				for (EntityAttribute andAttr : andAttributes) {
-					if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").equals("PRI_CREATED")) {
+					if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").startsWith("PRI_CREATED")) {
 						System.out.println("AND PRI_CREATED like " + andAttr.getAsString());
 						builder.and(getDateTimePredicate(andAttr, entityAttribute.pk.baseEntity.created));
 					}
 				}
 				for (EntityAttribute orAttr : orAttributes) {
-					if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals("PRI_CREATED")) {
-						System.out.println("OR PRI_CODE like " + orAttr.getAsString());
+					if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").startsWith("PRI_CREATED")) {
+						System.out.println("OR PRI_CREATED like " + orAttr.getAsString());
 						builder.or(getDateTimePredicate(orAttr, entityAttribute.pk.baseEntity.created));
 					}
 				}
 
 			// Handle Updated Date Filters
-			} else if (attributeCode.equals("PRI_UPDATED")) {
-				String condition = SearchEntity.convertFromSaveable(ea.getAttributeName());
-				LocalDateTime dateTime = ea.getValueDateTime();
+			} else if (attributeCode.startsWith("PRI_UPDATED")) {
+				System.out.println("PRI_UPDATED " + ea.getAttributeName() + " " + ea.getAsString());
 
-				if (condition.equals(">=") || condition.equals(">")) {
-					builder.and(entityAttribute.pk.baseEntity.updated.after(dateTime));
-				} else if (condition.equals("<=") || condition.equals("<")) {
-					builder.and(entityAttribute.pk.baseEntity.updated.before(dateTime));
-				} else if (condition.equals("=")) {
-					builder.and(entityAttribute.pk.baseEntity.updated.eq(dateTime));
-				} else if (condition.equals("!=")) {
-					builder.and(entityAttribute.pk.baseEntity.updated.ne(dateTime));
+				builder.and(getDateTimePredicate(ea, entityAttribute.pk.baseEntity.updated));
+
+				for (EntityAttribute andAttr : andAttributes) {
+					if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").startsWith("PRI_UPDATED")) {
+						System.out.println("AND PRI_UPDATED like " + andAttr.getAsString());
+						builder.and(getDateTimePredicate(andAttr, entityAttribute.pk.baseEntity.updated));
+					}
+				}
+				for (EntityAttribute orAttr : orAttributes) {
+					if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").startsWith("PRI_UPDATED")) {
+						System.out.println("OR PRI_UPDATED like " + orAttr.getAsString());
+						builder.or(getDateTimePredicate(orAttr, entityAttribute.pk.baseEntity.updated));
+					}
 				}
 
 			// Create a Join for each attribute filters
 			} else if (
 					(attributeCode.startsWith("PRI_") || attributeCode.startsWith("LNK_"))
 					&& !attributeCode.equals("PRI_CODE") && !attributeCode.equals("PRI_TOTAL_RESULTS")
+					&& !attributeCode.startsWith("PRI_CREATED") && !attributeCode.startsWith("PRI_UPDATED")
 					&& !attributeCode.equals("PRI_INDEX")
 				) {
 
@@ -403,6 +409,7 @@ public class BaseEntityService2 {
 		for (EntityAttribute sort : sortAttributes) {
 
 			String attributeCode = sort.getAttributeCode();
+			System.out.println("Sorting with " + attributeCode);
 			QEntityAttribute eaOrderJoin = new QEntityAttribute("eaOrderJoin_"+joinCounter.toString());
 			joinCounter++;
 
@@ -507,10 +514,13 @@ public class BaseEntityService2 {
 		return result;
 	}
 
-
 	Predicate getDateTimePredicate(EntityAttribute ea, DateTimePath path) {
 		String condition = SearchEntity.convertFromSaveable(ea.getAttributeName());
 		LocalDateTime dateTime = ea.getValueDateTime();
+		if (dateTime == null) {
+			LocalDate date = ea.getValueDate();
+			dateTime = date.atStartOfDay();
+		}
 			
 		if (condition.equals(">=") || condition.equals(">")) {
 			return path.after(dateTime);
