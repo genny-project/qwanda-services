@@ -132,6 +132,7 @@ import life.genny.qwandautils.GennySettings;
 import life.genny.utils.BaseEntityUtils;
 import life.genny.utils.RulesUtils;
 import life.genny.models.GennyToken;
+import life.genny.qwandautils.BeanNotNullFields;
 
 
 /**
