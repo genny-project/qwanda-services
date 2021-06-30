@@ -249,7 +249,7 @@ public class BaseEntityService2 {
 
 		// Ensure only Entities from our realm are returned
 		System.out.println("realm is " + realm);
-		builder.and(entityAttribute.pk.baseEntity.realm.eq(realm));
+		builder.and(entityAttribute.realm.eq(realm));
 
 		Integer joinCounter = 0;
 
