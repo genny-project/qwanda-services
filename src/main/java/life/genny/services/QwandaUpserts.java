@@ -22,6 +22,7 @@ import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.EntityAttribute;
 import life.genny.qwanda.entity.BaseEntity;
 import life.genny.qwanda.validation.Validation;
+import life.genny.qwandautils.BeanNotNullFields;
 
 public class QwandaUpserts {
 	
