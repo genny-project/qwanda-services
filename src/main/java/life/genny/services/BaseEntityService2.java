@@ -422,7 +422,9 @@ public class BaseEntityService2 {
 
 			ComparableExpressionBase orderColumn = null;
 			if (attributeCode.startsWith("SRT_PRI_CREATED")) {
-				orderColumn = entityAttribute.pk.baseEntity.created;
+				// This was changed because because there was no index on created
+				// orderColumn = entityAttribute.pk.baseEntity.created;
+				orderColumn = entityAttribute.pk.baseEntity.id;
 			} else if (attributeCode.startsWith("SRT_PRI_UPDATED")) {
 				orderColumn = entityAttribute.pk.baseEntity.updated;
 			} else if (attributeCode.startsWith("SRT_PRI_CODE")) {
