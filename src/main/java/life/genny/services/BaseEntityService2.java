@@ -13,9 +13,7 @@ import java.io.ObjectOutputStream;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -466,6 +464,10 @@ public class BaseEntityService2 {
 				System.out.println("orderColumn is null for attribute " + attributeCode);
 			}
 		}
+
+		Instant start = Instant.now();
+		String debugStr = "Search25DEBUG";
+		log.info( debugStr + " Start building link join");
 		// Build link join if necessary
 		if (sourceCode != null || targetCode != null || linkCode != null || linkValue != null) {
 			QEntityEntity linkJoin = new QEntityEntity("linkJoin");
@@ -501,6 +503,12 @@ public class BaseEntityService2 {
 		// Set page start and page size, then fetch codes
 		query.offset(pageStart).limit(pageSize);
 
+		Instant end = Instant.now();
+		Duration timeElapsed = Duration.between(start, end);
+		log.info(debugStr + " Finished building link join, cost:" + timeElapsed.toMillis() + " millSeconds.");
+
+		start = Instant.now();
+		log.info(debugStr + " Start query, countOnly=" + countOnly);
 		if (countOnly) {
 			// Fetch only the count
 			long count = query.select(entityAttribute.baseEntityCode).distinct().fetchCount();
@@ -511,6 +519,9 @@ public class BaseEntityService2 {
 			long count = query.fetchCount();
 			result = new QSearchBeResult(codes, count);
 		}
+		end = Instant.now();
+		timeElapsed = Duration.between(start, end);
+		log.info(debugStr + " Finished query, countOnly=" + countOnly + ", cost:" + timeElapsed.toMillis() + " millSeconds." );
 		// Return codes and count
 		System.out.println("SQL = " + query.toString());
 		return result;
