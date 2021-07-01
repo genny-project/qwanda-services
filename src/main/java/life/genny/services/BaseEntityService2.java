@@ -231,14 +231,15 @@ public class BaseEntityService2 {
 		// ------------------------
 		JPAQuery<?> query = new JPAQuery<Void>(getEntityManager());
 
-		QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute");
+		// QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute");
+		QBaseEntity baseEntity = new QBaseEntity("baseEntity");
 		// Define a join for link searches
 		String linkCode = null;
 		String linkValue = null;
 		String sourceCode = null;
 		String targetCode = null;
 
-		query.from(entityAttribute);
+		query.from(baseEntity);
 
 		List<EntityAttribute> sortAttributes = new ArrayList<>();
 		List<EntityAttribute> andAttributes = searchBE.findPrefixEntityAttributes("AND_");
@@ -248,7 +249,7 @@ public class BaseEntityService2 {
 
 		// Ensure only Entities from our realm are returned
 		System.out.println("realm is " + realm);
-		builder.and(entityAttribute.realm.eq(realm));
+		builder.and(baseEntity.realm.eq(realm));
 
 		Integer joinCounter = 0;
 
@@ -261,13 +262,13 @@ public class BaseEntityService2 {
 				System.out.println("PRI_CODE like " + ea.getAsString());
 
 				BooleanBuilder entityCodeBuilder = new BooleanBuilder();
-				entityCodeBuilder.and(entityAttribute.baseEntityCode.like(ea.getAsString()));
+				entityCodeBuilder.and(baseEntity.code.like(ea.getAsString()));
 
 				for (EntityAttribute andAttr : andAttributes) {
 					if (andAttr.getAttributeCode().startsWith("AND_")) {
 						if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").equals(attributeCode)) {
 							System.out.println("AND PRI_CODE like " + andAttr.getAsString());
-							entityCodeBuilder.and(entityAttribute.baseEntityCode.like(andAttr.getAsString()));
+							entityCodeBuilder.and(baseEntity.code.like(andAttr.getAsString()));
 						}
 					}
 				}
@@ -275,7 +276,7 @@ public class BaseEntityService2 {
 					if (orAttr.getAttributeCode().startsWith("OR_")) {
 						if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals(attributeCode)) {
 							System.out.println("OR PRI_CODE like " + orAttr.getAsString());
-							entityCodeBuilder.or(entityAttribute.baseEntityCode.like(orAttr.getAsString()));
+							entityCodeBuilder.or(baseEntity.code.like(orAttr.getAsString()));
 						}
 					}
 				}
@@ -285,18 +286,18 @@ public class BaseEntityService2 {
 			} else if (attributeCode.startsWith("PRI_CREATED")) {
 				System.out.println("PRI_CREATED " + ea.getAttributeName() + " " + ea.getAsString());
 
-				builder.and(getDateTimePredicate(ea, entityAttribute.pk.baseEntity.created));
+				builder.and(getDateTimePredicate(ea, baseEntity.created));
 
 				for (EntityAttribute andAttr : andAttributes) {
 					if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").startsWith("PRI_CREATED")) {
 						System.out.println("AND PRI_CREATED like " + andAttr.getAsString());
-						builder.and(getDateTimePredicate(andAttr, entityAttribute.pk.baseEntity.created));
+						builder.and(getDateTimePredicate(andAttr, baseEntity.created));
 					}
 				}
 				for (EntityAttribute orAttr : orAttributes) {
 					if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").startsWith("PRI_CREATED")) {
 						System.out.println("OR PRI_CREATED like " + orAttr.getAsString());
-						builder.or(getDateTimePredicate(orAttr, entityAttribute.pk.baseEntity.created));
+						builder.or(getDateTimePredicate(orAttr, baseEntity.created));
 					}
 				}
 
@@ -304,18 +305,18 @@ public class BaseEntityService2 {
 			} else if (attributeCode.startsWith("PRI_UPDATED")) {
 				System.out.println("PRI_UPDATED " + ea.getAttributeName() + " " + ea.getAsString());
 
-				builder.and(getDateTimePredicate(ea, entityAttribute.pk.baseEntity.updated));
+				builder.and(getDateTimePredicate(ea, baseEntity.updated));
 
 				for (EntityAttribute andAttr : andAttributes) {
 					if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").startsWith("PRI_UPDATED")) {
 						System.out.println("AND PRI_UPDATED like " + andAttr.getAsString());
-						builder.and(getDateTimePredicate(andAttr, entityAttribute.pk.baseEntity.updated));
+						builder.and(getDateTimePredicate(andAttr, baseEntity.updated));
 					}
 				}
 				for (EntityAttribute orAttr : orAttributes) {
 					if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").startsWith("PRI_UPDATED")) {
 						System.out.println("OR PRI_UPDATED like " + orAttr.getAsString());
-						builder.or(getDateTimePredicate(orAttr, entityAttribute.pk.baseEntity.updated));
+						builder.or(getDateTimePredicate(orAttr, baseEntity.updated));
 					}
 				}
 
@@ -362,7 +363,7 @@ public class BaseEntityService2 {
 				if (!isAnyStringFilter || extraFilterBuilder.hasValue()) {
 
 					query.leftJoin(eaFilterJoin)
-						.on(eaFilterJoin.baseEntityCode.eq(entityAttribute.baseEntityCode)
+						.on(eaFilterJoin.pk.baseEntity.id.eq(baseEntity.id)
 						.and(eaFilterJoin.attributeCode.eq(attributeCode)));
 
 					if (!isAnyStringFilter) {
@@ -381,7 +382,7 @@ public class BaseEntityService2 {
 						wildcardValue = "%" + wildcardValue + "%";
 
 						QEntityAttribute eaWildcardJoin = new QEntityAttribute("eaWildcardJoin");
-						query.leftJoin(eaWildcardJoin).on(eaWildcardJoin.baseEntityCode.eq(entityAttribute.baseEntityCode));
+						query.leftJoin(eaWildcardJoin).on(eaWildcardJoin.pk.baseEntity.id.eq(baseEntity.id));
 
 						builder.and(eaWildcardJoin.valueString.like(wildcardValue));
 						System.out.println("WILDCARD like " + wildcardValue);
@@ -414,7 +415,7 @@ public class BaseEntityService2 {
 			if (!(attributeCode.startsWith("SRT_PRI_CREATED") || attributeCode.startsWith("SRT_PRI_UPDATED")
 				|| attributeCode.startsWith("SRT_PRI_CODE") || attributeCode.startsWith("SRT_PRI_NAME"))) {
 				query.leftJoin(eaOrderJoin)
-					.on(eaOrderJoin.baseEntityCode.eq(entityAttribute.baseEntityCode)
+					.on(eaOrderJoin.pk.baseEntity.id.eq(baseEntity.id)
 					.and(eaOrderJoin.attributeCode.eq(attributeCode)));
 			}
 
@@ -422,13 +423,13 @@ public class BaseEntityService2 {
 			if (attributeCode.startsWith("SRT_PRI_CREATED")) {
 				// This was changed because because there was no index on created
 				// orderColumn = entityAttribute.pk.baseEntity.created;
-				orderColumn = entityAttribute.pk.baseEntity.id;
+				orderColumn = baseEntity.id;
 			} else if (attributeCode.startsWith("SRT_PRI_UPDATED")) {
-				orderColumn = entityAttribute.pk.baseEntity.updated;
+				orderColumn = baseEntity.updated;
 			} else if (attributeCode.startsWith("SRT_PRI_CODE")) {
-				orderColumn = entityAttribute.baseEntityCode;
+				orderColumn = baseEntity.code;
 			} else if (attributeCode.startsWith("SRT_PRI_NAME")) {
-				orderColumn = entityAttribute.pk.baseEntity.name;
+				orderColumn = baseEntity.name;
 			} else {
 				Attribute attr = RulesUtils.getAttribute(attributeCode.substring("SRT_".length()), passedToken);
 				String dtt = attr.getDataType().getClassName();
@@ -475,13 +476,13 @@ public class BaseEntityService2 {
 			if (sourceCode != null) {
 				linkBuilder.and(linkJoin.link.sourceCode.like(sourceCode));
 				if (targetCode == null) {
-					linkBuilder.and(linkJoin.link.targetCode.like(entityAttribute.baseEntityCode));
+					linkBuilder.and(linkJoin.link.targetCode.like(baseEntity.code));
 				}
 			}
 			if (targetCode != null) {
 				linkBuilder.and(linkJoin.link.targetCode.like(targetCode));
 				if (sourceCode == null) {
-					linkBuilder.and(linkJoin.link.sourceCode.like(entityAttribute.baseEntityCode));
+					linkBuilder.and(linkJoin.link.sourceCode.like(baseEntity.code));
 				}
 			}
 			if (linkCode != null) {
@@ -495,8 +496,8 @@ public class BaseEntityService2 {
 		// Search across people and companies if from searchbar
 		if (searchBE.getCode().startsWith("SBE_SEARCHBAR")) {
 			// search across people and companies
-			builder.and(entityAttribute.baseEntityCode.like("PER_%"))
-				.or(entityAttribute.baseEntityCode.like("CPY_%"));
+			builder.and(baseEntity.code.like("PER_%"))
+				.or(baseEntity.code.like("CPY_%"));
 		}
 		// Add all builder conditions to query
 		query.where(builder);
@@ -511,11 +512,11 @@ public class BaseEntityService2 {
 		log.info(debugStr + " Start query, countOnly=" + countOnly);
 		if (countOnly) {
 			// Fetch only the count
-			long count = query.select(entityAttribute.baseEntityCode).distinct().fetchCount();
+			long count = query.select(baseEntity.code).distinct().fetchCount();
 			result = new QSearchBeResult(count);
 		} else {
 			// Fetch codes and count
-			codes = query.select(entityAttribute.baseEntityCode).distinct().fetch();
+			codes = query.select(baseEntity.code).distinct().fetch();
 			long count = query.fetchCount();
 			result = new QSearchBeResult(codes, count);
 		}
