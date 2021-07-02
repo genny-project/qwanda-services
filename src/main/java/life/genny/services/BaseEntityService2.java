@@ -534,7 +534,22 @@ public class BaseEntityService2 {
 		LocalDateTime dateTime = ea.getValueDateTime();
 		if (dateTime == null) {
 			LocalDate date = ea.getValueDate();
-			dateTime = date.atStartOfDay();
+			LocalDateTime lowerBound = date.atStartOfDay();
+			LocalDateTime upperBound = lowerBound.plusDays(1);
+
+			if (condition.equals(">")) {
+				return path.after(upperBound);
+			} else if (condition.equals(">=")) {
+				return path.after(lowerBound);
+			} else if (condition.equals("<")) {
+				return path.before(lowerBound);
+			} else if (condition.equals("<=")) {
+				return path.before(upperBound);
+			} else if (condition.equals("!=")) {
+				return path.notBetween(lowerBound, upperBound);
+			} else {
+				return path.between(lowerBound, upperBound);
+			}
 		}
 			
 		if (condition.equals(">=") || condition.equals(">")) {
