@@ -221,7 +221,7 @@ public class BaseEntityService2 {
 	 * protect from SQL Injection
 	*/
 	public QSearchBeResult findBySearch25(String passedToken, String realm, @NotNull final SearchEntity searchBE, Boolean countOnly) {
-	
+		log.info("findBySearch25 - testing that this version is deployed");
 		// Init necessary vars
 		QSearchBeResult result = null;
 		List<String> codes = new ArrayList<String>();
@@ -409,7 +409,7 @@ public class BaseEntityService2 {
 		for (EntityAttribute sort : sortAttributes) {
 
 			String attributeCode = sort.getAttributeCode();
-			System.out.println("Sorting with " + attributeCode);
+			log.info("Sorting with " + attributeCode);
 			QEntityAttribute eaOrderJoin = new QEntityAttribute("eaOrderJoin_"+joinCounter.toString());
 			joinCounter++;
 
@@ -463,7 +463,7 @@ public class BaseEntityService2 {
 					query.orderBy(orderColumn.desc());
 				}
 			} else {
-				System.out.println("orderColumn is null for attribute " + attributeCode);
+				log.info("orderColumn is null for attribute " + attributeCode);
 			}
 		}
 
@@ -486,6 +486,7 @@ public class BaseEntityService2 {
 					linkBuilder.and(linkJoin.link.sourceCode.like(baseEntity.code));
 				}
 			}
+			log.info("Link Code is "+linkCode);
 			if (linkCode != null) {
 				linkBuilder.and(linkJoin.link.attributeCode.like(linkCode));
 			}
@@ -525,7 +526,7 @@ public class BaseEntityService2 {
 		timeElapsed = Duration.between(start, end);
 		log.info(debugStr + " Finished query, countOnly=" + countOnly + ", cost:" + timeElapsed.toMillis() + " millSeconds." );
 		// Return codes and count
-		System.out.println("SQL = " + query.toString());
+		log.info("SQL = " + query.toString());
 		return result;
 	}
 
