@@ -335,6 +335,8 @@ public class BaseEntityService2 {
 					isAnyStringFilter = true;
 				}
 
+				Boolean hackOrTrigger = false;
+
 				String filterName = "eaFilterJoin_"+joinCounter.toString();
 				QEntityAttribute eaFilterJoin = new QEntityAttribute(filterName);
 				joinCounter++;
@@ -357,6 +359,7 @@ public class BaseEntityService2 {
 						if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals(attributeCode)) {
 							// currentAttributeBuilder.or();
 							extraFilterBuilder.or(getAttributeSearchColumn(orAttr, eaFilterJoin));
+							hackOrTrigger = true;
 						}
 					}
 				}
@@ -371,7 +374,11 @@ public class BaseEntityService2 {
 						builder.and(currentAttributeBuilder);
 					}
 					if (extraFilterBuilder.hasValue()) {
-						builder.and(extraFilterBuilder);
+						if (hackOrTrigger) {
+							builder.or(extraFilterBuilder);
+						} else {
+							builder.and(extraFilterBuilder);
+						}
 					}
 				}
 			// Create a filter for wildcard
