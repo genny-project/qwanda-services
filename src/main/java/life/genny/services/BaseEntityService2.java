@@ -364,15 +364,14 @@ public class BaseEntityService2 {
 					}
 				}
 				// This should get around the bug that occurs with filter LIKE "%"
-				if (!isAnyStringFilter || extraFilterBuilder.hasValue()) {
+				if (!isAnyStringFilter) {
 
 					query.leftJoin(eaFilterJoin)
 						.on(eaFilterJoin.pk.baseEntity.id.eq(baseEntity.id)
 						.and(eaFilterJoin.attributeCode.eq(attributeCode)));
+						
+					builder.and(currentAttributeBuilder);
 
-					if (!isAnyStringFilter) {
-						builder.and(currentAttributeBuilder);
-					}
 					if (extraFilterBuilder.hasValue()) {
 						if (hackOrTrigger) {
 							builder.or(extraFilterBuilder);
