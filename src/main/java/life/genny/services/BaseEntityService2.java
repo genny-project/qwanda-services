@@ -481,25 +481,29 @@ public class BaseEntityService2 {
 			QEntityEntity linkJoin = new QEntityEntity("linkJoin");
 			BooleanBuilder linkBuilder = new BooleanBuilder();
 
+			log.info("Source Code is "+sourceCode);
+			log.info("Target Code is "+targetCode);
+			log.info("Link Code is "+linkCode);
+			log.info("Link Value is "+linkValue);
 			if (sourceCode == null && targetCode == null) {
-				linkBuilder.and(linkJoin.link.targetCode.like(baseEntity.code).or(linkJoin.link.targetCode.like(baseEntity.code)));
+				// Only look in targetCode if both are null
+				linkBuilder.and(linkJoin.link.targetCode.eq(baseEntity.code));
 			} else if (sourceCode != null) {
-				linkBuilder.and(linkJoin.link.sourceCode.like(sourceCode));
+				linkBuilder.and(linkJoin.link.sourceCode.eq(sourceCode));
 				if (targetCode == null) {
-					linkBuilder.and(linkJoin.link.targetCode.like(baseEntity.code));
+					linkBuilder.and(linkJoin.link.targetCode.eq(baseEntity.code));
 				}
 			} else if (targetCode != null) {
-				linkBuilder.and(linkJoin.link.targetCode.like(targetCode));
+				linkBuilder.and(linkJoin.link.targetCode.eq(targetCode));
 				if (sourceCode == null) {
-					linkBuilder.and(linkJoin.link.sourceCode.like(baseEntity.code));
+					linkBuilder.and(linkJoin.link.sourceCode.eq(baseEntity.code));
 				}
 			}
-			log.info("Link Code is "+linkCode);
 			if (linkCode != null) {
-				linkBuilder.and(linkJoin.link.attributeCode.like(linkCode));
+				linkBuilder.and(linkJoin.link.attributeCode.eq(linkCode));
 			}
 			if (linkValue != null) {
-				linkBuilder.and(linkJoin.link.linkValue.like(linkValue));
+				linkBuilder.and(linkJoin.link.linkValue.eq(linkValue));
 			}
 			query.leftJoin(linkJoin).on(linkBuilder);
 		}
