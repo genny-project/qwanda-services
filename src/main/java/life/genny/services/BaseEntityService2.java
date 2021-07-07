@@ -480,13 +480,15 @@ public class BaseEntityService2 {
 		if (sourceCode != null || targetCode != null || linkCode != null || linkValue != null) {
 			QEntityEntity linkJoin = new QEntityEntity("linkJoin");
 			BooleanBuilder linkBuilder = new BooleanBuilder();
-			if (sourceCode != null) {
+
+			if (sourceCode == null && targetCode == null) {
+				linkBuilder.and(linkJoin.link.targetCode.like(baseEntity.code).or(linkJoin.link.targetCode.like(baseEntity.code)));
+			} else if (sourceCode != null) {
 				linkBuilder.and(linkJoin.link.sourceCode.like(sourceCode));
 				if (targetCode == null) {
 					linkBuilder.and(linkJoin.link.targetCode.like(baseEntity.code));
 				}
-			}
-			if (targetCode != null) {
+			} else if (targetCode != null) {
 				linkBuilder.and(linkJoin.link.targetCode.like(targetCode));
 				if (sourceCode == null) {
 					linkBuilder.and(linkJoin.link.sourceCode.like(baseEntity.code));
