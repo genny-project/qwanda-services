@@ -335,6 +335,8 @@ public class BaseEntityService2 {
 					isAnyStringFilter = true;
 				}
 
+				Boolean hackOrTrigger = false;
+
 				String filterName = "eaFilterJoin_"+joinCounter.toString();
 				QEntityAttribute eaFilterJoin = new QEntityAttribute(filterName);
 				joinCounter++;
@@ -357,21 +359,25 @@ public class BaseEntityService2 {
 						if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals(attributeCode)) {
 							// currentAttributeBuilder.or();
 							extraFilterBuilder.or(getAttributeSearchColumn(orAttr, eaFilterJoin));
+							hackOrTrigger = true;
 						}
 					}
 				}
 				// This should get around the bug that occurs with filter LIKE "%"
-				if (!isAnyStringFilter || extraFilterBuilder.hasValue()) {
+				if (!isAnyStringFilter) {
 
 					query.leftJoin(eaFilterJoin)
 						.on(eaFilterJoin.pk.baseEntity.id.eq(baseEntity.id)
 						.and(eaFilterJoin.attributeCode.eq(attributeCode)));
+						
+					builder.and(currentAttributeBuilder);
 
-					if (!isAnyStringFilter) {
-						builder.and(currentAttributeBuilder);
-					}
 					if (extraFilterBuilder.hasValue()) {
-						builder.and(extraFilterBuilder);
+						if (hackOrTrigger) {
+							builder.or(extraFilterBuilder);
+						} else {
+							builder.and(extraFilterBuilder);
+						}
 					}
 				}
 			// Create a filter for wildcard
@@ -474,13 +480,15 @@ public class BaseEntityService2 {
 		if (sourceCode != null || targetCode != null || linkCode != null || linkValue != null) {
 			QEntityEntity linkJoin = new QEntityEntity("linkJoin");
 			BooleanBuilder linkBuilder = new BooleanBuilder();
-			if (sourceCode != null) {
+
+			if (sourceCode == null && targetCode == null) {
+				linkBuilder.and(linkJoin.link.targetCode.like(baseEntity.code).or(linkJoin.link.targetCode.like(baseEntity.code)));
+			} else if (sourceCode != null) {
 				linkBuilder.and(linkJoin.link.sourceCode.like(sourceCode));
 				if (targetCode == null) {
 					linkBuilder.and(linkJoin.link.targetCode.like(baseEntity.code));
 				}
-			}
-			if (targetCode != null) {
+			} else if (targetCode != null) {
 				linkBuilder.and(linkJoin.link.targetCode.like(targetCode));
 				if (sourceCode == null) {
 					linkBuilder.and(linkJoin.link.sourceCode.like(baseEntity.code));
