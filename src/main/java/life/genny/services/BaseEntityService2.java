@@ -504,7 +504,7 @@ public class BaseEntityService2 {
 			if (linkValue != null) {
 				linkBuilder.and(linkJoin.link.linkValue.eq(linkValue));
 			}
-			query.leftJoin(linkJoin).on(linkBuilder);
+			query.join(linkJoin).on(linkBuilder);
 		}
 		// Search across people and companies if from searchbar
 		if (searchBE.getCode().startsWith("SBE_SEARCHBAR")) {
