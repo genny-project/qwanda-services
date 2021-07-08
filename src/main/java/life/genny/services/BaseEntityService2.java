@@ -370,15 +370,14 @@ public class BaseEntityService2 {
 						.on(eaFilterJoin.pk.baseEntity.id.eq(baseEntity.id)
 						.and(eaFilterJoin.attributeCode.eq(attributeCode)));
 						
-					builder.and(currentAttributeBuilder);
-
 					if (extraFilterBuilder.hasValue()) {
 						if (hackOrTrigger) {
-							builder.or(extraFilterBuilder);
+							currentAttributeBuilder.or(extraFilterBuilder);
 						} else {
-							builder.and(extraFilterBuilder);
+							currentAttributeBuilder.and(extraFilterBuilder);
 						}
 					}
+					builder.and(currentAttributeBuilder);
 				}
 			// Create a filter for wildcard
 			} else if (attributeCode.startsWith("SCH_WILDCARD")) {
