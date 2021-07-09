@@ -498,13 +498,15 @@ public class BaseEntityService2 {
 					linkBuilder.and(linkJoin.link.sourceCode.eq(baseEntity.code));
 				}
 			}
+
+			query.join(linkJoin).on(linkBuilder);
+
 			if (linkCode != null) {
-				linkBuilder.and(linkJoin.link.attributeCode.eq(linkCode));
+				builder.and(linkJoin.link.attributeCode.eq(linkCode));
 			}
 			if (linkValue != null) {
-				linkBuilder.and(linkJoin.link.linkValue.eq(linkValue));
+				builder.and(linkJoin.link.linkValue.eq(linkValue));
 			}
-			query.join(linkJoin).on(linkBuilder);
 		}
 		// Search across people and companies if from searchbar
 		if (searchBE.getCode().startsWith("SBE_SEARCHBAR")) {
