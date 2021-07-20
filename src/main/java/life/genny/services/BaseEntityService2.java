@@ -4681,6 +4681,9 @@ public class BaseEntityService2 {
 								qq.getFormTrigger(), qq.getCreateOnTrigger());
 						for (Ask child : askChildren) {
 							child.setQuestion(childQuestion);
+							child.setHidden(qq.getHidden());
+							child.setDisabled(qq.getDisabled());
+							child.setReadonly(qq.getReadonly());
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
