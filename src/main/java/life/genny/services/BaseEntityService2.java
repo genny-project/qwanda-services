@@ -618,9 +618,9 @@ public class BaseEntityService2 {
 			} else if (ea.getValueInteger() != null) {
 				return eaFilterJoin.valueInteger.goe(ea.getValueInteger());
 			} else if (ea.getValueDate() != null) {
-				return eaFilterJoin.valueDate.after(ea.getValueDate());
+				return eaFilterJoin.valueDate.goe(ea.getValueDate());
 			} else if (ea.getValueDateTime() != null) {
-				return eaFilterJoin.valueDateTime.after(ea.getValueDateTime());
+				return eaFilterJoin.valueDateTime.goe(ea.getValueDateTime());
 			}
 		// LESS THAN OR EQUAL TO
 		} else if (condition.equals("<=")) {
@@ -629,9 +629,9 @@ public class BaseEntityService2 {
 			} else if (ea.getValueInteger() != null) {
 				return eaFilterJoin.valueInteger.loe(ea.getValueInteger());
 			} else if (ea.getValueDate() != null) {
-				return eaFilterJoin.valueDate.before(ea.getValueDate());
+				return eaFilterJoin.valueDate.loe(ea.getValueDate());
 			} else if (ea.getValueDateTime() != null) {
-				return eaFilterJoin.valueDateTime.before(ea.getValueDateTime());
+				return eaFilterJoin.valueDateTime.loe(ea.getValueDateTime());
 			}
 		// GREATER THAN
 		} else if (condition.equals(">")) {
