@@ -2650,6 +2650,10 @@ public class BaseEntityService2 {
 					if (answer.getAttributeCode().startsWith("PRI_IS_")) {
 						attribute = new AttributeBoolean(answer.getAttributeCode(),
 								StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
+					} else if (answer.getAttributeCode().startsWith("FLD_")) {
+						// SAM BE mappings
+						attribute = new AttributeText(answer.getAttributeCode(),
+								StringUtils.capitalize(answer.getAttributeCode().substring(4).toLowerCase()));
 					} else {
 						if (answer.getDataType() != null) {
 							switch (answer.getDataType()) {
