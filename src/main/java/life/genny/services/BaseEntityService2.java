@@ -92,6 +92,7 @@ import life.genny.qwanda.Link;
 import life.genny.qwanda.Question;
 import life.genny.qwanda.QuestionQuestion;
 import life.genny.qwanda.QuestionSourceTarget;
+import life.genny.qwanda.EEntityStatus;
 import life.genny.qwanda.attribute.Attribute;
 import life.genny.qwanda.attribute.AttributeBoolean;
 import life.genny.qwanda.attribute.AttributeDate;
@@ -252,6 +253,8 @@ public class BaseEntityService2 {
 		System.out.println("realm is " + realm);
 		builder.and(baseEntity.realm.eq(realm));
 
+		// Default Status level is ACTIVE
+		EEntityStatus status = EEntityStatus.ACTIVE;
 		Integer joinCounter = 0;
 
 		for (EntityAttribute ea : searchBE.getBaseEntityAttributes()) {
@@ -402,11 +405,16 @@ public class BaseEntityService2 {
 				sourceCode = ea.getValue();
 			} else if (attributeCode.startsWith("SCH_TARGET_CODE")) {
 				targetCode = ea.getValue();
+			} else if (attributeCode.startsWith("SCH_STATUS")) {
+				Integer ordinal = ea.getValueInteger();
+				status = EEntityStatus.values()[ordinal];
 			// Add to sort list if it is a sort attribute
 			} else if (attributeCode.startsWith("SRT_")) {
 				sortAttributes.add(ea);
 			}
 		}
+		// Add BaseEntity Status expression
+		builder.and(baseEntity.status.coalesce(EEntityStatus.ACTIVE).asEnum().ordinal().loe(status.ordinal()));
 		// Order the sorts by weight
 		Comparator<EntityAttribute> compareByWeight = (EntityAttribute a, EntityAttribute b) -> a.getWeight().compareTo(b.getWeight());
 		Collections.sort(sortAttributes, compareByWeight);
