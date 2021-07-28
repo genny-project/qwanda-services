@@ -414,8 +414,7 @@ public class BaseEntityService2 {
 			}
 		}
 		// Add BaseEntity Status expression
-		// builder.and(baseEntity.status.coalesce(EEntityStatus.ACTIVE).asEnum().ordinal().loe(status.ordinal()));
-		builder.and(baseEntity.status.lt(status));
+		builder.and(baseEntity.status.loe(status));
 		// Order the sorts by weight
 		Comparator<EntityAttribute> compareByWeight = (EntityAttribute a, EntityAttribute b) -> a.getWeight().compareTo(b.getWeight());
 		Collections.sort(sortAttributes, compareByWeight);
