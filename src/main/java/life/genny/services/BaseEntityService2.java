@@ -2717,13 +2717,13 @@ public class BaseEntityService2 {
 
 				answer.setAttribute(attribute);
 				if (answer.getAskId() != null) {
-					ask = findAskById(answer.getAskId());
-					if (!(answer.getSourceCode().equals(ask.getSourceCode())
-							&& answer.getAttributeCode().equals(ask.getAttributeCode())
-							&& answer.getTargetCode().equals(ask.getTargetCode()))) {
-						log.error("Answer codes do not match Ask codes! " + answer);
-						// return -1L; // need to throw error
-					}
+//					ask = findAskById(answer.getAskId());
+//					if (!(answer.getSourceCode().equals(ask.getSourceCode())
+//							&& answer.getAttributeCode().equals(ask.getAttributeCode())
+//							&& answer.getTargetCode().equals(ask.getTargetCode()))) {
+//						log.error("Answer codes do not match Ask codes! " + answer);
+//						// return -1L; // need to throw error, but currently the ask is has service and service 
+//					}
 					// log.info("Answer processing 3.1 = "+((System.nanoTime() - answerStartMs) /
 					// 1e6)+" ms - ASK ID "+answer.getAskId());
 
@@ -2790,6 +2790,7 @@ public class BaseEntityService2 {
 						//name can not be null or empty string
 							if (answer.getValue() != null && !answer.getValue().equals("")) {
 								beTarget.setName(answer.getValue());
+
 							} else {
 								log.error(String.format("Answer value is " +  answer.getValue() + " , won't set target name. " +
 												"Answer target code:%s, source code:%s, attributeCode:%s. " +
@@ -2894,7 +2895,7 @@ public class BaseEntityService2 {
 					answerStr = StringUtils.abbreviate(answer.getValue().toString(), 25);
 				}
 				log.error("Transaction Exception in saving Answer -> " + answer.getSourceCode() + ":"
-						+ answer.getTargetCode() + ":" + answer.getAttributeCode() + " : " + (answerStr));
+						+ answer.getTargetCode() + ":" + answer.getAttributeCode() + " : " + (answerStr)+" "+transactionException.getLocalizedMessage());
 			}
 
 //				log.info("Answer processing  = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms "+answer.getRealm()+":"+ answer.getSourceCode()+":"+answer.getTargetCode()+":"+answer.getAttributeCode());
