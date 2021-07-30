@@ -2907,6 +2907,7 @@ public class BaseEntityService2 {
 				}
 				log.error("Transaction Exception in saving Answer -> " + answer.getSourceCode() + ":"
 						+ answer.getTargetCode() + ":" + answer.getAttributeCode() + " : " + (answerStr));
+				transactionException.printStackTrace();
 			}
 
 //				log.info("Answer processing  = "+((System.nanoTime() - answerStartMs) / 1e6)+" ms "+answer.getRealm()+":"+ answer.getSourceCode()+":"+answer.getTargetCode()+":"+answer.getAttributeCode());
@@ -2923,7 +2924,7 @@ public class BaseEntityService2 {
 				beTarget = getEntityManager().merge(beTarget); // if nothing changed then no need to merge beTarget
 //				log.info("Merged " + beTarget);
 			} catch (Exception e) {
-				// e.printStackTrace();
+				 e.printStackTrace();
 				log.error(
 						"Transaction is required to perform this operation (either use a transaction or extended persistence context) for "
 								+ beTarget.getCode());
