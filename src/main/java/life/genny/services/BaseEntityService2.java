@@ -517,7 +517,9 @@ public class BaseEntityService2 {
 			}
 
 			// Order By Weight Of ENTITY_ENTITY link
-			query.orderBy(linkJoin.link.weight.asc());
+			if (sortAttributes.size() > 0) {
+				query.orderBy(linkJoin.link.weight.asc());
+			}
 		}
 		// Search across people and companies if from searchbar
 		if (searchBE.getCode().startsWith("SBE_SEARCHBAR")) {
