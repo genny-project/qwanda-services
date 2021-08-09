@@ -515,6 +515,9 @@ public class BaseEntityService2 {
 			if (linkValue != null) {
 				builder.and(linkJoin.link.linkValue.eq(linkValue));
 			}
+
+			// Order By Weight Of ENTITY_ENTITY link
+			query.orderBy(linkJoin.link.weight.asc());
 		}
 		// Search across people and companies if from searchbar
 		if (searchBE.getCode().startsWith("SBE_SEARCHBAR")) {
