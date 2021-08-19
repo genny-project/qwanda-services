@@ -593,6 +593,8 @@ public class BaseEntityService2 {
 	
 	Predicate getAttributeSearchColumn(EntityAttribute ea, QEntityAttribute eaFilterJoin) {
 
+		// TODO: Make this function more neat, and less repetitive - Jasper (19/08/2021)
+
 		String attributeFilterValue = ea.getValue().toString();
 		String condition = SearchEntity.convertFromSaveable(ea.getAttributeName());
 		System.out.println(ea.getAttributeCode() + " " + condition + " " + attributeFilterValue);
@@ -615,13 +617,33 @@ public class BaseEntityService2 {
 		} else if (condition.equals("=")) {
 			if (ea.getValueBoolean() != null) {
 				return eaFilterJoin.valueBoolean.eq(ea.getValueBoolean());
+			} else if (ea.getValueDouble() != null) {
+				return eaFilterJoin.valueDouble.eq(ea.getValueDouble());
+			} else if (ea.getValueInteger() != null) {
+				return eaFilterJoin.valueInteger.eq(ea.getValueInteger());
+			} else if (ea.getValueLong() != null) {
+				return eaFilterJoin.valueLong.eq(ea.getValueLong());
+			} else if (ea.getValueDate() != null) {
+				return eaFilterJoin.valueDate.eq(ea.getValueDate());
+			} else if (ea.getValueDateTime() != null) {
+				return eaFilterJoin.valueDateTime.eq(ea.getValueDateTime());
 			} else {
 				return eaFilterJoin.valueString.eq(valueString);
 			}
 		// NOT EQUALS
 		} else if (condition.equals("!=")) {
 			if (ea.getValueBoolean() != null) {
-				return eaFilterJoin.valueBoolean.eq(!ea.getValueBoolean());
+				return eaFilterJoin.valueBoolean.ne(ea.getValueBoolean());
+			} else if (ea.getValueDouble() != null) {
+				return eaFilterJoin.valueDouble.ne(ea.getValueDouble());
+			} else if (ea.getValueInteger() != null) {
+				return eaFilterJoin.valueInteger.ne(ea.getValueInteger());
+			} else if (ea.getValueLong() != null) {
+				return eaFilterJoin.valueLong.ne(ea.getValueLong());
+			} else if (ea.getValueDate() != null) {
+				return eaFilterJoin.valueDate.ne(ea.getValueDate());
+			} else if (ea.getValueDateTime() != null) {
+				return eaFilterJoin.valueDateTime.ne(ea.getValueDateTime());
 			} else {
 				return eaFilterJoin.valueString.ne(valueString);
 			}
@@ -631,6 +653,8 @@ public class BaseEntityService2 {
 				return eaFilterJoin.valueDouble.goe(ea.getValueDouble());
 			} else if (ea.getValueInteger() != null) {
 				return eaFilterJoin.valueInteger.goe(ea.getValueInteger());
+			} else if (ea.getValueLong() != null) {
+				return eaFilterJoin.valueLong.goe(ea.getValueLong());
 			} else if (ea.getValueDate() != null) {
 				return eaFilterJoin.valueDate.goe(ea.getValueDate());
 			} else if (ea.getValueDateTime() != null) {
@@ -642,6 +666,8 @@ public class BaseEntityService2 {
 				return eaFilterJoin.valueDouble.loe(ea.getValueDouble());
 			} else if (ea.getValueInteger() != null) {
 				return eaFilterJoin.valueInteger.loe(ea.getValueInteger());
+			} else if (ea.getValueLong() != null) {
+				return eaFilterJoin.valueLong.loe(ea.getValueLong());
 			} else if (ea.getValueDate() != null) {
 				return eaFilterJoin.valueDate.loe(ea.getValueDate());
 			} else if (ea.getValueDateTime() != null) {
@@ -653,6 +679,8 @@ public class BaseEntityService2 {
 				return eaFilterJoin.valueDouble.gt(ea.getValueDouble());
 			} else if (ea.getValueInteger() != null) {
 				return eaFilterJoin.valueInteger.gt(ea.getValueInteger());
+			} else if (ea.getValueLong() != null) {
+				return eaFilterJoin.valueLong.gt(ea.getValueLong());
 			} else if (ea.getValueDate() != null) {
 				return eaFilterJoin.valueDate.after(ea.getValueDate());
 			} else if (ea.getValueDateTime() != null) {
@@ -664,6 +692,8 @@ public class BaseEntityService2 {
 				return eaFilterJoin.valueDouble.lt(ea.getValueDouble());
 			} else if (ea.getValueInteger() != null) {
 				return eaFilterJoin.valueInteger.lt(ea.getValueInteger());
+			} else if (ea.getValueLong() != null) {
+				return eaFilterJoin.valueLong.lt(ea.getValueLong());
 			} else if (ea.getValueDate() != null) {
 				return eaFilterJoin.valueDate.before(ea.getValueDate());
 			} else if (ea.getValueDateTime() != null) {
