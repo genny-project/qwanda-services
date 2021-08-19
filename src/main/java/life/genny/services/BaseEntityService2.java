@@ -221,7 +221,7 @@ public class BaseEntityService2 {
 	 * Perform a safe search using named parameters to
 	 * protect from SQL Injection
 	*/
-	public QSearchBeResult findBySearch25(String passedToken, String realm, @NotNull final SearchEntity searchBE, Boolean countOnly) {
+	public QSearchBeResult findBySearch25(String passedToken, String realm, @NotNull final SearchEntity searchBE, Boolean countOnly, Boolean fetchEntities) {
 		log.info("findBySearch25 - testing that this version is deployed");
 		// Init necessary vars
 		QSearchBeResult result = null;
@@ -548,6 +548,20 @@ public class BaseEntityService2 {
 			codes = query.select(baseEntity.code).distinct().fetch();
 			long count = query.fetchCount();
 			result = new QSearchBeResult(codes, count);
+
+			if (fetchEntities != null && fetchEntities) {
+				BaseEntity[] beArray = new BaseEntity[codes.size()];
+
+				for (int i = 0; i < codes.size(); i++) {
+
+					String code = codes.get(i);
+					BaseEntity be = findBaseEntityByCode(code);
+					be.setIndex(i);
+					beArray[i] = be;
+				}
+
+				result.setEntities(beArray);
+			}
 		}
 		end = Instant.now();
 		timeElapsed = Duration.between(start, end);
