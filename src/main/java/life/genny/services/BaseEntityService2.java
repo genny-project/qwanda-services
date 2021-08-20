@@ -555,7 +555,7 @@ public class BaseEntityService2 {
 				for (int i = 0; i < codes.size(); i++) {
 
 					String code = codes.get(i);
-					BaseEntity be = findBaseEntityByCode(code);
+					BaseEntity be = findBaseEntityByCode(code, true);
 					be.setIndex(i);
 					beArray[i] = be;
 				}
