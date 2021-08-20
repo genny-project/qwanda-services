@@ -558,7 +558,7 @@ public class BaseEntityService2 {
 				for (int i = 0; i < codes.size(); i++) {
 
 					String code = codes.get(i);
-					BaseEntity be = findBaseEntityByCode(code, true);
+					BaseEntity be = findBaseEntityByCode(code);
 					be = VertxUtils.privacyFilter(be, filterArray);
 					be.setIndex(i);
 					beArray[i] = be;
@@ -3684,6 +3684,18 @@ public class BaseEntityService2 {
 				throw new NoResultException("Cannot find " + baseEntityCode + " in db! with realm " + realm);
 
 			}
+		}
+
+		if (includeEntityAttributes) {
+			CriteriaBuilder eaBuilder = getEntityManager().getCriteriaBuilder();
+			CriteriaQuery<EntityAttribute> eaQuery = eaBuilder.createQuery(EntityAttribute.class);
+			Root<EntityAttribute> eaRoot = eaQuery.from(EntityAttribute.class);
+
+			eaQuery = eaQuery.select(eaRoot).where(eaBuilder.equal(eaRoot.get("baseEntityCode"), baseEntityCode.toUpperCase()),
+					eaBuilder.equal(eaRoot.get("realm"), realm));
+			List<EntityAttribute> attributeList = getEntityManager().createQuery(eaQuery).getResultList();
+			Set<EntityAttribute> attributes = new HashSet<>(attributeList);
+			result.setBaseEntityAttributes(attributes);
 		}
 
 		// else {
