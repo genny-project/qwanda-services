@@ -128,6 +128,7 @@ import life.genny.qwanda.validation.Validation;
 import life.genny.qwandautils.JsonUtils;
 import life.genny.qwandautils.MergeUtil;
 import life.genny.qwandautils.GennySettings;
+import life.genny.utils.VertxUtils;
 import life.genny.utils.BaseEntityUtils;
 import life.genny.utils.RulesUtils;
 import life.genny.models.GennyToken;
@@ -550,12 +551,15 @@ public class BaseEntityService2 {
 			result = new QSearchBeResult(codes, count);
 
 			if (fetchEntities != null && fetchEntities) {
+
+				String[] filterArray = VertxUtils.getSearchColumnFilterArray(searchBE).toArray(new String[0]);
 				BaseEntity[] beArray = new BaseEntity[codes.size()];
 
 				for (int i = 0; i < codes.size(); i++) {
 
 					String code = codes.get(i);
 					BaseEntity be = findBaseEntityByCode(code, true);
+					be = VertxUtils.privacyFilter(be, filterArray);
 					be.setIndex(i);
 					beArray[i] = be;
 				}
