@@ -3687,6 +3687,7 @@ public class BaseEntityService2 {
 		}
 
 		if (includeEntityAttributes) {
+			log.info("Fetching EntityAttributes for " + baseEntityCode);
 			CriteriaBuilder eaBuilder = getEntityManager().getCriteriaBuilder();
 			CriteriaQuery<EntityAttribute> eaQuery = eaBuilder.createQuery(EntityAttribute.class);
 			Root<EntityAttribute> eaRoot = eaQuery.from(EntityAttribute.class);
@@ -3694,6 +3695,7 @@ public class BaseEntityService2 {
 			eaQuery = eaQuery.select(eaRoot).where(eaBuilder.equal(eaRoot.get("baseEntityCode"), baseEntityCode.toUpperCase()),
 					eaBuilder.equal(eaRoot.get("realm"), realm));
 			List<EntityAttribute> attributeList = getEntityManager().createQuery(eaQuery).getResultList();
+			log.info(attributeList);
 			Set<EntityAttribute> attributes = new HashSet<>(attributeList);
 			result.setBaseEntityAttributes(attributes);
 		}
