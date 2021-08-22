@@ -566,6 +566,10 @@ public class BaseEntityService2 {
 				}
 
 				result.setEntities(beArray);
+
+				for (BaseEntity en : result.getEntities()) {
+					log.info("BE = " + JsonUtils.toJson(en));
+				}
 			}
 		}
 		end = Instant.now();
