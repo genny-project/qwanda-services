@@ -566,10 +566,6 @@ public class BaseEntityService2 {
 				}
 
 				result.setEntities(beArray);
-
-				for (BaseEntity en : result.getEntities()) {
-					log.info("BE = " + JsonUtils.toJson(en));
-				}
 			}
 		}
 		end = Instant.now();
@@ -577,6 +573,7 @@ public class BaseEntityService2 {
 		log.info(debugStr + " Finished query, countOnly=" + countOnly + ", cost:" + timeElapsed.toMillis() + " millSeconds." );
 		// Return codes and count
 		log.info("SQL = " + query.toString());
+		log.info("RESULTS = " + JsonUtils.toJson(result));
 		return result;
 	}
 
