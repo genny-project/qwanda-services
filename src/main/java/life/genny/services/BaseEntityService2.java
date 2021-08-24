@@ -562,7 +562,6 @@ public class BaseEntityService2 {
 					be = VertxUtils.privacyFilter(be, filterArray);
 					be.setIndex(i);
 					beArray[i] = be;
-					log.info("BE = " + JsonUtils.toJson(beArray[i]));
 				}
 
 				result.setEntities(beArray);
@@ -573,7 +572,6 @@ public class BaseEntityService2 {
 		log.info(debugStr + " Finished query, countOnly=" + countOnly + ", cost:" + timeElapsed.toMillis() + " millSeconds." );
 		// Return codes and count
 		log.info("SQL = " + query.toString());
-		log.info("RESULTS = " + JsonUtils.toJson(result));
 		return result;
 	}
 
