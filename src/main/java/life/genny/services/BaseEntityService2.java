@@ -581,7 +581,9 @@ public class BaseEntityService2 {
 		if (dateTime == null) {
 			LocalDate date = ea.getValueDate();
 			LocalDateTime lowerBound = date.atStartOfDay();
+			log.info("lowerBound = " + lowerBound);
 			LocalDateTime upperBound = lowerBound.plusDays(1);
+			log.info("upperBound = " + upperBound);
 
 			if (condition.equals(">")) {
 				return path.after(upperBound);
