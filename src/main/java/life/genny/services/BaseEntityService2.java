@@ -335,8 +335,12 @@ public class BaseEntityService2 {
 
 				// Generally don't accept filter LIKE "%", unless other filters present for this attribute
 				Boolean isAnyStringFilter = false;
-				if (ea.getValueString() != null && ea.getValueString().equals("%") && ea.getAttributeName().equals("LIKE")) {
-					isAnyStringFilter = true;
+				try {
+					if (ea.getValueString() != null && "%".equals(ea.getValueString()) && "LIKE".equals(ea.getAttributeName())) {
+						isAnyStringFilter = true;
+					}
+				} catch (Exception e) {
+					log.error("Bad Null ["+ea+"]"+e.getLocalizedMessage());
 				}
 
 				Boolean hackOrTrigger = false;
