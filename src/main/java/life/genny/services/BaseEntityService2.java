@@ -398,7 +398,7 @@ public class BaseEntityService2 {
 						QEntityAttribute eaWildcardJoin = new QEntityAttribute("eaWildcardJoin");
 						query.leftJoin(eaWildcardJoin).on(eaWildcardJoin.pk.baseEntity.id.eq(baseEntity.id));
 
-						builder.and(eaWildcardJoin.valueString.like(wildcardValue));
+						builder.and(eaWildcardJoin.valueString.like(wildcardValue).or(baseEntity.name.like(wildcardValue)));
 						System.out.println("WILDCARD like " + wildcardValue);
 					}
 				}
