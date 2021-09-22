@@ -5592,8 +5592,7 @@ public class BaseEntityService2 {
 		throw new NoResultException("EntityEntity " + sourceCode + ":" + targetCode + ":" + linkCode + " not found");
 	}
 
-	public EntityAttribute findEntityAttribute(final String baseEntityCode, final String attributeCode)
-			throws NoResultException {
+	public EntityAttribute findEntityAttribute(final String baseEntityCode, final String attributeCode) {
 
 		// find the BaseEntity
 		BaseEntity source = this.findBaseEntityByCode(baseEntityCode);
@@ -5603,9 +5602,8 @@ public class BaseEntityService2 {
 				return ea;
 			}
 		}
-
-		throw new NoResultException("EntityAttribute " + baseEntityCode + ":" + attributeCode + " not found");
-
+		log.error("EntityAttribute " + baseEntityCode + ":" + attributeCode + " not found");
+		return null;
 	}
 
 	// @Transactional
@@ -5665,12 +5663,8 @@ public class BaseEntityService2 {
 	// @Transactional
 	public void removeEntityAttribute(final String baseEntityCode, final String attributeCode) {
 		EntityAttribute ea = null;
-		try {
-			ea = findEntityAttribute(baseEntityCode, attributeCode);
-			removeEntityAttribute(ea);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		ea = findEntityAttribute(baseEntityCode, attributeCode);
+	    if( ea != null) removeEntityAttribute(ea);
 	}
 
 	// @Transactional
