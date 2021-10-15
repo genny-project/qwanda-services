@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
@@ -51,14 +52,22 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
+import com.querydsl.core.types.dsl.ComparableExpression;
+import com.querydsl.core.types.dsl.StringExpression;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.LiteralExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.core.types.dsl.BooleanPath;
 import com.querydsl.core.types.dsl.DatePath;
 import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.sql.JPASQLQuery;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Path;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 // import com.querydsl.sql.DerbyTemplates;
 // import com.querydsl.sql.SQLTemplates;
 
@@ -223,18 +232,15 @@ public class BaseEntityService2 {
 	 * protect from SQL Injection
 	*/
 	public QSearchBeResult findBySearch25(String passedToken, String realm, @NotNull final SearchEntity searchBE, Boolean countOnly, Boolean fetchEntities) {
-		log.info("findBySearch25 - testing that this version is deployed");
 		// Init necessary vars
 		QSearchBeResult result = null;
 		List<String> codes = new ArrayList<String>();
 		// Get page start and page size from SBE
 		Integer pageStart = searchBE.getPageStart(0);
 		Integer pageSize = searchBE.getPageSize(GennySettings.defaultPageSize);
-		// Get the hql string and param map from SBE
-		// ------------------------
+
 		JPAQuery<?> query = new JPAQuery<Void>(getEntityManager());
 
-		// QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute");
 		QBaseEntity baseEntity = new QBaseEntity("baseEntity");
 		// Define a join for link searches
 		String linkCode = null;
@@ -245,13 +251,15 @@ public class BaseEntityService2 {
 		query.from(baseEntity);
 
 		List<EntityAttribute> sortAttributes = new ArrayList<>();
+
+		// Find AND and OR attributes and remove these prefixs from each of them
 		List<EntityAttribute> andAttributes = searchBE.findPrefixEntityAttributes("AND_");
 		List<EntityAttribute> orAttributes = searchBE.findPrefixEntityAttributes("OR_");
 
 		BooleanBuilder builder = new BooleanBuilder();
 
 		// Ensure only Entities from our realm are returned
-		System.out.println("realm is " + realm);
+		log.info("realm is " + realm);
 		builder.and(baseEntity.realm.eq(realm));
 
 		// Default Status level is ACTIVE
@@ -260,70 +268,47 @@ public class BaseEntityService2 {
 
 		for (EntityAttribute ea : searchBE.getBaseEntityAttributes()) {
 
-			String attributeCode = ea.getAttributeCode();
+			final String attributeCode = ea.getAttributeCode();
 
 			// Create where condition for the BE Code Filter
 			if (attributeCode.equals("PRI_CODE")) {
-				System.out.println("PRI_CODE like " + ea.getAsString());
+				log.info("PRI_CODE like " + ea.getAsString());
 
 				BooleanBuilder entityCodeBuilder = new BooleanBuilder();
 				entityCodeBuilder.and(baseEntity.code.like(ea.getAsString()));
 
-				for (EntityAttribute andAttr : andAttributes) {
-					if (andAttr.getAttributeCode().startsWith("AND_")) {
-						if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").equals(attributeCode)) {
-							System.out.println("AND PRI_CODE like " + andAttr.getAsString());
-							entityCodeBuilder.and(baseEntity.code.like(andAttr.getAsString()));
-						}
-					}
-				}
-				for (EntityAttribute orAttr : orAttributes) {
-					if (orAttr.getAttributeCode().startsWith("OR_")) {
-						if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals(attributeCode)) {
-							System.out.println("OR PRI_CODE like " + orAttr.getAsString());
-							entityCodeBuilder.or(baseEntity.code.like(orAttr.getAsString()));
-						}
-					}
-				}
+				// Process any AND/OR filters for BaseEntity Code
+				andAttributes.stream().filter(x -> removePrefixFromCode(x.getAttributeCode(), "AND").equals(attributeCode)).forEach(x -> {
+					log.info("AND " + attributeCode + " like " + x.getAsString());
+					entityCodeBuilder.and(baseEntity.code.like(x.getAsString()));
+				});
+				orAttributes.stream().filter(x -> removePrefixFromCode(x.getAttributeCode(), "OR").equals(attributeCode)).forEach(x -> {
+					log.info("OR " + attributeCode + " like " + x.getAsString());
+					entityCodeBuilder.or(baseEntity.code.like(x.getAsString()));
+				});
 				builder.and(entityCodeBuilder);
 
 			// Handle Created Date Filters
 			} else if (attributeCode.startsWith("PRI_CREATED")) {
-				System.out.println("PRI_CREATED " + ea.getAttributeName() + " " + ea.getAsString());
-
 				builder.and(getDateTimePredicate(ea, baseEntity.created));
-
-				for (EntityAttribute andAttr : andAttributes) {
-					if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").startsWith("PRI_CREATED")) {
-						System.out.println("AND PRI_CREATED like " + andAttr.getAsString());
-						builder.and(getDateTimePredicate(andAttr, baseEntity.created));
-					}
-				}
-				for (EntityAttribute orAttr : orAttributes) {
-					if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").startsWith("PRI_CREATED")) {
-						System.out.println("OR PRI_CREATED like " + orAttr.getAsString());
-						builder.or(getDateTimePredicate(orAttr, baseEntity.created));
-					}
-				}
+				// Process any AND/OR filters for this attribute
+				andAttributes.stream().filter(x -> removePrefixFromCode(x.getAttributeCode(), "AND").equals(attributeCode)).forEach(x -> {
+					builder.and(getDateTimePredicate(x, baseEntity.created));
+				});
+				orAttributes.stream().filter(x -> removePrefixFromCode(x.getAttributeCode(), "OR").equals(attributeCode)).forEach(x -> {
+					builder.or(getDateTimePredicate(x, baseEntity.created));
+				});
 
 			// Handle Updated Date Filters
 			} else if (attributeCode.startsWith("PRI_UPDATED")) {
-				System.out.println("PRI_UPDATED " + ea.getAttributeName() + " " + ea.getAsString());
-
 				builder.and(getDateTimePredicate(ea, baseEntity.updated));
-
-				for (EntityAttribute andAttr : andAttributes) {
-					if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").startsWith("PRI_UPDATED")) {
-						System.out.println("AND PRI_UPDATED like " + andAttr.getAsString());
-						builder.and(getDateTimePredicate(andAttr, baseEntity.updated));
-					}
-				}
-				for (EntityAttribute orAttr : orAttributes) {
-					if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").startsWith("PRI_UPDATED")) {
-						System.out.println("OR PRI_UPDATED like " + orAttr.getAsString());
-						builder.or(getDateTimePredicate(orAttr, baseEntity.updated));
-					}
-				}
+				// Process any AND/OR filters for this attribute
+				andAttributes.stream().filter(x -> removePrefixFromCode(x.getAttributeCode(), "AND").equals(attributeCode)).forEach(x -> {
+					builder.and(getDateTimePredicate(x, baseEntity.updated));
+				});
+				orAttributes.stream().filter(x -> removePrefixFromCode(x.getAttributeCode(), "OR").equals(attributeCode)).forEach(x -> {
+					builder.or(getDateTimePredicate(x, baseEntity.updated));
+				});
 
 			// Create a Join for each attribute filters
 			} else if (
@@ -343,8 +328,6 @@ public class BaseEntityService2 {
 					log.error("Bad Null ["+ea+"]"+e.getLocalizedMessage());
 				}
 
-				Boolean hackOrTrigger = false;
-
 				String filterName = "eaFilterJoin_"+joinCounter.toString();
 				QEntityAttribute eaFilterJoin = new QEntityAttribute(filterName);
 				joinCounter++;
@@ -352,23 +335,29 @@ public class BaseEntityService2 {
 				BooleanBuilder currentAttributeBuilder = new BooleanBuilder();
 				BooleanBuilder extraFilterBuilder = new BooleanBuilder();
 
-				currentAttributeBuilder.and(getAttributeSearchColumn(ea, eaFilterJoin));
-				// Check for OR/AND attributes with same code
-				for (EntityAttribute andAttr : andAttributes) {
-					if (andAttr.getAttributeCode().startsWith("AND_")) {
-						if (removePrefixFromCode(andAttr.getAttributeCode(), "AND").equals(attributeCode)) {
-							// currentAttributeBuilder.and();
-							extraFilterBuilder.and(getAttributeSearchColumn(andAttr, eaFilterJoin));
-						}
-					}
+				String joinAttributeCode = attributeCode;
+				if (attributeCode.contains(".")) {
+					// Ensure we now join on this LNK attr
+					joinAttributeCode = attributeCode.split("\\.")[0];
+					// Must strip value to get clean code
+					currentAttributeBuilder.and(
+							Expressions.stringTemplate("replace({0},'[\"','')", 
+								Expressions.stringTemplate("replace({0},'\"]','')", eaFilterJoin.valueString)
+							) .in(generateSubQuery(ea)));
+				} else {
+					currentAttributeBuilder.and(getAttributeSearchColumn(ea, eaFilterJoin));
 				}
-				for (EntityAttribute orAttr : orAttributes) {
-					if (orAttr.getAttributeCode().startsWith("OR_")) {
-						if (removePrefixFromCode(orAttr.getAttributeCode(), "OR").equals(attributeCode)) {
-							// currentAttributeBuilder.or();
-							extraFilterBuilder.or(getAttributeSearchColumn(orAttr, eaFilterJoin));
-							hackOrTrigger = true;
-						}
+
+				// Process any AND/OR filters for this attribute
+				andAttributes.stream().filter(x -> removePrefixFromCode(x.getAttributeCode(), "AND").equals(attributeCode)).forEach(x -> {
+					extraFilterBuilder.and(getAttributeSearchColumn(x, eaFilterJoin));
+				});
+				// Using Standard for-loop to allow updating trigger variable
+				Boolean orTrigger = false;
+				for (EntityAttribute x : orAttributes) {
+					if (removePrefixFromCode(x.getAttributeCode(), "OR").equals(attributeCode)) {
+						extraFilterBuilder.or(getAttributeSearchColumn(x, eaFilterJoin));
+						orTrigger = true;
 					}
 				}
 				// This should get around the bug that occurs with filter LIKE "%"
@@ -376,10 +365,10 @@ public class BaseEntityService2 {
 
 					query.leftJoin(eaFilterJoin)
 						.on(eaFilterJoin.pk.baseEntity.id.eq(baseEntity.id)
-						.and(eaFilterJoin.attributeCode.eq(attributeCode)));
+						.and(eaFilterJoin.attributeCode.eq(joinAttributeCode)));
 						
 					if (extraFilterBuilder.hasValue()) {
-						if (hackOrTrigger) {
+						if (orTrigger) {
 							currentAttributeBuilder.or(extraFilterBuilder);
 						} else {
 							currentAttributeBuilder.and(extraFilterBuilder);
@@ -399,7 +388,11 @@ public class BaseEntityService2 {
 						query.leftJoin(eaWildcardJoin).on(eaWildcardJoin.pk.baseEntity.id.eq(baseEntity.id));
 
 						builder.and(eaWildcardJoin.valueString.like(wildcardValue).or(baseEntity.name.like(wildcardValue)));
-						System.out.println("WILDCARD like " + wildcardValue);
+						log.info("WILDCARD like " + wildcardValue);
+
+						builder.and(baseEntity.name.like(wildcardValue)
+								.or(eaWildcardJoin.valueString.like(wildcardValue)));
+								// .or(eaWildcardJoin.valueString.in(generateWildcardSubQuery(wildcardValue))));
 					}
 				}
 			} else if (attributeCode.startsWith("SCH_LINK_CODE")) {
@@ -441,8 +434,7 @@ public class BaseEntityService2 {
 
 			ComparableExpressionBase orderColumn = null;
 			if (attributeCode.startsWith("SRT_PRI_CREATED")) {
-				// This was changed because because there was no index on created
-				// orderColumn = entityAttribute.pk.baseEntity.created;
+				// Use ID because there is no index on created, and this gives same result
 				orderColumn = baseEntity.id;
 			} else if (attributeCode.startsWith("SRT_PRI_UPDATED")) {
 				orderColumn = baseEntity.updated;
@@ -451,28 +443,10 @@ public class BaseEntityService2 {
 			} else if (attributeCode.startsWith("SRT_PRI_NAME")) {
 				orderColumn = baseEntity.name;
 			} else {
+				// Use Attribute Code to find the datatype, and thus the DB field to sort on
 				Attribute attr = RulesUtils.getAttribute(attributeCode.substring("SRT_".length()), passedToken);
 				String dtt = attr.getDataType().getClassName();
-
-				if (dtt.equals("Text")) {
-					orderColumn = eaOrderJoin.valueString;
-				} else if (dtt.equals("java.lang.String") || dtt.equals("String")) {
-					orderColumn = eaOrderJoin.valueString;
-				} else if (dtt.equals("java.lang.Boolean") || dtt.equals("Boolean")) {
-					orderColumn = eaOrderJoin.valueBoolean;
-				} else if (dtt.equals("java.lang.Double") || dtt.equals("Double")) {
-					orderColumn = eaOrderJoin.valueDouble;
-				} else if (dtt.equals("java.lang.Integer") || dtt.equals("Integer")) {
-					orderColumn = eaOrderJoin.valueInteger;
-				} else if (dtt.equals("java.lang.Long") || dtt.equals("Long")) {
-					orderColumn = eaOrderJoin.valueLong;
-				} else if (dtt.equals("java.time.LocalDateTime") || dtt.equals("LocalDateTime")) {
-					orderColumn = eaOrderJoin.valueDateTime;
-				} else if (dtt.equals("java.time.LocalDate") || dtt.equals("LocalDate")) {
-					orderColumn = eaOrderJoin.valueDate;
-				} else if (dtt.equals("java.time.LocalTime") || dtt.equals("LocalTime")) {
-					orderColumn = eaOrderJoin.valueTime;
-				}
+				orderColumn = getPathFromDatatype(dtt, eaOrderJoin);
 			}
 
 			if (orderColumn != null) {
@@ -488,7 +462,7 @@ public class BaseEntityService2 {
 
 		Instant start = Instant.now();
 		String debugStr = "Search25DEBUG";
-		log.info( debugStr + " Start building link join");
+		log.info(debugStr + " Start building link join");
 		// Build link join if necessary
 		if (sourceCode != null || targetCode != null || linkCode != null || linkValue != null) {
 			QEntityEntity linkJoin = new QEntityEntity("linkJoin");
@@ -572,18 +546,21 @@ public class BaseEntityService2 {
 			}
 		}
 		end = Instant.now();
-		timeElapsed = Duration.between(start, end);
-		log.info(debugStr + " Finished query, countOnly=" + countOnly + ", cost:" + timeElapsed.toMillis() + " millSeconds." );
+		log.info(debugStr + " Finished building link join, cost:" + Duration.between(start, end).toMillis() + " millSeconds.");
 		// Return codes and count
 		log.info("SQL = " + query.toString());
 		return result;
 	}
 
-	Predicate getDateTimePredicate(EntityAttribute ea, DateTimePath path) {
+	public static Predicate getDateTimePredicate(EntityAttribute ea, DateTimePath path) {
 		String condition = SearchEntity.convertFromSaveable(ea.getAttributeName());
 		LocalDateTime dateTime = ea.getValueDateTime();
+
 		if (dateTime == null) {
 			LocalDate date = ea.getValueDate();
+			log.info(ea.getAttributeCode() + " " + condition + " " + date);
+
+			// Convert Date into two DateTime boundaries
 			LocalDateTime lowerBound = date.atStartOfDay();
 			log.info("lowerBound = " + lowerBound);
 			LocalDateTime upperBound = lowerBound.plusDays(1);
@@ -603,6 +580,7 @@ public class BaseEntityService2 {
 				return path.between(lowerBound, upperBound);
 			}
 		}
+		log.info(ea.getAttributeCode() + " " + condition + " " + dateTime);
 			
 		if (condition.equals(">=") || condition.equals(">")) {
 			return path.after(dateTime);
@@ -615,7 +593,7 @@ public class BaseEntityService2 {
 		return path.eq(dateTime);
 	}
 	
-	Predicate getAttributeSearchColumn(EntityAttribute ea, QEntityAttribute eaFilterJoin) {
+	public static Predicate getAttributeSearchColumn(EntityAttribute ea, QEntityAttribute entityAttribute) {
 
 		// TODO: Make this function more neat, and less repetitive - Jasper (19/08/2021)
 
@@ -631,101 +609,189 @@ public class BaseEntityService2 {
 		if (condition == null) {
 			log.error("SQL condition is NULL, " + "EntityAttribute baseEntityCode is:" + ea.getBaseEntityCode()
 					+ ", attributeCode is: " + ea.getAttributeCode());
-		// LIKE
+			// LIKE
 		} else if (condition.equals("LIKE")) {
-			return eaFilterJoin.valueString.like(valueString);
-		// NOT LIKE
+			return entityAttribute.valueString.like(valueString);
+			// NOT LIKE
 		} else if (condition.equals("NOT LIKE")) {
-			return eaFilterJoin.valueString.notLike(valueString);
-		// EQUALS
+			return entityAttribute.valueString.notLike(valueString);
+			// EQUALS
 		} else if (condition.equals("=")) {
 			if (ea.getValueBoolean() != null) {
-				return eaFilterJoin.valueBoolean.eq(ea.getValueBoolean());
+				return entityAttribute.valueBoolean.eq(ea.getValueBoolean());
 			} else if (ea.getValueDouble() != null) {
-				return eaFilterJoin.valueDouble.eq(ea.getValueDouble());
+				return entityAttribute.valueDouble.eq(ea.getValueDouble());
 			} else if (ea.getValueInteger() != null) {
-				return eaFilterJoin.valueInteger.eq(ea.getValueInteger());
+				return entityAttribute.valueInteger.eq(ea.getValueInteger());
 			} else if (ea.getValueLong() != null) {
-				return eaFilterJoin.valueLong.eq(ea.getValueLong());
+				return entityAttribute.valueLong.eq(ea.getValueLong());
 			} else if (ea.getValueDate() != null) {
-				return eaFilterJoin.valueDate.eq(ea.getValueDate());
+				return entityAttribute.valueDate.eq(ea.getValueDate());
 			} else if (ea.getValueDateTime() != null) {
-				return eaFilterJoin.valueDateTime.eq(ea.getValueDateTime());
+				return entityAttribute.valueDateTime.eq(ea.getValueDateTime());
 			} else {
-				return eaFilterJoin.valueString.eq(valueString);
+				return entityAttribute.valueString.eq(valueString);
 			}
-		// NOT EQUALS
+			// NOT EQUALS
 		} else if (condition.equals("!=")) {
 			if (ea.getValueBoolean() != null) {
-				return eaFilterJoin.valueBoolean.ne(ea.getValueBoolean());
+				return entityAttribute.valueBoolean.ne(ea.getValueBoolean());
 			} else if (ea.getValueDouble() != null) {
-				return eaFilterJoin.valueDouble.ne(ea.getValueDouble());
+				return entityAttribute.valueDouble.ne(ea.getValueDouble());
 			} else if (ea.getValueInteger() != null) {
-				return eaFilterJoin.valueInteger.ne(ea.getValueInteger());
+				return entityAttribute.valueInteger.ne(ea.getValueInteger());
 			} else if (ea.getValueLong() != null) {
-				return eaFilterJoin.valueLong.ne(ea.getValueLong());
+				return entityAttribute.valueLong.ne(ea.getValueLong());
 			} else if (ea.getValueDate() != null) {
-				return eaFilterJoin.valueDate.ne(ea.getValueDate());
+				return entityAttribute.valueDate.ne(ea.getValueDate());
 			} else if (ea.getValueDateTime() != null) {
-				return eaFilterJoin.valueDateTime.ne(ea.getValueDateTime());
+				return entityAttribute.valueDateTime.ne(ea.getValueDateTime());
 			} else {
-				return eaFilterJoin.valueString.ne(valueString);
+				return entityAttribute.valueString.ne(valueString);
 			}
-		// GREATER THAN OR EQUAL TO
+			// GREATER THAN OR EQUAL TO
 		} else if (condition.equals(">=")) {
 			if (ea.getValueDouble() != null) {
-				return eaFilterJoin.valueDouble.goe(ea.getValueDouble());
+				return entityAttribute.valueDouble.goe(ea.getValueDouble());
 			} else if (ea.getValueInteger() != null) {
-				return eaFilterJoin.valueInteger.goe(ea.getValueInteger());
+				return entityAttribute.valueInteger.goe(ea.getValueInteger());
 			} else if (ea.getValueLong() != null) {
-				return eaFilterJoin.valueLong.goe(ea.getValueLong());
+				return entityAttribute.valueLong.goe(ea.getValueLong());
 			} else if (ea.getValueDate() != null) {
-				return eaFilterJoin.valueDate.goe(ea.getValueDate());
+				return entityAttribute.valueDate.goe(ea.getValueDate());
 			} else if (ea.getValueDateTime() != null) {
-				return eaFilterJoin.valueDateTime.goe(ea.getValueDateTime());
+				return entityAttribute.valueDateTime.goe(ea.getValueDateTime());
 			}
-		// LESS THAN OR EQUAL TO
+			// LESS THAN OR EQUAL TO
 		} else if (condition.equals("<=")) {
 			if (ea.getValueDouble() != null) {
-				return eaFilterJoin.valueDouble.loe(ea.getValueDouble());
+				return entityAttribute.valueDouble.loe(ea.getValueDouble());
 			} else if (ea.getValueInteger() != null) {
-				return eaFilterJoin.valueInteger.loe(ea.getValueInteger());
+				return entityAttribute.valueInteger.loe(ea.getValueInteger());
 			} else if (ea.getValueLong() != null) {
-				return eaFilterJoin.valueLong.loe(ea.getValueLong());
+				return entityAttribute.valueLong.loe(ea.getValueLong());
 			} else if (ea.getValueDate() != null) {
-				return eaFilterJoin.valueDate.loe(ea.getValueDate());
+				return entityAttribute.valueDate.loe(ea.getValueDate());
 			} else if (ea.getValueDateTime() != null) {
-				return eaFilterJoin.valueDateTime.loe(ea.getValueDateTime());
+				return entityAttribute.valueDateTime.loe(ea.getValueDateTime());
 			}
-		// GREATER THAN
+			// GREATER THAN
 		} else if (condition.equals(">")) {
 			if (ea.getValueDouble() != null) {
-				return eaFilterJoin.valueDouble.gt(ea.getValueDouble());
+				return entityAttribute.valueDouble.gt(ea.getValueDouble());
 			} else if (ea.getValueInteger() != null) {
-				return eaFilterJoin.valueInteger.gt(ea.getValueInteger());
+				return entityAttribute.valueInteger.gt(ea.getValueInteger());
 			} else if (ea.getValueLong() != null) {
-				return eaFilterJoin.valueLong.gt(ea.getValueLong());
+				return entityAttribute.valueLong.gt(ea.getValueLong());
 			} else if (ea.getValueDate() != null) {
-				return eaFilterJoin.valueDate.after(ea.getValueDate());
+				return entityAttribute.valueDate.after(ea.getValueDate());
 			} else if (ea.getValueDateTime() != null) {
-				return eaFilterJoin.valueDateTime.after(ea.getValueDateTime());
+				return entityAttribute.valueDateTime.after(ea.getValueDateTime());
 			}
-		// LESS THAN
+			// LESS THAN
 		} else if (condition.equals("<")) {
 			if (ea.getValueDouble() != null) {
-				return eaFilterJoin.valueDouble.lt(ea.getValueDouble());
+				return entityAttribute.valueDouble.lt(ea.getValueDouble());
 			} else if (ea.getValueInteger() != null) {
-				return eaFilterJoin.valueInteger.lt(ea.getValueInteger());
+				return entityAttribute.valueInteger.lt(ea.getValueInteger());
 			} else if (ea.getValueLong() != null) {
-				return eaFilterJoin.valueLong.lt(ea.getValueLong());
+				return entityAttribute.valueLong.lt(ea.getValueLong());
 			} else if (ea.getValueDate() != null) {
-				return eaFilterJoin.valueDate.before(ea.getValueDate());
+				return entityAttribute.valueDate.before(ea.getValueDate());
 			} else if (ea.getValueDateTime() != null) {
-				return eaFilterJoin.valueDateTime.before(ea.getValueDateTime());
+				return entityAttribute.valueDateTime.before(ea.getValueDateTime());
 			}
 		}
 		// Default
-		return eaFilterJoin.valueString.eq(valueString);
+		return entityAttribute.valueString.eq(valueString);
+	}
+
+	public static ComparableExpressionBase getPathFromDatatype(String dtt, QEntityAttribute entityAttribute) {
+
+		if (dtt.equals("Text")) {
+			return entityAttribute.valueString;
+		} else if (dtt.equals("java.lang.String") || dtt.equals("String")) {
+			return entityAttribute.valueString;
+		} else if (dtt.equals("java.lang.Boolean") || dtt.equals("Boolean")) {
+			return entityAttribute.valueBoolean;
+		} else if (dtt.equals("java.lang.Double") || dtt.equals("Double")) {
+			return entityAttribute.valueDouble;
+		} else if (dtt.equals("java.lang.Integer") || dtt.equals("Integer")) {
+			return entityAttribute.valueInteger;
+		} else if (dtt.equals("java.lang.Long") || dtt.equals("Long")) {
+			return entityAttribute.valueLong;
+		} else if (dtt.equals("java.time.LocalDateTime") || dtt.equals("LocalDateTime")) {
+			return entityAttribute.valueDateTime;
+		} else if (dtt.equals("java.time.LocalDate") || dtt.equals("LocalDate")) {
+			return entityAttribute.valueDate;
+		} else if (dtt.equals("java.time.LocalTime") || dtt.equals("LocalTime")) {
+			return entityAttribute.valueTime;
+		}
+
+		log.warn("Unable to read datatype");
+		return entityAttribute.valueString;
+	}
+
+	/**
+	* Create a sub query for searhing across LNK associations
+	*
+	* This is a recursive function that can run as many 
+	* times as is specified by the attribute.
+	*
+	* @param ea The EntityAttribute filter from SBE
+	* @return the subquery object
+	 */
+	public static JPQLQuery generateSubQuery(EntityAttribute ea) {
+		// TODO: Need fnctionanlity for list of EAs 
+
+		// Unpack each attributeCode
+		String[] associationArray = ea.getAttributeCode().split("\\.");
+		String associationAttribute = associationArray[0];
+
+		// Remove first item and update so we can pass into other functions
+		String[] newAssociationArray = Arrays.copyOfRange(associationArray, 1, associationArray.length);
+		ea.setAttributeCode(String.join(".", newAssociationArray));
+
+		// Random uuid to for uniqueness in the query string
+		String uuid = UUID.randomUUID().toString().substring(0, 8);
+
+		// Define items to query base upon
+		QBaseEntity baseEntity = new QBaseEntity("baseEntity_"+uuid);
+		QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute_"+uuid);
+
+		if (associationArray.length > 2) {
+			// Recursive search
+			return JPAExpressions.selectDistinct(baseEntity.code)
+				.from(baseEntity)
+				.leftJoin(entityAttribute)
+				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
+				.where(
+					Expressions.stringTemplate("replace({0},'[\"','')", 
+						Expressions.stringTemplate("replace({0},'\"]','')", entityAttribute.valueString)
+					) .in(generateSubQuery(ea)));
+		} else {
+			return JPAExpressions.selectDistinct(baseEntity.code)
+				.from(baseEntity)
+				.leftJoin(entityAttribute)
+				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
+				.where(getAttributeSearchColumn(ea, entityAttribute));
+		}
+	}
+
+	public static JPQLQuery generateWildcardSubQuery(String value) {
+
+		// Random uuid to for uniqueness in the query string
+		String uuid = UUID.randomUUID().toString().substring(0, 8);
+
+		// Define items to query base upon
+		QBaseEntity baseEntity = new QBaseEntity("baseEntity_"+uuid);
+		QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute_"+uuid);
+
+		return JPAExpressions.selectDistinct(baseEntity.code)
+			.from(baseEntity)
+			.leftJoin(entityAttribute)
+			.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
+			.where(entityAttribute.valueString.like(value));
 	}
 
 	/**
