@@ -391,8 +391,8 @@ public class BaseEntityService2 {
 						log.info("WILDCARD like " + wildcardValue);
 
 						builder.and(baseEntity.name.like(wildcardValue)
-								.or(eaWildcardJoin.valueString.like(wildcardValue))
-								.or(eaWildcardJoin.valueString.in(generateWildcardSubQuery(wildcardValue))));
+								.or(eaWildcardJoin.valueString.like(wildcardValue)));
+								// .or(eaWildcardJoin.valueString.in(generateWildcardSubQuery(wildcardValue))));
 					}
 				}
 			} else if (attributeCode.startsWith("SCH_LINK_CODE")) {
