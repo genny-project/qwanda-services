@@ -746,7 +746,8 @@ public class BaseEntityService2 {
 
 		// Unpack each attributeCode
 		String[] associationArray = ea.getAttributeCode().split("\\.");
-		String associationAttribute = associationArray[0];
+		String linkAttribute = associationArray[0];
+		String valueAttribute = associationArray[associationArray.length-1];
 
 		// Remove first item and update so we can pass into other functions
 		String[] newAssociationArray = Arrays.copyOfRange(associationArray, 1, associationArray.length);
@@ -773,7 +774,8 @@ public class BaseEntityService2 {
 			return JPAExpressions.selectDistinct(baseEntity.code)
 				.from(baseEntity)
 				.leftJoin(entityAttribute)
-				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
+				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id)
+					.and(entityAttribute.attributeCode.eq(valueAttribute)))
 				.where(getAttributeSearchColumn(ea, entityAttribute));
 		}
 	}
