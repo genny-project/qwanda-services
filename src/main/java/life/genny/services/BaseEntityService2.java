@@ -61,6 +61,7 @@ import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.core.types.dsl.BooleanPath;
 import com.querydsl.core.types.dsl.DatePath;
 import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.sql.JPASQLQuery;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
@@ -335,11 +336,14 @@ public class BaseEntityService2 {
 				BooleanBuilder extraFilterBuilder = new BooleanBuilder();
 
 				String joinAttributeCode = attributeCode;
-				if (attributeCode.contains("__")) {
+				if (attributeCode.contains(".")) {
 					// Ensure we now join on this LNK attr
-					joinAttributeCode = attributeCode.split("__")[0];
-
-					currentAttributeBuilder.and(eaFilterJoin.valueString.in(generateSubQuery(ea)));
+					joinAttributeCode = attributeCode.split("\\.")[0];
+					// Must strip value to get clean code
+					currentAttributeBuilder.and(
+							Expressions.stringTemplate("replace({0},'[\"','')", 
+								Expressions.stringTemplate("replace({0},'\"]','')", eaFilterJoin.valueString)
+							) .in(generateSubQuery(ea)));
 				} else {
 					currentAttributeBuilder.and(getAttributeSearchColumn(ea, eaFilterJoin));
 				}
@@ -741,19 +745,19 @@ public class BaseEntityService2 {
 		// TODO: Need fnctionanlity for list of EAs 
 
 		// Unpack each attributeCode
-		String[] associationArray = ea.getAttributeCode().split("__");
+		String[] associationArray = ea.getAttributeCode().split("\\.");
 		String associationAttribute = associationArray[0];
-		String valueAttribute = associationArray[associationArray.length-1];
 
-		// Update so we can pass into function to get search column
-		ea.setAttributeCode(valueAttribute);
+		// Remove first item and update so we can pass into other functions
+		String[] newAssociationArray = Arrays.copyOfRange(associationArray, 1, associationArray.length);
+		ea.setAttributeCode(String.join(".", newAssociationArray));
 
 		// Random uuid to for uniqueness in the query string
 		String uuid = UUID.randomUUID().toString().substring(0, 8);
 
 		// Define items to query base upon
-		QBaseEntity baseEntity = new QBaseEntity("baseEntity-"+uuid);
-		QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute-"+uuid);
+		QBaseEntity baseEntity = new QBaseEntity("baseEntity_"+uuid);
+		QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute_"+uuid);
 
 		if (associationArray.length > 2) {
 			// Recursive search
@@ -761,7 +765,10 @@ public class BaseEntityService2 {
 				.from(baseEntity)
 				.leftJoin(entityAttribute)
 				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
-				.where(entityAttribute.valueString.in(generateSubQuery(ea)));
+				.where(
+					Expressions.stringTemplate("replace({0},'[\"','')", 
+						Expressions.stringTemplate("replace({0},'\"]','')", entityAttribute.valueString)
+					) .in(generateSubQuery(ea)));
 		} else {
 			return JPAExpressions.selectDistinct(baseEntity.code)
 				.from(baseEntity)
@@ -777,8 +784,8 @@ public class BaseEntityService2 {
 		String uuid = UUID.randomUUID().toString().substring(0, 8);
 
 		// Define items to query base upon
-		QBaseEntity baseEntity = new QBaseEntity("baseEntity-"+uuid);
-		QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute-"+uuid);
+		QBaseEntity baseEntity = new QBaseEntity("baseEntity_"+uuid);
+		QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute_"+uuid);
 
 		return JPAExpressions.selectDistinct(baseEntity.code)
 			.from(baseEntity)
