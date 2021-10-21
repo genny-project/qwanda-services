@@ -348,9 +348,8 @@ public class BaseEntityService2 {
 							|| removePrefixFromCode(x.getAttributeCode(), "OR").equals(attributeCode)
 							)).collect(Collectors.toList());
 
+					// Prepare for subquery by removing base attribute codes
 					detatchBaseAttributeCode(subQueryEaList);
-
-					log.info("SUB Q SIZE = " + subQueryEaList.size());
 					// Must strip value to get clean code
 					currentAttributeBuilder.and(
 							Expressions.stringTemplate("replace({0},'[\"','')", 
@@ -784,19 +783,8 @@ public class BaseEntityService2 {
 	 */
 	public static JPQLQuery generateSubQuery(List<EntityAttribute> eaList) {
 
-		// // Seperate AND/OR filters from the list
-		// List<EntityAttribute> andAttributes = eaList.stream().filter(x -> x.getAttributeCode().startsWith("AND_")).collect(Collectors.toList());
-		// List<EntityAttribute> orAttributes = eaList.stream().filter(x -> x.getAttributeCode().startsWith("OR_")).collect(Collectors.toList());
-		// log.info("OR SIZE = " + orAttributes.size());
-		// log.info("AND SIZE = " + andAttributes.size());
-
 		// Find first attribute that is not AND/OR. There should be only one
 		EntityAttribute ea = eaList.stream().filter(x -> (!x.getAttributeCode().startsWith("AND_") && !x.getAttributeCode().startsWith("OR_"))).findFirst().get();
-
-
-		// // Remove first item and update so we can pass into other functions
-		// String[] newAssociationArray = Arrays.copyOfRange(associationArray, 1, associationArray.length);
-		// ea.setAttributeCode(String.join(".", newAssociationArray));
 
 		// Random uuid for uniqueness in the query string
 		String uuid = UUID.randomUUID().toString().substring(0, 8);
@@ -808,12 +796,8 @@ public class BaseEntityService2 {
 		// Unpack each attributeCode
 		String[] associationArray = ea.getAttributeCode().split("\\.");
 		String baseAttributeCode = associationArray[0];
-		// String linkAttribute = associationArray[0];
-		// String valueAttribute = associationArray[associationArray.length-1];
-		// log.info("TEST valueAttribute = " + valueAttribute);
-
 		if (associationArray.length > 1) {
-
+			// Prepare for next iteration by removing base code
 			detatchBaseAttributeCode(eaList);
 
 			// Recursive search
@@ -832,17 +816,18 @@ public class BaseEntityService2 {
 			BooleanBuilder builder = new BooleanBuilder();
 			builder.and(getAttributeSearchColumn(ea, entityAttribute));
 
+			// Process AND Filters
 			eaList.stream().filter(x -> 
 					x.getAttributeCode().startsWith("AND")
 					&& removePrefixFromCode(x.getAttributeCode(), "AND").equals(baseAttributeCode))
 				.forEach(x -> {
 					builder.and(getAttributeSearchColumn(x, entityAttribute));
 			});
+			// Process OR Filters
 			eaList.stream().filter(x -> 
 					x.getAttributeCode().startsWith("OR")
 					&& removePrefixFromCode(x.getAttributeCode(), "OR").equals(baseAttributeCode))
 				.forEach(x -> {
-					log.info("Adding OR FILTER = " + x.getAttributeCode());
 					builder.or(getAttributeSearchColumn(x, entityAttribute));
 			});
 
