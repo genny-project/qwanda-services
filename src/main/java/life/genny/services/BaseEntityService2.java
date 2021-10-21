@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.UUID;
 
 import javax.persistence.EntityExistsException;
@@ -335,31 +336,41 @@ public class BaseEntityService2 {
 				BooleanBuilder currentAttributeBuilder = new BooleanBuilder();
 				BooleanBuilder extraFilterBuilder = new BooleanBuilder();
 
+				Boolean orTrigger = false;
+
 				String joinAttributeCode = attributeCode;
 				if (attributeCode.contains(".")) {
 					// Ensure we now join on this LNK attr
 					joinAttributeCode = attributeCode.split("\\.")[0];
+					// Create a new set of filters just for this subquery
+					List<EntityAttribute> subQueryEaList = searchBE.getBaseEntityAttributes().stream().filter(x -> (
+							removePrefixFromCode(x.getAttributeCode(), "AND").equals(attributeCode)
+							|| removePrefixFromCode(x.getAttributeCode(), "OR").equals(attributeCode)
+							)).collect(Collectors.toList());
+
+					// Prepare for subquery by removing base attribute codes
+					detatchBaseAttributeCode(subQueryEaList);
 					// Must strip value to get clean code
 					currentAttributeBuilder.and(
 							Expressions.stringTemplate("replace({0},'[\"','')", 
 								Expressions.stringTemplate("replace({0},'\"]','')", eaFilterJoin.valueString)
-							) .in(generateSubQuery(ea)));
+							) .in(generateSubQuery(subQueryEaList)));
 				} else {
 					currentAttributeBuilder.and(getAttributeSearchColumn(ea, eaFilterJoin));
-				}
 
-				// Process any AND/OR filters for this attribute
-				andAttributes.stream().filter(x -> removePrefixFromCode(x.getAttributeCode(), "AND").equals(attributeCode)).forEach(x -> {
-					extraFilterBuilder.and(getAttributeSearchColumn(x, eaFilterJoin));
-				});
-				// Using Standard for-loop to allow updating trigger variable
-				Boolean orTrigger = false;
-				for (EntityAttribute x : orAttributes) {
-					if (removePrefixFromCode(x.getAttributeCode(), "OR").equals(attributeCode)) {
-						extraFilterBuilder.or(getAttributeSearchColumn(x, eaFilterJoin));
-						orTrigger = true;
+					// Process any AND/OR filters for this attribute
+					andAttributes.stream().filter(x -> removePrefixFromCode(x.getAttributeCode(), "AND").equals(attributeCode)).forEach(x -> {
+						extraFilterBuilder.and(getAttributeSearchColumn(x, eaFilterJoin));
+					});
+					// Using Standard for-loop to allow updating trigger variable
+					for (EntityAttribute x : orAttributes) {
+						if (removePrefixFromCode(x.getAttributeCode(), "OR").equals(attributeCode)) {
+							extraFilterBuilder.or(getAttributeSearchColumn(x, eaFilterJoin));
+							orTrigger = true;
+						}
 					}
 				}
+
 				// This should get around the bug that occurs with filter LIKE "%"
 				if (!isAnyStringFilter) {
 
@@ -732,6 +743,35 @@ public class BaseEntityService2 {
 		return entityAttribute.valueString;
 	}
 
+
+	/**
+	 * For association filter of format like LNK_PERSON.LNK_COMPANY.PRI_NAME,
+	 * this function wil strip the first code in that chain of attributes
+	 * whilst retaining any AND/OR prefixs.
+	 */
+	public static void detatchBaseAttributeCode(List<EntityAttribute> eaList) {
+
+		eaList.stream().forEach(ea -> {
+			String[] associationArray = ea.getAttributeCode().split("\\.");
+
+			if (associationArray.length > 1) {
+				String baseAttributeCode = associationArray[0];
+
+				String prefix = "";
+				if (baseAttributeCode.startsWith("AND_")) {
+					prefix = "AND_";
+				}
+				if (baseAttributeCode.startsWith("OR_")) {
+					prefix = "OR_";
+				}
+				// Remove first item and update with prefix at beginning
+				String[] newAssociationArray = Arrays.copyOfRange(associationArray, 1, associationArray.length);
+				ea.setAttributeCode(prefix + String.join(".", newAssociationArray));
+			} else {
+				log.warn("Association array length too small. Not updating!");
+			}
+		});
+	}
 	/**
 	* Create a sub query for searhing across LNK associations
 	*
@@ -741,42 +781,63 @@ public class BaseEntityService2 {
 	* @param ea The EntityAttribute filter from SBE
 	* @return the subquery object
 	 */
-	public static JPQLQuery generateSubQuery(EntityAttribute ea) {
-		// TODO: Need fnctionanlity for list of EAs 
+	public static JPQLQuery generateSubQuery(List<EntityAttribute> eaList) {
 
-		// Unpack each attributeCode
-		String[] associationArray = ea.getAttributeCode().split("\\.");
-		String linkAttribute = associationArray[0];
-		String valueAttribute = associationArray[associationArray.length-1];
+		// Find first attribute that is not AND/OR. There should be only one
+		EntityAttribute ea = eaList.stream().filter(x -> (!x.getAttributeCode().startsWith("AND_") && !x.getAttributeCode().startsWith("OR_"))).findFirst().get();
 
-		// Remove first item and update so we can pass into other functions
-		String[] newAssociationArray = Arrays.copyOfRange(associationArray, 1, associationArray.length);
-		ea.setAttributeCode(String.join(".", newAssociationArray));
-
-		// Random uuid to for uniqueness in the query string
+		// Random uuid for uniqueness in the query string
 		String uuid = UUID.randomUUID().toString().substring(0, 8);
 
-		// Define items to query base upon
+		// Define items to base query upon
 		QBaseEntity baseEntity = new QBaseEntity("baseEntity_"+uuid);
 		QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute_"+uuid);
 
-		if (associationArray.length > 2) {
+		// Unpack each attributeCode
+		String[] associationArray = ea.getAttributeCode().split("\\.");
+		String baseAttributeCode = associationArray[0];
+		if (associationArray.length > 1) {
+			// Prepare for next iteration by removing base code
+			detatchBaseAttributeCode(eaList);
+
 			// Recursive search
 			return JPAExpressions.selectDistinct(baseEntity.code)
 				.from(baseEntity)
 				.leftJoin(entityAttribute)
-				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
+				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id)
+						.and(entityAttribute.attributeCode.eq(baseAttributeCode)))
 				.where(
 					Expressions.stringTemplate("replace({0},'[\"','')", 
 						Expressions.stringTemplate("replace({0},'\"]','')", entityAttribute.valueString)
-					) .in(generateSubQuery(ea)));
+					).in(generateSubQuery(eaList)));
 		} else {
+
+			// Create SubQuery Builder parameters using filters
+			BooleanBuilder builder = new BooleanBuilder();
+			builder.and(getAttributeSearchColumn(ea, entityAttribute));
+
+			// Process AND Filters
+			eaList.stream().filter(x -> 
+					x.getAttributeCode().startsWith("AND")
+					&& removePrefixFromCode(x.getAttributeCode(), "AND").equals(baseAttributeCode))
+				.forEach(x -> {
+					builder.and(getAttributeSearchColumn(x, entityAttribute));
+			});
+			// Process OR Filters
+			eaList.stream().filter(x -> 
+					x.getAttributeCode().startsWith("OR")
+					&& removePrefixFromCode(x.getAttributeCode(), "OR").equals(baseAttributeCode))
+				.forEach(x -> {
+					builder.or(getAttributeSearchColumn(x, entityAttribute));
+			});
+
+			// Return the final SubQuery
 			return JPAExpressions.selectDistinct(baseEntity.code)
 				.from(baseEntity)
 				.leftJoin(entityAttribute)
 				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id)
-					.and(entityAttribute.attributeCode.eq(valueAttribute)))
-				.where(getAttributeSearchColumn(ea, entityAttribute));
+					.and(entityAttribute.attributeCode.eq(baseAttributeCode)))
+				.where(builder);
 		}
 	}
 
@@ -804,7 +865,7 @@ public class BaseEntityService2 {
 	 * @param prefix The prefix to remove
 	 * @return formatted The formatted code
 	 */
-	public String removePrefixFromCode(String code, String prefix) {
+	public static String removePrefixFromCode(String code, String prefix) {
 
 		String formatted = code;
 		while (formatted.startsWith(prefix + "_")) {
