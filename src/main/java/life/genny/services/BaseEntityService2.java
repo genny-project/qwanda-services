@@ -2614,6 +2614,9 @@ public class BaseEntityService2 {
 
 			existing = getEntityManager().merge(existing);
 			return existing.getId();
+		} catch (Exception ex) {
+			log.error("Invalid questionCode:" + question.getCode() + ", errorMsg:" + ex.getMessage());
+			throw ex;
 		}
 		return question.getId();
 	}
