@@ -5176,7 +5176,7 @@ public class BaseEntityService2 {
 	public List<Attribute> findAttributes() throws NoResultException {
 
 		final List<Attribute> results = getEntityManager()
-				.createQuery("SELECT a FROM Attribute a where a.realm=:realmStr").setParameter("realmStr", getRealm())
+				.createQuery("SELECT a FROM Attribute a where a.realm=:realmStr and a.name not like 'App_%'").setParameter("realmStr", getRealm())
 				.getResultList();
 
 		return results;
