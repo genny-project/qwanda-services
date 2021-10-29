@@ -392,7 +392,7 @@ public class BaseEntityService2 {
 				if (ea.getValueString() != null) {
 					if (!StringUtils.isBlank(ea.getValueString())) {
 						String wildcardValue = ea.getValueString();
-						wildcardValue = wildcardValue.replaceAll("[^A-zA-Z0-9 .,'/@\\-\\()]", "");
+						wildcardValue = wildcardValue.replaceAll("[^A-zA-Z0-9 .,'/@()_-]", "");
 						wildcardValue = "%" + wildcardValue + "%";
 
 						QEntityAttribute eaWildcardJoin = new QEntityAttribute("eaWildcardJoin");
