@@ -392,7 +392,7 @@ public class BaseEntityService2 {
 				if (ea.getValueString() != null) {
 					if (!StringUtils.isBlank(ea.getValueString())) {
 						String wildcardValue = ea.getValueString();
-						wildcardValue = wildcardValue.replaceAll(("[^A-Za-z0-9-/ ]"), "");
+						wildcardValue = wildcardValue.replaceAll("[^A-Za-z0-9 \\.\\-\\/]", "");
 						wildcardValue = "%" + wildcardValue + "%";
 
 						QEntityAttribute eaWildcardJoin = new QEntityAttribute("eaWildcardJoin");
@@ -5179,7 +5179,7 @@ public class BaseEntityService2 {
 	public List<Attribute> findAttributes() throws NoResultException {
 
 		final List<Attribute> results = getEntityManager()
-				.createQuery("SELECT a FROM Attribute a where a.realm=:realmStr").setParameter("realmStr", getRealm())
+				.createQuery("SELECT a FROM Attribute a where a.realm=:realmStr and a.name not like 'App\\_%'").setParameter("realmStr", getRealm())
 				.getResultList();
 
 		return results;
