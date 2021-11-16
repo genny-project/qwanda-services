@@ -392,8 +392,7 @@ public class BaseEntityService2 {
 				if (ea.getValueString() != null) {
 					if (!StringUtils.isBlank(ea.getValueString())) {
 						String wildcardValue = ea.getValueString();
-						// Commented out because it won't bloody work - Jasper (11/11/2021)
-						// wildcardValue = wildcardValue.replaceAll("[^A-zA-Z0-9 .,'@()_-]", "");
+						// wildcardValue = wildcardValue.replaceAll("[^A-zA-Z0-9 .,'/@()_-]", "");
 						wildcardValue = "%" + wildcardValue + "%";
 
 						QEntityAttribute eaWildcardJoin = new QEntityAttribute("eaWildcardJoin");
@@ -403,8 +402,11 @@ public class BaseEntityService2 {
 						log.info("WILDCARD like " + wildcardValue);
 
 						builder.and(baseEntity.name.like(wildcardValue)
-								.or(eaWildcardJoin.valueString.like(wildcardValue)));
-								// .or(eaWildcardJoin.valueString.in(generateWildcardSubQuery(wildcardValue))));
+								.or(eaWildcardJoin.valueString.like(wildcardValue))
+								.or(Expressions.stringTemplate("replace({0},'[\"','')", 
+										Expressions.stringTemplate("replace({0},'\"]','')", eaWildcardJoin.valueString)
+										).in(generateWildcardSubQuery(wildcardValue, 2))
+									));
 					}
 				}
 			} else if (attributeCode.startsWith("SCH_LINK_CODE")) {
@@ -842,7 +844,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	public static JPQLQuery generateWildcardSubQuery(String value) {
+	public static JPQLQuery generateWildcardSubQuery(String value, Integer recursion) {
 
 		// Random uuid to for uniqueness in the query string
 		String uuid = UUID.randomUUID().toString().substring(0, 8);
@@ -851,11 +853,26 @@ public class BaseEntityService2 {
 		QBaseEntity baseEntity = new QBaseEntity("baseEntity_"+uuid);
 		QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute_"+uuid);
 
-		return JPAExpressions.selectDistinct(baseEntity.code)
-			.from(baseEntity)
-			.leftJoin(entityAttribute)
-			.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
-			.where(entityAttribute.valueString.like(value));
+
+		if (recursion > 1) {
+			return JPAExpressions.selectDistinct(baseEntity.code)
+				.from(baseEntity)
+				.leftJoin(entityAttribute)
+				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
+				.where(entityAttribute.valueString.like(value)
+						.or(
+							Expressions.stringTemplate("replace({0},'[\"','')", 
+								Expressions.stringTemplate("replace({0},'\"]','')", entityAttribute.valueString)
+								).in(generateWildcardSubQuery(value, recursion-1))
+							));
+
+		} else {
+			return JPAExpressions.selectDistinct(baseEntity.code)
+				.from(baseEntity)
+				.leftJoin(entityAttribute)
+				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
+				.where(entityAttribute.valueString.like(value));
+		}
 	}
 
 	/**
