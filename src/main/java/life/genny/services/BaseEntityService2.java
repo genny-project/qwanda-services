@@ -405,7 +405,7 @@ public class BaseEntityService2 {
 								.or(eaWildcardJoin.valueString.like(wildcardValue))
 								.or(Expressions.stringTemplate("replace({0},'[\"','')", 
 										Expressions.stringTemplate("replace({0},'\"]','')", eaWildcardJoin.valueString)
-										).in(generateWildcardSubQuery(wildcardValue, 2))
+										).in(generateWildcardSubQuery(wildcardValue, 1))
 									));
 					}
 				}
