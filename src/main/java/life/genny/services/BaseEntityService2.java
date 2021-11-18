@@ -403,10 +403,11 @@ public class BaseEntityService2 {
 
 						builder.and(baseEntity.name.like(wildcardValue)
 								.or(eaWildcardJoin.valueString.like(wildcardValue))
-								.or(Expressions.stringTemplate("replace({0},'[\"','')", 
-										Expressions.stringTemplate("replace({0},'\"]','')", eaWildcardJoin.valueString)
-										).in(generateWildcardSubQuery(wildcardValue, 1))
-									));
+								// .or(Expressions.stringTemplate("replace({0},'[\"','')", 
+								// 		Expressions.stringTemplate("replace({0},'\"]','')", eaWildcardJoin.valueString)
+								// 		).in(generateWildcardSubQuery(wildcardValue, 1))
+								// 	)
+								);
 					}
 				}
 			} else if (attributeCode.startsWith("SCH_LINK_CODE")) {
