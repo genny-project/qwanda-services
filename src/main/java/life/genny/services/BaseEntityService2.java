@@ -257,6 +257,9 @@ public class BaseEntityService2 {
 		List<EntityAttribute> andAttributes = searchBE.findPrefixEntityAttributes("AND_");
 		List<EntityAttribute> orAttributes = searchBE.findPrefixEntityAttributes("OR_");
 
+		List<String> wilcardWhiteList = searchBE.findPrefixEntityAttributes("WTL_").stream().map(x -> x.getAttributeCode().substring(4)).collect(Collectors.toList());
+		List<String> wilcardBlackList = searchBE.findPrefixEntityAttributes("BKL_").stream().map(x -> x.getAttributeCode().substring(4)).collect(Collectors.toList());
+
 		BooleanBuilder builder = new BooleanBuilder();
 
 		// Ensure only Entities from our realm are returned
@@ -403,7 +406,9 @@ public class BaseEntityService2 {
 						log.info("WILDCARD like " + wildcardValue);
 
 						builder.and(baseEntity.name.like(wildcardValue)
-								.or(eaWildcardJoin.valueString.like(wildcardValue))
+								.or(eaWildcardJoin.valueString.like(wildcardValue)
+									// .and(eaWildcardJoin.attributeCode.in(wilcardWhiteList))
+									.and(eaWildcardJoin.attributeCode.notIn(wilcardBlackList)))
 								.or(Expressions.stringTemplate("replace({0},'[\"','')", 
 										Expressions.stringTemplate("replace({0},'\"]','')", eaWildcardJoin.valueString)
 										).in(generateWildcardSubQuery(wildcardValue, 1))
