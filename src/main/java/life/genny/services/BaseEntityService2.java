@@ -400,19 +400,26 @@ public class BaseEntityService2 {
 						wildcardValue = "%" + wildcardValue + "%";
 
 						QEntityAttribute eaWildcardJoin = new QEntityAttribute("eaWildcardJoin");
-						query.leftJoin(eaWildcardJoin).on(eaWildcardJoin.pk.baseEntity.id.eq(baseEntity.id));
+						query.leftJoin(eaWildcardJoin);
 
-						builder.and(eaWildcardJoin.valueString.like(wildcardValue).or(baseEntity.name.like(wildcardValue)));
+						if (wilcardWhiteList != null) {
+							query.on(eaWildcardJoin.pk.baseEntity.id.eq(baseEntity.id).and(eaWildcardJoin.attributeCode.in(wilcardWhiteList)));
+						} else if (wilcardBlackList != null) {
+							query.on(eaWildcardJoin.pk.baseEntity.id.eq(baseEntity.id).and(eaWildcardJoin.attributeCode.notIn(wilcardBlackList)));
+						} else {
+							query.on(eaWildcardJoin.pk.baseEntity.id.eq(baseEntity.id));
+						}
+
+						// builder.and(eaWildcardJoin.valueString.like(wildcardValue).or(baseEntity.name.like(wildcardValue)));
 						log.info("WILDCARD like " + wildcardValue);
 
 						builder.and(baseEntity.name.like(wildcardValue)
 								.or(eaWildcardJoin.valueString.like(wildcardValue)
-									// .and(eaWildcardJoin.attributeCode.in(wilcardWhiteList))
-									.and(eaWildcardJoin.attributeCode.notIn(wilcardBlackList)))
 								.or(Expressions.stringTemplate("replace({0},'[\"','')", 
 										Expressions.stringTemplate("replace({0},'\"]','')", eaWildcardJoin.valueString)
-										).in(generateWildcardSubQuery(wildcardValue, 1, wilcardBlackList))
-									));
+										).in(generateWildcardSubQuery(wildcardValue, 1, wilcardWhiteList, wilcardBlackList))
+									))
+								);
 					}
 				}
 			} else if (attributeCode.startsWith("SCH_LINK_CODE")) {
@@ -850,7 +857,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	public static JPQLQuery generateWildcardSubQuery(String value, Integer recursion, List<String> blacklist) {
+	public static JPQLQuery generateWildcardSubQuery(String value, Integer recursion, List<String> whitelist, List<String> blacklist) {
 
 		// Random uuid to for uniqueness in the query string
 		String uuid = UUID.randomUUID().toString().substring(0, 8);
@@ -860,27 +867,29 @@ public class BaseEntityService2 {
 		QEntityAttribute entityAttribute = new QEntityAttribute("entityAttribute_"+uuid);
 
 
-		if (recursion > 1) {
-			return JPAExpressions.selectDistinct(baseEntity.code)
-				.from(baseEntity)
-				.leftJoin(entityAttribute)
-				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
-				.where((entityAttribute.valueString.like(value)
-									.and(entityAttribute.attributeCode.notIn(blacklist)))
-						.or(
-							Expressions.stringTemplate("replace({0},'[\"','')", 
-								Expressions.stringTemplate("replace({0},'\"]','')", entityAttribute.valueString)
-								).in(generateWildcardSubQuery(value, recursion-1, blacklist))
-							));
+		JPQLQuery exp = JPAExpressions.selectDistinct(baseEntity.code)
+			.from(baseEntity)
+			.leftJoin(entityAttribute);
 
+		// Handle whitelisting and blacklisting
+		if (whitelist != null) {
+			exp.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id).and(entityAttribute.attributeCode.in(whitelist)));
+		} else if (blacklist != null) {
+			exp.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id).and(entityAttribute.attributeCode.notIn(blacklist)));
 		} else {
-			return JPAExpressions.selectDistinct(baseEntity.code)
-				.from(baseEntity)
-				.leftJoin(entityAttribute)
-				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
-				.where(entityAttribute.valueString.like(value)
-						.and(entityAttribute.attributeCode.notIn(blacklist)));
+			exp.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id));
 		}
+
+		if (recursion > 1) {
+			exp.where(entityAttribute.valueString.like(value)
+				.or(Expressions.stringTemplate("replace({0},'[\"','')", 
+					Expressions.stringTemplate("replace({0},'\"]','')", entityAttribute.valueString)
+					).in(generateWildcardSubQuery(value, recursion-1, whitelist, blacklist))
+			   ));
+		} else {
+			exp.where(entityAttribute.valueString.like(value));
+		}
+		return exp;
 	}
 
 	/**
