@@ -411,7 +411,7 @@ public class BaseEntityService2 {
 									.and(eaWildcardJoin.attributeCode.notIn(wilcardBlackList)))
 								.or(Expressions.stringTemplate("replace({0},'[\"','')", 
 										Expressions.stringTemplate("replace({0},'\"]','')", eaWildcardJoin.valueString)
-										).in(generateWildcardSubQuery(wildcardValue, 1))
+										).in(generateWildcardSubQuery(wildcardValue, 1, wilcardBlackList))
 									));
 					}
 				}
@@ -850,7 +850,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	public static JPQLQuery generateWildcardSubQuery(String value, Integer recursion) {
+	public static JPQLQuery generateWildcardSubQuery(String value, Integer recursion, List<String> blacklist) {
 
 		// Random uuid to for uniqueness in the query string
 		String uuid = UUID.randomUUID().toString().substring(0, 8);
@@ -865,11 +865,12 @@ public class BaseEntityService2 {
 				.from(baseEntity)
 				.leftJoin(entityAttribute)
 				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
-				.where(entityAttribute.valueString.like(value)
+				.where((entityAttribute.valueString.like(value)
+									.and(entityAttribute.attributeCode.notIn(blacklist)))
 						.or(
 							Expressions.stringTemplate("replace({0},'[\"','')", 
 								Expressions.stringTemplate("replace({0},'\"]','')", entityAttribute.valueString)
-								).in(generateWildcardSubQuery(value, recursion-1))
+								).in(generateWildcardSubQuery(value, recursion-1, blacklist))
 							));
 
 		} else {
@@ -877,7 +878,8 @@ public class BaseEntityService2 {
 				.from(baseEntity)
 				.leftJoin(entityAttribute)
 				.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id))
-				.where(entityAttribute.valueString.like(value));
+				.where(entityAttribute.valueString.like(value)
+						.and(entityAttribute.attributeCode.notIn(blacklist)));
 		}
 	}
 
