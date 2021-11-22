@@ -395,9 +395,9 @@ public class BaseEntityService2 {
 				if (ea.getValueString() != null) {
 					if (!StringUtils.isBlank(ea.getValueString())) {
 						String wildcardValue = ea.getValueString();
-						// Commented out because it won't bloody work - Jasper (11/11/2021)
 						// wildcardValue = wildcardValue.replaceAll("[^A-zA-Z0-9 .,'@()_-]", "");
 						wildcardValue = "%" + wildcardValue + "%";
+						log.info("WILDCARD like " + wildcardValue);
 
 						QEntityAttribute eaWildcardJoin = new QEntityAttribute("eaWildcardJoin");
 						query.leftJoin(eaWildcardJoin);
@@ -411,9 +411,6 @@ public class BaseEntityService2 {
 						} else {
 							query.on(eaWildcardJoin.pk.baseEntity.id.eq(baseEntity.id));
 						}
-
-						// builder.and(eaWildcardJoin.valueString.like(wildcardValue).or(baseEntity.name.like(wildcardValue)));
-						log.info("WILDCARD like " + wildcardValue);
 
 						// Find the depth level for associated wildcards
 						EntityAttribute depthLevelAttribute = searchBE.findEntityAttribute("SCH_WILDCARD_DEPTH").orElse(null);
