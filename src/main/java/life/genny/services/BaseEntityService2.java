@@ -415,14 +415,27 @@ public class BaseEntityService2 {
 						// builder.and(eaWildcardJoin.valueString.like(wildcardValue).or(baseEntity.name.like(wildcardValue)));
 						log.info("WILDCARD like " + wildcardValue);
 
-						builder.and(baseEntity.name.like(wildcardValue)
-								.or(eaWildcardJoin.valueString.like(wildcardValue)
-								.or(Expressions.stringTemplate("replace({0},'[\"','')", 
-										Expressions.stringTemplate("replace({0},'\"]','')", eaWildcardJoin.valueString)
-										).in(generateWildcardSubQuery(wildcardValue, 1, wilcardWhiteList, wilcardBlackList))
-									)
-								)
-							);
+						// Find the depth level for associated wildcards
+						EntityAttribute depthLevelAttribute = searchBE.findEntityAttribute("SCH_WILDCARD_DEPTH").orElse(null);
+						Integer depth = 0;
+						if (depthLevelAttribute != null) {
+							depth = depthLevelAttribute.getValueInteger();
+						}
+
+						if (depth != null && depth > 0) {
+							builder.and(baseEntity.name.like(wildcardValue)
+									.or(eaWildcardJoin.valueString.like(wildcardValue)
+										.or(Expressions.stringTemplate("replace({0},'[\"','')", 
+												Expressions.stringTemplate("replace({0},'\"]','')", eaWildcardJoin.valueString)
+												).in(generateWildcardSubQuery(wildcardValue, depth, wilcardWhiteList, wilcardBlackList))
+										   )
+									   )
+									);
+						} else {
+							builder.and(baseEntity.name.like(wildcardValue)
+									.or(eaWildcardJoin.valueString.like(wildcardValue)));
+
+						}
 					}
 				}
 			} else if (attributeCode.startsWith("SCH_LINK_CODE")) {
