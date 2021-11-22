@@ -257,8 +257,8 @@ public class BaseEntityService2 {
 		List<EntityAttribute> andAttributes = searchBE.findPrefixEntityAttributes("AND_");
 		List<EntityAttribute> orAttributes = searchBE.findPrefixEntityAttributes("OR_");
 
-		List<String> wilcardWhiteList = searchBE.findPrefixEntityAttributes("WTL_").stream().map(x -> x.getAttributeCode().substring(4)).collect(Collectors.toList());
-		List<String> wilcardBlackList = searchBE.findPrefixEntityAttributes("BKL_").stream().map(x -> x.getAttributeCode().substring(4)).collect(Collectors.toList());
+		String[] wilcardWhiteList = searchBE.findPrefixEntityAttributes("WTL_").stream().map(x -> x.getAttributeCode().substring(4)).toArray(String[]::new);
+		String[] wilcardBlackList = searchBE.findPrefixEntityAttributes("BKL_").stream().map(x -> x.getAttributeCode().substring(4)).toArray(String[]::new);
 
 		BooleanBuilder builder = new BooleanBuilder();
 
@@ -402,9 +402,11 @@ public class BaseEntityService2 {
 						QEntityAttribute eaWildcardJoin = new QEntityAttribute("eaWildcardJoin");
 						query.leftJoin(eaWildcardJoin);
 
-						if (wilcardWhiteList != null) {
+						if (wilcardWhiteList.length > 0) {
+							log.info("Whitelist = " + Arrays.toString(wilcardWhiteList));
 							query.on(eaWildcardJoin.pk.baseEntity.id.eq(baseEntity.id).and(eaWildcardJoin.attributeCode.in(wilcardWhiteList)));
-						} else if (wilcardBlackList != null) {
+						} else if (wilcardBlackList.length > 0) {
+							log.info("Blacklist = " + Arrays.toString(wilcardBlackList));
 							query.on(eaWildcardJoin.pk.baseEntity.id.eq(baseEntity.id).and(eaWildcardJoin.attributeCode.notIn(wilcardBlackList)));
 						} else {
 							query.on(eaWildcardJoin.pk.baseEntity.id.eq(baseEntity.id));
@@ -418,8 +420,9 @@ public class BaseEntityService2 {
 								.or(Expressions.stringTemplate("replace({0},'[\"','')", 
 										Expressions.stringTemplate("replace({0},'\"]','')", eaWildcardJoin.valueString)
 										).in(generateWildcardSubQuery(wildcardValue, 1, wilcardWhiteList, wilcardBlackList))
-									))
-								);
+									)
+								)
+							);
 					}
 				}
 			} else if (attributeCode.startsWith("SCH_LINK_CODE")) {
@@ -857,7 +860,7 @@ public class BaseEntityService2 {
 		}
 	}
 
-	public static JPQLQuery generateWildcardSubQuery(String value, Integer recursion, List<String> whitelist, List<String> blacklist) {
+	public static JPQLQuery generateWildcardSubQuery(String value, Integer recursion, String[] whitelist, String[] blacklist) {
 
 		// Random uuid to for uniqueness in the query string
 		String uuid = UUID.randomUUID().toString().substring(0, 8);
@@ -872,9 +875,9 @@ public class BaseEntityService2 {
 			.leftJoin(entityAttribute);
 
 		// Handle whitelisting and blacklisting
-		if (whitelist != null) {
+		if (whitelist.length > 0) {
 			exp.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id).and(entityAttribute.attributeCode.in(whitelist)));
-		} else if (blacklist != null) {
+		} else if (blacklist.length > 0) {
 			exp.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id).and(entityAttribute.attributeCode.notIn(blacklist)));
 		} else {
 			exp.on(entityAttribute.pk.baseEntity.id.eq(baseEntity.id));
