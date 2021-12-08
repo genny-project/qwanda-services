@@ -2789,8 +2789,13 @@ public class BaseEntityService2 {
 			log.error("Cannot save BaseEntity with code " + entity.getCode() + "! " + e.getLocalizedMessage());
 			return -1L;
 		} catch (final ConstraintViolationException e) {
-			log.error("Entity Already exists - cannot insert" + entity.getCode());
-			return entity.getId();
+			log.error("Entity Already exists - cannot insert, so updationg existing" + entity.getCode());
+			// fetch existing entity , save the new name and eentitystatus and return the id
+			BaseEntity existing = findBaseEntityByCode(entity.getCode(), false);
+			existing.setName(entity.getName());
+			existing.setStatus(entity.getStatus());
+			getEntityManager().persist(existing);
+			return existing.getId();
 		} catch (final PersistenceException e) {
 			return entity.getId();
 		} catch (final IllegalStateException e) {
