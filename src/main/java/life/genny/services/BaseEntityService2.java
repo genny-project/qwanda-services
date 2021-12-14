@@ -3535,10 +3535,10 @@ public class BaseEntityService2 {
 		try {
 			String code = attr.getCode();
 			Attribute val = findAttributeByCode(code);
-			log.info("UPSERT BEFORE COPY AttributeCode = " + val.getCode() + ", dataType = " + val.getDataType().getDttCode());
 			if (val == null) {
 				throw new NoResultException();
 			}
+			log.info("UPSERT BEFORE COPY AttributeCode = " + val.getCode() + ", dataType = " + val.getDataType().getDttCode());
 			BeanNotNullFields copyFields = new BeanNotNullFields();
 			copyFields.copyProperties(val, attr);
 			log.info("UPSERT AFTER COPY AttributeCode = " + val.getCode() + ", dataType = " + val.getDataType().getDttCode());
