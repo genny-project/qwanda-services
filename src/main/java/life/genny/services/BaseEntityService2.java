@@ -4959,6 +4959,8 @@ public class BaseEntityService2 {
 							child.setReadonly(qq.getReadonly());
 						}
 					} catch (Exception e) {
+						log.error("Error with QuestionQuestion: " + rootQuestion.getCode());
+						log.error("Problem Question: " + childQuestion.getCode());
 						e.printStackTrace();
 					}
 					childAsks.addAll(askChildren);
