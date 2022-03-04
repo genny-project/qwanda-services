@@ -143,6 +143,7 @@ import life.genny.utils.BaseEntityUtils;
 import life.genny.utils.RulesUtils;
 import life.genny.models.GennyToken;
 import life.genny.qwandautils.BeanNotNullFields;
+import life.genny.qwandautils.ANSIColour;
 
 
 /**
@@ -2975,11 +2976,15 @@ public class BaseEntityService2 {
 				answer.setAttribute(attribute);
 				if (answer.getAskId() != null) {
 					ask = findAskById(answer.getAskId());
-					if (!(answer.getSourceCode().equals(ask.getSourceCode())
-							&& answer.getAttributeCode().equals(ask.getAttributeCode())
-							&& answer.getTargetCode().equals(ask.getTargetCode()))) {
-						log.error("Answer codes do not match Ask codes! " + answer);
-						// return -1L; // need to throw error
+					if (ask != null) {
+						if (!(answer.getSourceCode().equals(ask.getSourceCode())
+									&& answer.getAttributeCode().equals(ask.getAttributeCode())
+									&& answer.getTargetCode().equals(ask.getTargetCode()))) {
+							log.error("Answer codes do not match Ask codes! " + answer);
+							// return -1L; // need to throw error
+							}
+					} else {
+						log.error(ANSIColour.RED+"BAD BAD BAD BAD, PLEASE LOOK INTO THIS IMMEDIATELY!!!! Ask is null for " + answer.getAskId()+ANSIColour.RESET);
 					}
 					// log.info("Answer processing 3.1 = "+((System.nanoTime() - answerStartMs) /
 					// 1e6)+" ms - ASK ID "+answer.getAskId());
