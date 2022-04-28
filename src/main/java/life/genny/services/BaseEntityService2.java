@@ -485,7 +485,7 @@ public class BaseEntityService2 {
 				orderColumn = baseEntity.name;
 			} else {
 				// Use Attribute Code to find the datatype, and thus the DB field to sort on
-				Attribute attr = RulesUtils.getAttribute(attributeCode.substring("SRT_".length()), passedToken);
+				Attribute attr = RulesUtils.getAttribute(attributeCode.substring("SRT_".length()), new GennyToken(passedToken));
 				String dtt = attr.getDataType().getClassName();
 				orderColumn = getPathFromDatatype(dtt, eaOrderJoin);
 			}
