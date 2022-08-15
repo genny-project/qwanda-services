@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.UUID;
@@ -5241,10 +5242,40 @@ public class BaseEntityService2 {
 
 	public List<Attribute> findAttributes() throws NoResultException {
 
-		final List<Attribute> results = getEntityManager()
-				.createQuery("SELECT a FROM Attribute a where a.realm=:realmStr and a.name not like 'App\\_%'").setParameter("realmStr", getRealm())
+		List<Attribute> results = getEntityManager()
+				.createQuery("SELECT a FROM Attribute a where a.realm=:realmStr and a.name not like 'App\\_%'")
+				.setParameter("realmStr", getRealm())
 				.getResultList();
 
+		// Replace Validation in Attribute.DataType.validationList
+		if(results.size() > 0) {
+			// Get all validations, normally not many
+			List<Validation> validations =  getEntityManager()
+					.createQuery("SELECT v FROM Validation v where v.realm=:realmStr")
+					.setParameter("realmStr", getRealm())
+					.getResultList();
+			HashMap<String , Validation> validationMapping = new HashMap<>();
+			for (Validation validation : validations) {
+				validationMapping.put(validation.getCode(), validation);
+			}
+
+			// Replace validation in Attribute
+			for (Attribute attribute: results) {
+				List<Validation> validationList = attribute.getDataType().getValidationList();
+				// same definition as ValidationListConverter.convertToEntityAttribute
+				List<Validation> newValidationList =  new CopyOnWriteArrayList<>();
+				for (Validation validation : validationList) {
+					Validation validationFromDB = validationMapping.getOrDefault(validation.getCode(), null);
+					if(validationFromDB != null)  {
+						newValidationList.add(validationFromDB);
+					} else {
+						// should not reach to here
+						log.error("Can't find linked Validation:" + validation.getCode() + " for Attribute:" + attribute.getCode());
+					}
+				}
+				attribute.getDataType().setValidationList(newValidationList);
+			}
+		}
 		return results;
 	}
 
