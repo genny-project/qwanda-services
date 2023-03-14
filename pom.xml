@@ -47,7 +47,7 @@
 		<jackson.version>2.9.5</jackson.version>
 		<jersey-version>2.13</jersey-version>
 		<version.apache-httpclient>4.5.13</version.apache-httpclient>
-		<version.keycloak>15.0.2</version.keycloak>
+		<version.keycloak>20.0.3</version.keycloak>
 		<version.hibernate>5.4.24.Final</version.hibernate>
 		<version.hibernate-validator>6.1.5.Final</version.hibernate-validator>
 		<version.hsqldb>2.5.0</version.hsqldb>
